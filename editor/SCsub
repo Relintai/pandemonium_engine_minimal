@@ -69,32 +69,6 @@ if env["tools"]:
     env.Depends("#editor/doc_data_compressed.gen.h", docs)
     env.CommandNoCache("#editor/doc_data_compressed.gen.h", docs, run_in_subprocess(editor_builders.make_doc_header))
 
-    # Editor interface and class reference translations incur a significant size
-    # cost for the editor binary (see godot-proposals#3421).
-    # To limit it, we only include translations with a high enough completion
-    # ratio (30% for the editor UI, 10% for the class reference).
-    # Generated with `make include-list` for each resource.
-    # Note: In 3.x, we also exclude languages that depend on complex text
-    # layouts to be displayed properly: ar,bn,fa,he,hi,ml,si,ta,te,ur.
-
-    # Editor translations
-    to_include = (
-        "bg,ca,cs,de,el,eo,es_AR,es,fi,fr,gl,hu,id,it,ja,ko,lv,ms,nb,nl,pl,pt_BR,pt,ro,ru,sk,sv,th,tr,uk,vi,zh_CN,zh_TW"
-    ).split(",")
-    tlist = [env.Dir("#editor/translations").abspath + "/" + f + ".po" for f in to_include]
-    env.Depends("#editor/editor_translations.gen.h", tlist)
-    env.CommandNoCache(
-        "#editor/editor_translations.gen.h", tlist, run_in_subprocess(editor_builders.make_editor_translations_header)
-    )
-
-    # Documentation translations
-    to_include = "de,es,fr,hu,ja,zh_CN".split(",")
-    tlist = [env.Dir("#doc/translations").abspath + "/" + f + ".po" for f in to_include]
-    env.Depends("#editor/doc_translations.gen.h", tlist)
-    env.CommandNoCache(
-        "#editor/doc_translations.gen.h", tlist, run_in_subprocess(editor_builders.make_doc_translations_header)
-    )
-
     # Fonts
     flist = glob.glob(env.Dir("#thirdparty").abspath + "/fonts/*.ttf")
     flist.extend(glob.glob(env.Dir("#thirdparty").abspath + "/fonts/*.otf"))
