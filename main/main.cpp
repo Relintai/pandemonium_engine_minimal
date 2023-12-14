@@ -421,18 +421,6 @@ void Main::print_help(const char *p_binary) {
 	OS::get_singleton()->print("  --no-docbase                     Disallow dumping the base types (used with --doctool).\n");
 	OS::get_singleton()->print("  --benchmark                      Benchmark the run time and print it to console.\n");
 	OS::get_singleton()->print("  --benchmark-file <path>          Benchmark the run time and save it to a given file in JSON format. The path should be absolute.\n");
-#ifdef DEBUG_METHODS_ENABLED
-	OS::get_singleton()->print("  --gdnative-generate-json-api     Generate JSON dump of the Pandemonium API for GDNative bindings.\n");
-#endif
-	OS::get_singleton()->print("  --test <test>                    Run a unit test (");
-	const char **test_names = tests_get_names();
-	const char *comma = "";
-	while (*test_names) {
-		OS::get_singleton()->print("%s'%s'", comma, *test_names);
-		test_names++;
-		comma = ", ";
-	}
-	OS::get_singleton()->print(").\n");
 #endif
 }
 
@@ -1661,7 +1649,6 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		register_module_types(ModuleRegistrationLevel::MODULE_REGISTRATION_LEVEL_EDITOR);
 	}
-	//register_module_types(ModuleRegistrationLevel::MODULE_REGISTRATION_LEVEL_TEST);
 	register_module_types(ModuleRegistrationLevel::MODULE_REGISTRATION_LEVEL_FINALIZE);
 
 	// Theme needs modules to be initialized so that sub-resources can be loaded.
@@ -1716,7 +1703,6 @@ bool Main::start() {
 	String positional_arg;
 	String game_path;
 	String script;
-	String test;
 	bool check_only = false;
 
 #ifdef TOOLS_ENABLED
@@ -1763,8 +1749,6 @@ bool Main::start() {
 			bool parsed_pair = true;
 			if (args[i] == "-s" || args[i] == "--script") {
 				script = args[i + 1];
-			} else if (args[i] == "--test") {
-				test = args[i + 1];
 #ifdef TOOLS_ENABLED
 			} else if (args[i] == "--doctool") {
 				doc_tool_path = args[i + 1];
@@ -1883,16 +1867,7 @@ bool Main::start() {
 	};
 	String main_loop_type = GLOBAL_DEF("application/run/main_loop_type", "SceneTree");
 
-	if (test != "") {
-#ifdef TOOLS_ENABLED
-		main_loop = test_main(test, args);
-
-		if (!main_loop) {
-			return false;
-		}
-#endif
-
-	} else if (script != "") {
+	if (script != "") {
 		Ref<Script> script_res = ResourceLoader::load(script);
 		ERR_FAIL_COND_V_MSG(script_res.is_null(), false, "Can't load script: " + script);
 
@@ -2266,7 +2241,7 @@ bool Main::start() {
 		}
 
 #ifdef TOOLS_ENABLED
-		if (project_manager || (script == "" && test == "" && game_path == "" && !editor)) {
+		if (project_manager || (script == "" && game_path == "" && !editor)) {
 			Engine::get_singleton()->set_editor_hint(true);
 			ProjectManager *pmanager = memnew(ProjectManager);
 			ProgressDialog *progress_dialog = memnew(ProgressDialog);
@@ -2618,7 +2593,6 @@ void Main::cleanup(bool p_force) {
 	unregister_driver_types();
 
 	unregister_module_types(ModuleRegistrationLevel::MODULE_REGISTRATION_LEVEL_START);
-	//unregister_module_types(ModuleRegistrationLevel::MODULE_REGISTRATION_LEVEL_TEST);
 	if (Engine::get_singleton()->is_editor_hint()) {
 		unregister_module_types(ModuleRegistrationLevel::MODULE_REGISTRATION_LEVEL_EDITOR);
 	}
