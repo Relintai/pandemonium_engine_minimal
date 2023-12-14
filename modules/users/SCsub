@@ -1,0 +1,45 @@
+import os
+
+Import('env')
+
+module_env = env.Clone()
+
+sources = [
+    "register_types.cpp",
+
+    "users/user.cpp",
+    "users/user_module.cpp",
+
+    "managers/user_manager.cpp",
+    "managers/user_manager_static.cpp",
+    "managers/user_manager_file.cpp",
+
+    "singleton/user_db.cpp",
+]
+
+if env['module_web_enabled']:
+  sources.append("web/middleware/user_session_setup_web_server_middleware.cpp")
+  sources.append("web/web_nodes/user_web_page.cpp")
+  sources.append("web/web_nodes/user_delete_web_page.cpp")
+  sources.append("web/web_nodes/user_login_web_page.cpp")
+  sources.append("web/web_nodes/user_logout_web_page.cpp")
+  sources.append("web/web_nodes/user_password_reset_web_page.cpp")
+  sources.append("web/web_nodes/user_register_web_page.cpp")
+  sources.append("web/web_nodes/user_settings_web_page.cpp")
+  sources.append("web/web_nodes/user_stats_web_page.cpp")
+
+if env['module_database_enabled']:
+  sources.append("managers/user_manager_db.cpp")
+
+if ARGUMENTS.get('custom_modules_shared', 'no') == 'yes':
+    # Shared lib compilation
+    module_env.Append(CCFLAGS=['-fPIC'])
+    module_env['LIBS'] = []
+    shared_lib = module_env.SharedLibrary(target='#bin/users', source=sources)
+    shared_lib_shim = shared_lib[0].name.rsplit('.', 1)[0]
+    env.Append(LIBS=[shared_lib_shim])
+    env.Append(LIBPATH=['#bin'])
+else:
+    # Static compilation
+    module_env.add_source_files(env.modules_sources, sources)
+

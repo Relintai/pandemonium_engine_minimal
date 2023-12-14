@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="PaintAction" inherits="Resource" version="4.2">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_can_commit" qualifiers="virtual">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="_commit_action" qualifiers="virtual">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="_do_action" qualifiers="virtual">
+			<return type="void" />
+			<argument index="0" name="data" type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="_redo_action" qualifiers="virtual">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="_undo_action" qualifiers="virtual">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="can_commit">
+			<return type="bool" />
+			<description>
+			</description>
+		</method>
+		<method name="commit_action">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="do_action">
+			<return type="void" />
+			<argument index="0" name="data" type="Array" />
+			<description>
+			</description>
+		</method>
+		<method name="draw_points">
+			<return type="void" />
+			<argument index="0" name="point_arr" type="PoolVector2iArray" />
+			<argument index="1" name="color_arr" type="PoolColorArray" />
+			<description>
+			</description>
+		</method>
+		<method name="get_points">
+			<return type="PoolVector2iArray" />
+			<argument index="0" name="pixel" type="Vector2i" />
+			<description>
+			</description>
+		</method>
+		<method name="get_x_sym_points">
+			<return type="PoolVector2iArray" />
+			<argument index="0" name="canvas_width" type="int" />
+			<argument index="1" name="pixel" type="Vector2i" />
+			<description>
+			</description>
+		</method>
+		<method name="get_xy_sym_points">
+			<return type="PoolVector2iArray" />
+			<argument index="0" name="canvas_width" type="int" />
+			<argument index="1" name="canvas_height" type="int" />
+			<argument index="2" name="pixel" type="Vector2i" />
+			<description>
+			</description>
+		</method>
+		<method name="get_y_sym_points">
+			<return type="PoolVector2iArray" />
+			<argument index="0" name="canvas_height" type="int" />
+			<argument index="1" name="pixel" type="Vector2i" />
+			<description>
+			</description>
+		</method>
+		<method name="redo_action">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+		<method name="undo_action">
+			<return type="void" />
+			<description>
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="action_data" type="Dictionary" setter="set_action_data" getter="get_action_data" default="{}">
+		</member>
+		<member name="action_data_preview" type="Dictionary" setter="set_action_data_preview" getter="get_action_data_preview" default="{}">
+		</member>
+		<member name="action_data_redo" type="Dictionary" setter="set_action_data_redo" getter="get_action_data_redo" default="{}">
+		</member>
+		<member name="action_data_undo" type="Dictionary" setter="set_action_data_undo" getter="get_action_data_undo" default="{}">
+		</member>
+		<member name="paint_canvas" type="PaintCanvas" setter="set_paint_canvas" getter="get_paint_canvas">
+		</member>
+		<member name="preview_cells" type="PoolVector2iArray" setter="set_preview_cells" getter="get_preview_cells" default="PoolVector2iArray(  )">
+		</member>
+		<member name="preview_colors" type="PoolColorArray" setter="set_preview_colors" getter="get_preview_colors" default="PoolColorArray(  )">
+		</member>
+		<member name="redo_cells" type="PoolVector2iArray" setter="set_redo_cells" getter="get_redo_cells" default="PoolVector2iArray(  )">
+		</member>
+		<member name="redo_colors" type="PoolColorArray" setter="set_redo_colors" getter="get_redo_colors" default="PoolColorArray(  )">
+		</member>
+		<member name="undo_cells" type="PoolVector2iArray" setter="set_undo_cells" getter="get_undo_cells" default="PoolVector2iArray(  )">
+		</member>
+		<member name="undo_colors" type="PoolColorArray" setter="set_undo_colors" getter="get_undo_colors" default="PoolColorArray(  )">
+		</member>
+	</members>
+	<constants>
+	</constants>
+</class>

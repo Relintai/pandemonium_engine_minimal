@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GSAIKinematicBody3DAgent" inherits="GSAISpecializedAgent" version="4.2">
+	<brief_description>
+		A specialized steering agent that updates itself every frame so the user does not have to using a KinematicBody.
+	</brief_description>
+	<description>
+		A specialized steering agent that updates itself every frame so the user does not have to using a KinematicBody.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+	</methods>
+	<members>
+		<member name="body" type="KinematicBody" setter="set_body" getter="get_body">
+			The KinematicBody to keep track of.
+		</member>
+		<member name="movement_type" type="int" setter="set_movement_type" getter="get_movement_type" default="0">
+			SLIDE uses move_and_slide.
+			COLLIDE uses move_and_collide.
+			POSITION changes the global_position directly.
+		</member>
+	</members>
+	<constants>
+		<constant name="SLIDE" value="0" enum="MovementType">
+		</constant>
+		<constant name="COLLIDE" value="1" enum="MovementType">
+		</constant>
+		<constant name="POSITION" value="2" enum="MovementType">
+		</constant>
+	</constants>
+</class>

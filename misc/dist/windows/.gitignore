@@ -1,0 +1,2 @@
+# Ignore both the Pandemonium executable and generated installers.
+*.exe

@@ -1,0 +1,42 @@
+import os
+
+Import('env')
+
+module_env = env.Clone()
+
+module_env.add_source_files(env.modules_sources,"register_types.cpp")
+
+module_env.add_source_files(env.modules_sources,"mesh_data_resource.cpp")
+module_env.add_source_files(env.modules_sources,"mesh_data_resource_collection.cpp")
+
+module_env.add_source_files(env.modules_sources,"plugin/mdr_import_plugin_base.cpp")
+
+if 'TOOLS_ENABLED' in env["CPPDEFINES"]:
+    if env["module_gltf_enabled"]:
+        module_env.add_source_files(env.modules_sources,"plugin_gltf/editor_import_gltf_mdr.cpp")
+        module_env.add_source_files(env.modules_sources,"plugin_gltf/editor_plugin_gltf_mdr.cpp")
+
+    if env["module_mesh_utils_enabled"]:
+        module_env.add_source_files(env.modules_sources,"editor/utilities/mdr_ed_mesh_decompose.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/utilities/mdr_ed_mesh_outline.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/utilities/mdr_ed_mesh_utils.cpp")
+
+        module_env.add_source_files(env.modules_sources,"editor/uv_editor/mdr_ed_uv_previewer.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/uv_editor/mdr_uv_rect_editor.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/uv_editor/mdr_uv_rect_view_node.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/uv_editor/mdr_uv_rect_editor_popup.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/uv_editor/mdr_uv_rect_view.cpp")
+
+        module_env.add_source_files(env.modules_sources,"editor/mdi_ed_plugin.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/mdi_ed.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/mdi_gizmo_plugin.cpp")
+        module_env.add_source_files(env.modules_sources,"editor/mdi_gizmo.cpp")
+
+module_env.add_source_files(env.modules_sources,"nodes/mesh_data_instance.cpp")
+module_env.add_source_files(env.modules_sources,"nodes/mesh_data_instance_2d.cpp")
+
+if env["module_props_enabled"]:
+    module_env.add_source_files(env.modules_sources,"props/prop_data_mesh_data.cpp")
+
+if env["module_props_2d_enabled"]:
+    module_env.add_source_files(env.modules_sources,"props_2d/prop_2d_data_mesh_data.cpp")

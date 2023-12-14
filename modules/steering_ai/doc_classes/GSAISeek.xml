@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GSAISeek" inherits="GSAISteeringBehavior" version="4.2">
+	<brief_description>
+		Calculates an acceleration to take an agent to a target agent's position directly.
+	</brief_description>
+	<description>
+		Calculates an acceleration to take an agent to a target agent's position directly.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+	</methods>
+	<members>
+		<member name="target" type="GSAIAgentLocation" setter="set_target" getter="get_target">
+			The target that the behavior aims to move the agent to.
+		</member>
+	</members>
+	<constants>
+	</constants>
+</class>

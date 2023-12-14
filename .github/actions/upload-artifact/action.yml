@@ -1,0 +1,19 @@
+name: Upload Pandemonium artifact
+description: Upload the Pandemonium artifact.
+inputs:
+  name:
+    description: The artifact name.
+    default: "${{ github.job }}"
+  path:
+    description: The path to upload.
+    required: true
+    default: "bin/*"
+runs:
+  using: "composite"
+  steps:
+    - name: Upload Pandemonium Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        retention-days: 14

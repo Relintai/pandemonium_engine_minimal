@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+
+Import("env")
+
+# Pandemonium source files
+
+scene_obj = []
+
+env.add_source_files(scene_obj, "*.cpp")
+env.scene_sources += scene_obj
+

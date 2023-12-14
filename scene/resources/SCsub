@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+
+Import("env")
+
+# Thirdparty code
+
+thirdparty_obj = []
+
+thirdparty_sources = "#thirdparty/misc/mikktspace.c"
+
+env_thirdparty = env.Clone()
+env_thirdparty.disable_warnings()
+env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+env.scene_sources += thirdparty_obj
+
+# Pandemonium source files
+
+scene_obj = []
+env.add_source_files(scene_obj, "*.cpp")
+
+# 2d shapes
+shapes_2d_obj = []
+env.add_source_files(shapes_2d_obj, "shapes_2d/*.cpp")
+
+for o in shapes_2d_obj:
+    scene_obj.append(o)
+
+# 3d shapes
+shapes_3d_obj = []
+env.add_source_files(shapes_3d_obj, "shapes/*.cpp")
+
+for o in shapes_3d_obj:
+    scene_obj.append(o)
+
+# 2d navigation
+navigation_2d_obj = []
+env.add_source_files(navigation_2d_obj, "navigation_2d/*.cpp")
+
+for o in navigation_2d_obj:
+    scene_obj.append(o)
+
+# 3d navigation
+navigation_obj = []
+env.add_source_files(navigation_obj, "navigation/*.cpp")
+
+for o in navigation_obj:
+    scene_obj.append(o)
+
+# font
+font_obj = []
+env.add_source_files(font_obj, "font/*.cpp")
+
+for o in font_obj:
+    scene_obj.append(o)
+
+# material
+material_obj = []
+env.add_source_files(material_obj, "material/*.cpp")
+
+for o in material_obj:
+    scene_obj.append(o)
+
+env.scene_sources += scene_obj
+
+# mesh
+mesh_obj = []
+env.add_source_files(mesh_obj, "mesh/*.cpp")
+
+for o in mesh_obj:
+    scene_obj.append(o)
+
+env.scene_sources += scene_obj
+
+# Needed to force rebuilding the scene files when the thirdparty code is updated.
+env.Depends(scene_obj, thirdparty_obj)
+
+SConscript("default_theme/SCsub")

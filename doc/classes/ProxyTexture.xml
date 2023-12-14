@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ProxyTexture" inherits="Texture" version="4.2">
+	<brief_description>
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+	</methods>
+	<members>
+		<member name="base" type="Texture" setter="set_base" getter="get_base">
+		</member>
+		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="false" />
+	</members>
+	<constants>
+	</constants>
+</class>
