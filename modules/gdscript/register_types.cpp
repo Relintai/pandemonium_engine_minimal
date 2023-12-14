@@ -47,12 +47,7 @@ Ref<ResourceFormatSaverGDScript> resource_saver_gd;
 
 #include "editor/editor_export.h"
 #include "editor/editor_node.h"
-#include "editor/editor_settings.h"
-#include "editor/gdscript_highlighter.h"
-
-#ifdef MODULE_EDITOR_CODE_EDITOR_ENABLED
-#include "editor_code_editor/editor_script_editor.h"
-#endif
+#include "editor/editor_settings.h"2
 
 #ifndef GDSCRIPT_NO_LSP
 #include "core/config/engine.h"
@@ -143,12 +138,6 @@ static void _editor_init() {
 	Ref<EditorExportGDScript> gd_export;
 	gd_export.instance();
 	EditorExport::get_singleton()->add_export_plugin(gd_export);
-
-#ifdef MODULE_EDITOR_CODE_EDITOR_ENABLED
-	Ref<GDScriptSyntaxHighlighter> gdscript_syntax_highlighter;
-	gdscript_syntax_highlighter.instance();
-	EditorScriptEditor::get_singleton()->register_syntax_highlighter(gdscript_syntax_highlighter);
-#endif
 
 #ifndef GDSCRIPT_NO_LSP
 	register_lsp_types();

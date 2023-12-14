@@ -33,7 +33,6 @@
 #include "../gdscript.h"
 #include "core/os/os.h"
 #include "editor/editor_settings.h"
-#include "editor_modules/editor_code_editor/editor_script_editor.h"
 #include "gdscript_extend_parser.h"
 #include "gdscript_language_protocol.h"
 
@@ -431,7 +430,6 @@ void GDScriptTextDocument::sync_script_content(const String &p_path, const Strin
 }
 
 void GDScriptTextDocument::show_native_symbol_in_editor(const String &p_symbol_id) {
-	EditorScriptEditor::get_singleton()->call_deferred("_help_class_goto", p_symbol_id);
 	OS::get_singleton()->move_window_to_foreground();
 }
 
