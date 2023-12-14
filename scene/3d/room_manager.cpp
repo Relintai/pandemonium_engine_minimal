@@ -49,6 +49,7 @@
 
 #ifdef TOOLS_ENABLED
 #include "editor/plugins/spatial_editor_plugin.h"
+#include "editor/editor_node.h"
 #endif
 
 #include "modules/modules_enabled.gen.h" // For csg.
