@@ -47,7 +47,7 @@ Ref<ResourceFormatSaverGDScript> resource_saver_gd;
 
 #include "editor/editor_export.h"
 #include "editor/editor_node.h"
-#include "editor/editor_settings.h"2
+#include "editor/editor_settings.h"
 
 #ifndef GDSCRIPT_NO_LSP
 #include "core/config/engine.h"
