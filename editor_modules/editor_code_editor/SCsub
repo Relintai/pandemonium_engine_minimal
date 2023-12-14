@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+Import("env")
+
+env_mlp = env.Clone()
+
+sources = [
+    "register_types.cpp",
+
+    "editor_code_text_editor.cpp",
+    "editor_script_text_editor.cpp",
+    "editor_text_editor.cpp",
+    "editor_script_editor_base.cpp",
+    "editor_connection_info_dialog.cpp",
+    "editor_goto_line_dialog.cpp",
+    "editor_find_replace_bar.cpp",
+    "editor_script_editor_quick_open.cpp",
+    "editor_syntax_highlighter.cpp",
+
+    "script_editor_plugin.cpp",
+    "editor_script_editor.cpp",
+]
+
+env_mlp.add_source_files(env.modules_sources, sources)
