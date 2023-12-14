@@ -34,7 +34,6 @@
 #include "core/config/engine.h"
 #include "core/io/resource_loader.h"
 #include "core/config/project_settings.h"
-#include "editor/editor_inspector.h"
 #include "scene/main/node_2d.h"
 #include "scene/main/spatial.h"
 #include "scene/main/control.h"

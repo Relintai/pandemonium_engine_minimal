@@ -33,7 +33,6 @@
 #include "core/core_string_names.h"
 #include "core/config/engine.h"
 #include "core/containers/local_vector.h"
-#include "editor/editor_node.h"
 #include "scene/resources/packed_scene.h"
 
 bool PropertyUtils::is_property_value_different(const Variant &p_a, const Variant &p_b) {
@@ -184,11 +183,6 @@ Vector<SceneState::PackState> PropertyUtils::get_node_states_stack(const Node *p
 	LocalVector<_FastPackState> states_stack;
 	{
 		const Node *owner = p_owner;
-#ifdef TOOLS_ENABLED
-		if (!p_owner && Engine::get_singleton()->is_editor_hint()) {
-			owner = EditorNode::get_singleton()->get_edited_scene();
-		}
-#endif
 
 		const Node *n = p_node;
 		while (n) {

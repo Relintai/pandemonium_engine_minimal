@@ -36,7 +36,6 @@
 #include "core/math/geometry.h"
 #include "core/math/quick_hull.h"
 #include "core/os/os.h"
-#include "editor/editor_node.h"
 #include "mesh_instance.h"
 #include "multimesh_instance.h"
 #include "portal.h"

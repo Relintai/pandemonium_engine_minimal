@@ -244,8 +244,8 @@ Ref<AudioStreamSample> AudioEffectRecord::get_recording() const {
 		PoolVector<uint8_t> bleft;
 		PoolVector<uint8_t> bright;
 
-		ResourceImporterWAV::_compress_ima_adpcm(left, bleft);
-		ResourceImporterWAV::_compress_ima_adpcm(right, bright);
+		_compress_ima_adpcm(left, bleft);
+		_compress_ima_adpcm(right, bright);
 
 		int dl = bleft.size();
 		dst_data.resize(dl * 2);

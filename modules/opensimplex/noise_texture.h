@@ -34,9 +34,6 @@
 
 #include "core/io/image.h"
 #include "core/object/reference.h"
-#include "editor/editor_node.h"
-#include "editor/editor_plugin.h"
-#include "editor/property_editor.h"
 
 class NoiseTexture : public Texture {
 	GDCLASS(NoiseTexture, Texture);
