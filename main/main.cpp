@@ -53,7 +53,6 @@
 #include "main/input_default.h"
 #include "main/main_timer_sync.h"
 #include "main/performance.h"
-#include "main/splash.gen.h"
 #include "modules/register_module_types.h"
 #include "platform/register_platform_apis.h"
 #include "scene/debugger/script_debugger_remote.h"
@@ -1509,7 +1508,9 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 				if (load_err)
 					ERR_PRINT("Non-existing or invalid boot splash at '" + boot_logo_path + "'. Loading default splash.");
 			}
-		} else {
+		} 
+
+		if (!boot_logo.is_valid()) {
 			// Create a 1×1 transparent image. This will effectively hide the splash image.
 			boot_logo.instance();
 			boot_logo->create(1, 1, false, Image::FORMAT_RGBA8);
@@ -1518,39 +1519,10 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 			boot_logo->unlock();
 		}
 
-#if defined(TOOLS_ENABLED) && !defined(NO_EDITOR_SPLASH)
-		const Color boot_bg_color =
-				GLOBAL_DEF("application/boot_splash/bg_color",
-						(editor || project_manager) ? boot_splash_editor_bg_color : boot_splash_bg_color);
-#else
-		const Color boot_bg_color = GLOBAL_DEF("application/boot_splash/bg_color", boot_splash_bg_color);
-#endif
-		if (boot_logo.is_valid()) {
-			OS::get_singleton()->_msec_splash = OS::get_singleton()->get_ticks_msec();
-			RenderingServer::get_singleton()->set_boot_image(boot_logo, boot_bg_color, boot_logo_scale, boot_logo_filter);
-
-		} else {
-#ifndef NO_DEFAULT_BOOT_LOGO
-			MAIN_PRINT("Main: Create bootsplash");
-#if defined(TOOLS_ENABLED) && !defined(NO_EDITOR_SPLASH)
-			Ref<Image> splash = (editor || project_manager) ? memnew(Image(boot_splash_editor_png)) : memnew(Image(boot_splash_png));
-#else
-			Ref<Image> splash = memnew(Image(boot_splash_png));
-#endif
-
-			MAIN_PRINT("Main: ClearColor");
-			RenderingServer::get_singleton()->set_default_clear_color(boot_bg_color);
-			MAIN_PRINT("Main: Image");
-			RenderingServer::get_singleton()->set_boot_image(splash, boot_bg_color, false);
-#endif
-		}
-
-#ifdef TOOLS_ENABLED
-		if (OS::get_singleton()->get_bundle_icon_path().empty()) {
-			Ref<Image> icon = memnew(Image(app_icon_png));
-			OS::get_singleton()->set_icon(icon);
-		}
-#endif
+		const Color boot_bg_color = GLOBAL_DEF("application/boot_splash/bg_color", Color(0.14, 0.14, 0.14));
+		RenderingServer::get_singleton()->set_default_clear_color(boot_bg_color);
+		OS::get_singleton()->_msec_splash = OS::get_singleton()->get_ticks_msec();
+		RenderingServer::get_singleton()->set_boot_image(boot_logo, boot_bg_color, boot_logo_scale, boot_logo_filter);
 	}
 
 	MAIN_PRINT("Main: DCC");

@@ -41,7 +41,6 @@
 #include "editor/editor_export.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
-#include "main/splash.gen.h"
 #include "platform/iphone/logo.gen.h"
 #include "platform/iphone/plugin/pandemonium_plugin_config.h"
 #include "string.h"
@@ -960,8 +959,13 @@ Error EditorExportPlatformIOS::_export_loading_screen_file(const Ref<EditorExpor
 			}
 		}
 
-		if (splash.is_null()) {
-			splash = Ref<Image>(memnew(Image(boot_splash_png)));
+		if (splash.is_valid()) {
+			// Create a 1×1 transparent image. This will effectively hide the splash image.
+			splash.instance();
+			splash->create(1, 1, false, Image::FORMAT_RGBA8);
+			splash->lock();
+			splash->set_pixel(0, 0, Color(0, 0, 0, 0));
+			splash->unlock();
 		}
 
 		// Using same image for both @2x and @3x
@@ -1040,7 +1044,12 @@ Error EditorExportPlatformIOS::_export_loading_screen_images(const Ref<EditorExp
 				ImageLoader::load_image(boot_logo_path, img_bs);
 			}
 			if (!img_bs.is_valid()) {
-				img_bs = Ref<Image>(memnew(Image(boot_splash_png)));
+				// Create a 1×1 transparent image. This will effectively hide the splash image.
+				img_bs.instance();
+				img_bs->create(1, 1, false, Image::FORMAT_RGBA8);
+				img_bs->lock();
+				img_bs->set_pixel(0, 0, Color(0, 0, 0, 0));
+				img_bs->unlock();
 			}
 			if (img_bs.is_valid()) {
 				float aspect_ratio = (float)img_bs->get_width() / (float)img_bs->get_height();

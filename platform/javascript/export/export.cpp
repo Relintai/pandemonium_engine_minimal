@@ -37,7 +37,6 @@
 #include "core/io/zip_io.h"
 #include "editor/editor_export.h"
 #include "editor/editor_node.h"
-#include "main/splash.gen.h"
 #include "platform/javascript/logo.gen.h"
 #include "platform/javascript/run_icon.gen.h"
 
@@ -311,7 +310,14 @@ class EditorExportPlatformJavaScript : public EditorExportPlatform {
 		splash.instance();
 		const String splash_path = String(GLOBAL_GET("application/boot_splash/image")).strip_edges();
 		if (splash_path.empty() || ImageLoader::load_image(splash_path, splash) != OK) {
-			return Ref<Image>(memnew(Image(boot_splash_png)));
+			// Create a 1×1 transparent image. This will effectively hide the splash image.
+			splash.instance();
+			splash->create(1, 1, false, Image::FORMAT_RGBA8);
+			splash->lock();
+			splash->set_pixel(0, 0, Color(0, 0, 0, 0));
+			splash->unlock();
+
+			return splash;
 		}
 		return splash;
 	}

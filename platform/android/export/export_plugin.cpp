@@ -1467,7 +1467,13 @@ String EditorExportPlatformAndroid::load_splash_refs(Ref<Image> &splash_image, R
 	if (splash_image.is_null()) {
 		// Use the default
 		print_verbose("Using default splash image.");
-		splash_image = Ref<Image>(memnew(Image(boot_splash_png)));
+
+		// Create a 1×1 transparent image. This will effectively hide the splash image.
+		splash_image.instance();
+		splash_image->create(1, 1, false, Image::FORMAT_RGBA8);
+		splash_image->lock();
+		splash_image->set_pixel(0, 0, Color(0, 0, 0, 0));
+		splash_image->unlock();
 	}
 
 	if (scale_splash) {
@@ -1489,7 +1495,7 @@ String EditorExportPlatformAndroid::load_splash_refs(Ref<Image> &splash_image, R
 	bool bg_color_valid;
 	Color bg_color = ProjectSettings::get_singleton()->get("application/boot_splash/bg_color", &bg_color_valid);
 	if (!bg_color_valid) {
-		bg_color = boot_splash_bg_color;
+		bg_color = Color(0.14, 0.14, 0.14);
 	}
 
 	print_verbose("Creating splash background color image.");
