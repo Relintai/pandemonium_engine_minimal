@@ -1465,12 +1465,6 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	MAIN_PRINT("Main: Setup Logo");
 
-#if defined(JAVASCRIPT_ENABLED) || defined(ANDROID_ENABLED)
-	bool show_logo = false;
-#else
-	bool show_logo = true;
-#endif
-
 	if (init_screen != -1) {
 		OS::get_singleton()->set_current_screen(init_screen);
 	}
@@ -1491,39 +1485,6 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	Color clear = GLOBAL_DEF("rendering/environment/default_clear_color", Color(0.3, 0.3, 0.3));
 	RenderingServer::get_singleton()->set_default_clear_color(clear);
-
-	if (show_logo) { //boot logo!
-		const bool boot_logo_image = GLOBAL_DEF("application/boot_splash/show_image", true);
-		const String boot_logo_path = String(GLOBAL_DEF("application/boot_splash/image", String())).strip_edges();
-		const bool boot_logo_scale = GLOBAL_DEF("application/boot_splash/fullsize", true);
-		const bool boot_logo_filter = GLOBAL_DEF("application/boot_splash/use_filter", true);
-		ProjectSettings::get_singleton()->set_custom_property_info("application/boot_splash/image", PropertyInfo(Variant::STRING, "application/boot_splash/image", PROPERTY_HINT_FILE, "*.png"));
-
-		Ref<Image> boot_logo;
-
-		if (boot_logo_image) {
-			if (boot_logo_path != String()) {
-				boot_logo.instance();
-				Error load_err = ImageLoader::load_image(boot_logo_path, boot_logo);
-				if (load_err)
-					ERR_PRINT("Non-existing or invalid boot splash at '" + boot_logo_path + "'. Loading default splash.");
-			}
-		} 
-
-		if (!boot_logo.is_valid()) {
-			// Create a 1×1 transparent image. This will effectively hide the splash image.
-			boot_logo.instance();
-			boot_logo->create(1, 1, false, Image::FORMAT_RGBA8);
-			boot_logo->lock();
-			boot_logo->set_pixel(0, 0, Color(0, 0, 0, 0));
-			boot_logo->unlock();
-		}
-
-		const Color boot_bg_color = GLOBAL_DEF("application/boot_splash/bg_color", Color(0.14, 0.14, 0.14));
-		RenderingServer::get_singleton()->set_default_clear_color(boot_bg_color);
-		OS::get_singleton()->_msec_splash = OS::get_singleton()->get_ticks_msec();
-		RenderingServer::get_singleton()->set_boot_image(boot_logo, boot_bg_color, boot_logo_scale, boot_logo_filter);
-	}
 
 	MAIN_PRINT("Main: DCC");
 	RenderingServer::get_singleton()->set_default_clear_color(GLOBAL_DEF("rendering/environment/default_clear_color", Color(0.3, 0.3, 0.3)));
