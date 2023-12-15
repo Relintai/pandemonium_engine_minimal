@@ -304,24 +304,6 @@ void *RenderingServerScene::_instance_pair(void *p_self, SpatialPartitionID, Ins
 		SWAP(A, B); //lesser always first
 	}
 
-	if (B->base_type == RS::INSTANCE_LIGHT && ((1 << A->base_type) & RS::INSTANCE_GEOMETRY_MASK)) {
-		InstanceLightData *light = static_cast<InstanceLightData *>(B->base_data);
-		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(A->base_data);
-
-		InstanceLightData::PairInfo pinfo;
-		pinfo.geometry = A;
-		pinfo.L = geom->lighting.push_back(B);
-
-		List<InstanceLightData::PairInfo>::Element *E = light->geometries.push_back(pinfo);
-
-		if (geom->can_cast_shadows) {
-			light->shadow_dirty = true;
-		}
-		geom->lighting_dirty = true;
-
-		return E; //this element should make freeing faster
-	}
-
 	return nullptr;
 }
 
@@ -333,22 +315,6 @@ void RenderingServerScene::_instance_unpair(void *p_self, SpatialPartitionID, In
 	//instance indices are designed so greater always contains lesser
 	if (A->base_type > B->base_type) {
 		SWAP(A, B); //lesser always first
-	}
-
-	if (B->base_type == RS::INSTANCE_LIGHT && ((1 << A->base_type) & RS::INSTANCE_GEOMETRY_MASK)) {
-		InstanceLightData *light = static_cast<InstanceLightData *>(B->base_data);
-		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(A->base_data);
-
-		List<InstanceLightData::PairInfo>::Element *E = reinterpret_cast<List<InstanceLightData::PairInfo>::Element *>(udata);
-
-		geom->lighting.erase(E->get().L);
-		light->geometries.erase(E);
-
-		if (geom->can_cast_shadows) {
-			light->shadow_dirty = true;
-		}
-		geom->lighting_dirty = true;
-
 	}
 }
 
@@ -455,20 +421,6 @@ void RenderingServerScene::instance_set_base(RID p_instance, RID p_base) {
 			instance->spatial_partition_id = 0;
 		}
 
-		switch (instance->base_type) {
-			case RS::INSTANCE_LIGHT: {
-				InstanceLightData *light = static_cast<InstanceLightData *>(instance->base_data);
-
-				if (instance->scenario && light->D) {
-					instance->scenario->directional_lights.erase(light->D);
-					light->D = nullptr;
-				}
-				RSG::scene_render->free(light->instance);
-			} break;
-			default: {
-			}
-		}
-
 		if (instance->base_data) {
 			memdelete(instance->base_data);
 			instance->base_data = nullptr;
@@ -492,17 +444,6 @@ void RenderingServerScene::instance_set_base(RID p_instance, RID p_base) {
 		ERR_FAIL_COND(instance->base_type == RS::INSTANCE_NONE);
 
 		switch (instance->base_type) {
-			case RS::INSTANCE_LIGHT: {
-				InstanceLightData *light = memnew(InstanceLightData);
-
-				if (scenario && RSG::storage->light_get_type(p_base) == RS::LIGHT_DIRECTIONAL) {
-					light->D = scenario->directional_lights.push_back(instance);
-				}
-
-				light->instance = RSG::scene_render->light_instance_create(p_base);
-
-				instance->base_data = light;
-			} break;
 			case RS::INSTANCE_MESH:
 			case RS::INSTANCE_MULTIMESH: {
 				InstanceGeometryData *geom = memnew(InstanceGeometryData);
@@ -540,19 +481,6 @@ void RenderingServerScene::instance_set_scenario(RID p_instance, RID p_scenario)
 		// remove any interpolation data associated with the instance in this scenario
 		_interpolation_data.notify_free_instance(p_instance, *instance);
 
-		switch (instance->base_type) {
-			case RS::INSTANCE_LIGHT: {
-				InstanceLightData *light = static_cast<InstanceLightData *>(instance->base_data);
-
-				if (light->D) {
-					instance->scenario->directional_lights.erase(light->D);
-					light->D = nullptr;
-				}
-			} break;
-			default: {
-			}
-		}
-
 		instance->scenario = nullptr;
 	}
 
@@ -563,18 +491,6 @@ void RenderingServerScene::instance_set_scenario(RID p_instance, RID p_scenario)
 		instance->scenario = scenario;
 
 		scenario->instances.add(&instance->scenario_item);
-
-		switch (instance->base_type) {
-			case RS::INSTANCE_LIGHT: {
-				InstanceLightData *light = static_cast<InstanceLightData *>(instance->base_data);
-
-				if (RSG::storage->light_get_type(instance->base) == RS::LIGHT_DIRECTIONAL) {
-					light->D = scenario->directional_lights.push_back(instance);
-				}
-			} break;
-			default: {
-			}
-		}
 
 		_instance_queue_update(instance, true, true);
 	}
@@ -588,18 +504,6 @@ void RenderingServerScene::instance_set_layer_mask(RID p_instance, uint32_t p_ma
 	}
 
 	instance->layer_mask = p_mask;
-
-	// update lights to show / hide shadows according to the new mask
-	if ((1 << instance->base_type) & RS::INSTANCE_GEOMETRY_MASK) {
-		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(instance->base_data);
-
-		if (geom->can_cast_shadows) {
-			for (List<Instance *>::Element *E = geom->lighting.front(); E; E = E->next()) {
-				InstanceLightData *light = static_cast<InstanceLightData *>(E->get()->base_data);
-				light->shadow_dirty = true;
-			}
-		}
-	}
 }
 
 void RenderingServerScene::instance_set_pivot_data(RID p_instance, float p_sorting_offset, bool p_use_aabb_center) {
@@ -957,25 +861,7 @@ void RenderingServerScene::instance_set_visible(RID p_instance, bool p_visible) 
 		}
 	}
 
-	// when showing or hiding geometry, lights must be kept up to date to show / hide shadows
-	if ((1 << instance->base_type) & RS::INSTANCE_GEOMETRY_MASK) {
-		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(instance->base_data);
-
-		if (geom->can_cast_shadows) {
-			for (List<Instance *>::Element *E = geom->lighting.front(); E; E = E->next()) {
-				InstanceLightData *light = static_cast<InstanceLightData *>(E->get()->base_data);
-				light->shadow_dirty = true;
-			}
-		}
-	}
-
 	switch (instance->base_type) {
-		case RS::INSTANCE_LIGHT: {
-			if (RSG::storage->light_get_type(instance->base) != RS::LIGHT_DIRECTIONAL && instance->spatial_partition_id && instance->scenario) {
-				instance->scenario->sps->set_pairable(instance, p_visible, 1 << RS::INSTANCE_LIGHT, p_visible ? RS::INSTANCE_GEOMETRY_MASK : 0);
-			}
-
-		} break;
 		default: {
 			// if we haven't called set_pairable, we STILL need to do a collision check
 			// for activated items because we deferred it earlier in the call to activate.
@@ -1188,27 +1074,8 @@ void RenderingServerScene::_update_instance(Instance *p_instance) {
 	// However it does seem that using the interpolated transform (transform) works for keeping AABBs
 	// up to date to avoid culling errors.
 
-	if (p_instance->base_type == RS::INSTANCE_LIGHT) {
-		InstanceLightData *light = static_cast<InstanceLightData *>(p_instance->base_data);
-
-		RSG::scene_render->light_instance_set_transform(light->instance, *instance_xform);
-		light->shadow_dirty = true;
-	}
-
 	if (p_instance->aabb.has_no_surface()) {
 		return;
-	}
-
-	if ((1 << p_instance->base_type) & RS::INSTANCE_GEOMETRY_MASK) {
-		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(p_instance->base_data);
-		//make sure lights are updated if it casts shadow
-
-		if (geom->can_cast_shadows) {
-			for (List<Instance *>::Element *E = geom->lighting.front(); E; E = E->next()) {
-				InstanceLightData *light = static_cast<InstanceLightData *>(E->get()->base_data);
-				light->shadow_dirty = true;
-			}
-		}
 	}
 
 	p_instance->mirror = instance_xform->basis.determinant() < 0.0;
@@ -1227,11 +1094,6 @@ void RenderingServerScene::_update_instance(Instance *p_instance) {
 		uint32_t base_type = 1 << p_instance->base_type;
 		uint32_t pairable_mask = 0;
 		bool pairable = false;
-
-		if (p_instance->base_type == RS::INSTANCE_LIGHT) {
-			pairable_mask = p_instance->visible ? RS::INSTANCE_GEOMETRY_MASK : 0;
-			pairable = true;
-		}
 
 		// not inside octree
 		p_instance->spatial_partition_id = p_instance->scenario->sps->create(p_instance, new_aabb, 0, pairable, base_type, pairable_mask);
@@ -1271,10 +1133,6 @@ void RenderingServerScene::_update_instance_aabb(Instance *p_instance) {
 			} else {
 				new_aabb = RSG::storage->multimesh_get_aabb(p_instance->base);
 			}
-
-		} break;
-		case RenderingServer::INSTANCE_LIGHT: {
-			new_aabb = RSG::storage->light_get_aabb(p_instance->base);
 
 		} break;
 		default: {
@@ -1389,12 +1247,6 @@ void RenderingServerScene::_update_dirty_instance(Instance *p_instance) {
 			}
 
 			if (can_cast_shadows != geom->can_cast_shadows) {
-				//ability to cast shadows change, let lights now
-				for (List<Instance *>::Element *E = geom->lighting.front(); E; E = E->next()) {
-					InstanceLightData *light = static_cast<InstanceLightData *>(E->get()->base_data);
-					light->shadow_dirty = true;
-				}
-
 				geom->can_cast_shadows = can_cast_shadows;
 			}
 
@@ -1408,376 +1260,6 @@ void RenderingServerScene::_update_dirty_instance(Instance *p_instance) {
 
 	p_instance->update_aabb = false;
 	p_instance->update_materials = false;
-}
-
-bool RenderingServerScene::_light_instance_update_shadow(Instance *p_instance, const Transform p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, RID p_shadow_atlas, Scenario *p_scenario, uint32_t p_visible_layers) {
-	InstanceLightData *light = static_cast<InstanceLightData *>(p_instance->base_data);
-
-	Transform light_transform = p_instance->transform;
-	light_transform.orthonormalize(); //scale does not count on lights
-
-	bool animated_material_found = false;
-
-	switch (RSG::storage->light_get_type(p_instance->base)) {
-		case RS::LIGHT_DIRECTIONAL: {
-			float max_distance = p_cam_projection.get_z_far();
-			float shadow_max = RSG::storage->light_get_param(p_instance->base, RS::LIGHT_PARAM_SHADOW_MAX_DISTANCE);
-			if (shadow_max > 0 && !p_cam_orthogonal) { //its impractical (and leads to unwanted behaviors) to set max distance in orthogonal camera
-				max_distance = MIN(shadow_max, max_distance);
-			}
-			max_distance = MAX(max_distance, p_cam_projection.get_z_near() + 0.001);
-			float min_distance = MIN(p_cam_projection.get_z_near(), max_distance);
-
-			RS::LightDirectionalShadowDepthRangeMode depth_range_mode = RSG::storage->light_directional_get_shadow_depth_range_mode(p_instance->base);
-
-			if (depth_range_mode == RS::LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_OPTIMIZED) {
-				//optimize min/max
-				Vector<Plane> planes = p_cam_projection.get_projection_planes(p_cam_transform);
-				int cull_count = p_scenario->sps->cull_convex(planes, instance_shadow_cull_result, MAX_INSTANCE_CULL, RS::INSTANCE_GEOMETRY_MASK);
-				Plane base(p_cam_transform.origin, -p_cam_transform.basis.get_axis(2));
-				//check distance max and min
-
-				bool found_items = false;
-				float z_max = -1e20;
-				float z_min = 1e20;
-
-				for (int i = 0; i < cull_count; i++) {
-					Instance *instance = instance_shadow_cull_result[i];
-					if (!instance->visible || !((1 << instance->base_type) & RS::INSTANCE_GEOMETRY_MASK) || !static_cast<InstanceGeometryData *>(instance->base_data)->can_cast_shadows || !(p_visible_layers & instance->layer_mask)) {
-						continue;
-					}
-
-					if (static_cast<InstanceGeometryData *>(instance->base_data)->material_is_animated) {
-						animated_material_found = true;
-					}
-
-					float max, min;
-					instance->transformed_aabb.project_range_in_plane(base, min, max);
-
-					if (max > z_max) {
-						z_max = max;
-					}
-
-					if (min < z_min) {
-						z_min = min;
-					}
-
-					found_items = true;
-				}
-
-				if (found_items) {
-					min_distance = MAX(min_distance, z_min);
-					max_distance = MIN(max_distance, z_max);
-				}
-			}
-
-			float range = max_distance - min_distance;
-
-			int splits = 0;
-			switch (RSG::storage->light_directional_get_shadow_mode(p_instance->base)) {
-				case RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL:
-					splits = 1;
-					break;
-				case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS:
-					splits = 2;
-					break;
-				case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS:
-					splits = 3;
-					break;
-				case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS:
-					splits = 4;
-					break;
-			}
-
-			float distances[5];
-
-			distances[0] = min_distance;
-			for (int i = 0; i < splits; i++) {
-				distances[i + 1] = min_distance + RSG::storage->light_get_param(p_instance->base, RS::LightParam(RS::LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET + i)) * range;
-			};
-
-			distances[splits] = max_distance;
-
-			float texture_size = RSG::scene_render->get_directional_light_shadow_size(light->instance);
-
-			bool overlap = RSG::storage->light_directional_get_blend_splits(p_instance->base);
-
-			float first_radius = 0.0;
-
-			for (int i = 0; i < splits; i++) {
-				// setup a camera matrix for that range!
-				Projection camera_matrix;
-
-				float aspect = p_cam_projection.get_aspect();
-
-				if (p_cam_orthogonal) {
-					Vector2 vp_he = p_cam_projection.get_viewport_half_extents();
-
-					camera_matrix.set_orthogonal(vp_he.y * 2.0, aspect, distances[(i == 0 || !overlap) ? i : i - 1], distances[i + 1], false);
-				} else {
-					float fov = p_cam_projection.get_fov();
-					camera_matrix.set_perspective(fov, aspect, distances[(i == 0 || !overlap) ? i : i - 1], distances[i + 1], false);
-				}
-
-				//obtain the frustum endpoints
-
-				Vector3 endpoints[8]; // frustum plane endpoints
-				bool res = camera_matrix.get_endpoints(p_cam_transform, endpoints);
-				ERR_CONTINUE(!res);
-
-				// obtain the light frustm ranges (given endpoints)
-
-				Transform transform = light_transform; //discard scale and stabilize light
-
-				Vector3 x_vec = transform.basis.get_axis(Vector3::AXIS_X).normalized();
-				Vector3 y_vec = transform.basis.get_axis(Vector3::AXIS_Y).normalized();
-				Vector3 z_vec = transform.basis.get_axis(Vector3::AXIS_Z).normalized();
-				//z_vec points agsint the camera, like in default opengl
-
-				float x_min = 0.f, x_max = 0.f;
-				float y_min = 0.f, y_max = 0.f;
-				float z_min = 0.f, z_max = 0.f;
-
-				// FIXME: z_max_cam is defined, computed, but not used below when setting up
-				// ortho_camera. Commented out for now to fix warnings but should be investigated.
-				float x_min_cam = 0.f, x_max_cam = 0.f;
-				float y_min_cam = 0.f, y_max_cam = 0.f;
-				float z_min_cam = 0.f;
-				//float z_max_cam = 0.f;
-
-				float bias_scale = 1.0;
-
-				//used for culling
-
-				for (int j = 0; j < 8; j++) {
-					float d_x = x_vec.dot(endpoints[j]);
-					float d_y = y_vec.dot(endpoints[j]);
-					float d_z = z_vec.dot(endpoints[j]);
-
-					if (j == 0 || d_x < x_min) {
-						x_min = d_x;
-					}
-					if (j == 0 || d_x > x_max) {
-						x_max = d_x;
-					}
-
-					if (j == 0 || d_y < y_min) {
-						y_min = d_y;
-					}
-					if (j == 0 || d_y > y_max) {
-						y_max = d_y;
-					}
-
-					if (j == 0 || d_z < z_min) {
-						z_min = d_z;
-					}
-					if (j == 0 || d_z > z_max) {
-						z_max = d_z;
-					}
-				}
-
-				{
-					//camera viewport stuff
-
-					Vector3 center;
-
-					for (int j = 0; j < 8; j++) {
-						center += endpoints[j];
-					}
-					center /= 8.0;
-
-					//center=x_vec*(x_max-x_min)*0.5 + y_vec*(y_max-y_min)*0.5 + z_vec*(z_max-z_min)*0.5;
-
-					float radius = 0;
-
-					for (int j = 0; j < 8; j++) {
-						float d = center.distance_to(endpoints[j]);
-						if (d > radius) {
-							radius = d;
-						}
-					}
-
-					radius *= texture_size / (texture_size - 2.0); //add a texel by each side
-
-					if (i == 0) {
-						first_radius = radius;
-					} else {
-						bias_scale = radius / first_radius;
-					}
-
-					x_max_cam = x_vec.dot(center) + radius;
-					x_min_cam = x_vec.dot(center) - radius;
-					y_max_cam = y_vec.dot(center) + radius;
-					y_min_cam = y_vec.dot(center) - radius;
-					//z_max_cam = z_vec.dot(center) + radius;
-					z_min_cam = z_vec.dot(center) - radius;
-
-					if (depth_range_mode == RS::LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_STABLE) {
-						//this trick here is what stabilizes the shadow (make potential jaggies to not move)
-						//at the cost of some wasted resolution. Still the quality increase is very well worth it
-
-						float unit = radius * 2.0 / texture_size;
-
-						x_max_cam = Math::stepify(x_max_cam, unit);
-						x_min_cam = Math::stepify(x_min_cam, unit);
-						y_max_cam = Math::stepify(y_max_cam, unit);
-						y_min_cam = Math::stepify(y_min_cam, unit);
-					}
-				}
-
-				//now that we now all ranges, we can proceed to make the light frustum planes, for culling octree
-
-				Vector<Plane> light_frustum_planes;
-				light_frustum_planes.resize(6);
-
-				//right/left
-				light_frustum_planes.write[0] = Plane(x_vec, x_max);
-				light_frustum_planes.write[1] = Plane(-x_vec, -x_min);
-				//top/bottom
-				light_frustum_planes.write[2] = Plane(y_vec, y_max);
-				light_frustum_planes.write[3] = Plane(-y_vec, -y_min);
-				//near/far
-				light_frustum_planes.write[4] = Plane(z_vec, z_max + 1e6);
-				light_frustum_planes.write[5] = Plane(-z_vec, -z_min); // z_min is ok, since casters further than far-light plane are not needed
-
-				int cull_count = p_scenario->sps->cull_convex(light_frustum_planes, instance_shadow_cull_result, MAX_INSTANCE_CULL, RS::INSTANCE_GEOMETRY_MASK);
-
-				// a pre pass will need to be needed to determine the actual z-near to be used
-
-				Plane near_plane(light_transform.origin, -light_transform.basis.get_axis(2));
-
-				for (int j = 0; j < cull_count; j++) {
-					float min, max;
-					Instance *instance = instance_shadow_cull_result[j];
-					if (!instance->visible || !((1 << instance->base_type) & RS::INSTANCE_GEOMETRY_MASK) || !static_cast<InstanceGeometryData *>(instance->base_data)->can_cast_shadows || !(p_visible_layers & instance->layer_mask)) {
-						cull_count--;
-						SWAP(instance_shadow_cull_result[j], instance_shadow_cull_result[cull_count]);
-						j--;
-						continue;
-					}
-
-					instance->transformed_aabb.project_range_in_plane(Plane(z_vec, 0), min, max);
-					instance->depth = near_plane.distance_to(instance->transform.origin);
-					instance->depth_layer = 0;
-					if (max > z_max) {
-						z_max = max;
-					}
-				}
-
-				{
-					Projection ortho_camera;
-					real_t half_x = (x_max_cam - x_min_cam) * 0.5;
-					real_t half_y = (y_max_cam - y_min_cam) * 0.5;
-
-					ortho_camera.set_orthogonal(-half_x, half_x, -half_y, half_y, 0, (z_max - z_min_cam));
-
-					Transform ortho_transform;
-					ortho_transform.basis = transform.basis;
-					ortho_transform.origin = x_vec * (x_min_cam + half_x) + y_vec * (y_min_cam + half_y) + z_vec * z_max;
-
-					RSG::scene_render->light_instance_set_shadow_transform(light->instance, ortho_camera, ortho_transform, 0, distances[i + 1], i, bias_scale);
-				}
-
-				RSG::scene_render->render_shadow(light->instance, p_shadow_atlas, i, (RasterizerScene::InstanceBase **)instance_shadow_cull_result, cull_count);
-			}
-
-		} break;
-		case RS::LIGHT_OMNI: {
-			RS::LightOmniShadowMode shadow_mode = RSG::storage->light_omni_get_shadow_mode(p_instance->base);
-
-			if (shadow_mode == RS::LIGHT_OMNI_SHADOW_DUAL_PARABOLOID || !RSG::scene_render->light_instances_can_render_shadow_cube()) {
-				for (int i = 0; i < 2; i++) {
-					//using this one ensures that raster deferred will have it
-
-					float radius = RSG::storage->light_get_param(p_instance->base, RS::LIGHT_PARAM_RANGE);
-
-					float z = i == 0 ? -1 : 1;
-					Vector<Plane> planes;
-					planes.resize(6);
-					planes.write[0] = light_transform.xform(Plane(Vector3(0, 0, z), radius));
-					planes.write[1] = light_transform.xform(Plane(Vector3(1, 0, z).normalized(), radius));
-					planes.write[2] = light_transform.xform(Plane(Vector3(-1, 0, z).normalized(), radius));
-					planes.write[3] = light_transform.xform(Plane(Vector3(0, 1, z).normalized(), radius));
-					planes.write[4] = light_transform.xform(Plane(Vector3(0, -1, z).normalized(), radius));
-					planes.write[5] = light_transform.xform(Plane(Vector3(0, 0, -z), 0));
-
-					int cull_count = p_scenario->sps->cull_convex(planes, instance_shadow_cull_result, MAX_INSTANCE_CULL, RS::INSTANCE_GEOMETRY_MASK);
-					Plane near_plane(light_transform.origin, light_transform.basis.get_axis(2) * z);
-
-					for (int j = 0; j < cull_count; j++) {
-						Instance *instance = instance_shadow_cull_result[j];
-						if (!instance->visible || !((1 << instance->base_type) & RS::INSTANCE_GEOMETRY_MASK) || !static_cast<InstanceGeometryData *>(instance->base_data)->can_cast_shadows || !(p_visible_layers & instance->layer_mask)) {
-							cull_count--;
-							SWAP(instance_shadow_cull_result[j], instance_shadow_cull_result[cull_count]);
-							j--;
-						} else {
-							if (static_cast<InstanceGeometryData *>(instance->base_data)->material_is_animated) {
-								animated_material_found = true;
-							}
-
-							instance->depth = near_plane.distance_to(instance->transform.origin);
-							instance->depth_layer = 0;
-						}
-					}
-
-					RSG::scene_render->light_instance_set_shadow_transform(light->instance, Projection(), light_transform, radius, 0, i);
-					RSG::scene_render->render_shadow(light->instance, p_shadow_atlas, i, (RasterizerScene::InstanceBase **)instance_shadow_cull_result, cull_count);
-				}
-			} else { //shadow cube
-
-				float radius = RSG::storage->light_get_param(p_instance->base, RS::LIGHT_PARAM_RANGE);
-				Projection cm;
-				cm.set_perspective(90, 1, 0.01, radius);
-
-				for (int i = 0; i < 6; i++) {
-					//using this one ensures that raster deferred will have it
-
-					static const Vector3 view_normals[6] = {
-						Vector3(-1, 0, 0),
-						Vector3(+1, 0, 0),
-						Vector3(0, -1, 0),
-						Vector3(0, +1, 0),
-						Vector3(0, 0, -1),
-						Vector3(0, 0, +1)
-					};
-					static const Vector3 view_up[6] = {
-						Vector3(0, -1, 0),
-						Vector3(0, -1, 0),
-						Vector3(0, 0, -1),
-						Vector3(0, 0, +1),
-						Vector3(0, -1, 0),
-						Vector3(0, -1, 0)
-					};
-
-					Transform xform = light_transform * Transform().looking_at(view_normals[i], view_up[i]);
-
-					Vector<Plane> planes = cm.get_projection_planes(xform);
-
-					RSG::scene_render->light_instance_set_shadow_transform(light->instance, cm, xform, radius, 0, i);
-					RSG::scene_render->render_shadow(light->instance, p_shadow_atlas, i, (RasterizerScene::InstanceBase **)instance_shadow_cull_result, 0);
-				}
-
-				//restore the regular DP matrix
-				RSG::scene_render->light_instance_set_shadow_transform(light->instance, Projection(), light_transform, radius, 0, 0);
-			}
-
-		} break;
-		case RS::LIGHT_SPOT: {
-			float radius = RSG::storage->light_get_param(p_instance->base, RS::LIGHT_PARAM_RANGE);
-			float angle = RSG::storage->light_get_param(p_instance->base, RS::LIGHT_PARAM_SPOT_ANGLE);
-
-			Projection cm;
-			cm.set_perspective(angle * 2.0, 1.0, 0.01, radius);
-
-			Vector<Plane> planes = cm.get_projection_planes(light_transform);
-
-			RSG::scene_render->light_instance_set_shadow_transform(light->instance, cm, light_transform, radius, 0, 0);
-			RSG::scene_render->render_shadow(light->instance, p_shadow_atlas, 0, (RasterizerScene::InstanceBase **)instance_shadow_cull_result, 0);
-
-		} break;
-	}
-
-	return animated_material_found;
 }
 
 void RenderingServerScene::render_camera(RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas) {
@@ -1874,21 +1356,6 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 
 		if ((camera_layer_mask & ins->layer_mask) == 0) {
 			//failure
-		} else if (ins->base_type == RS::INSTANCE_LIGHT && ins->visible) {
-			if (light_cull_count < MAX_LIGHTS_CULLED) {
-				InstanceLightData *light = static_cast<InstanceLightData *>(ins->base_data);
-
-				if (!light->geometries.empty()) {
-					//do not add this light if no geometry is affected by it..
-					light_cull_result[light_cull_count] = ins;
-					light_instance_cull_result[light_cull_count] = light->instance;
-					if (p_shadow_atlas.is_valid() && RSG::storage->light_has_shadow(ins->base)) {
-						RSG::scene_render->light_instance_mark_visible(light->instance); //mark it visible for shadow allocation later
-					}
-
-					light_cull_count++;
-				}
-			}
 		} else if (((1 << ins->base_type) & RS::INSTANCE_GEOMETRY_MASK) && ins->visible && ins->cast_shadows != RS::SHADOW_CASTING_SETTING_SHADOWS_ONLY) {
 			keep = true;
 
@@ -1902,13 +1369,6 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 				int l = 0;
 				//only called when lights AABB enter/exit this geometry
 				ins->light_instances.resize(geom->lighting.size());
-
-				for (List<Instance *>::Element *E = geom->lighting.front(); E; E = E->next()) {
-					InstanceLightData *light = static_cast<InstanceLightData *>(E->get()->base_data);
-
-					ins->light_instances.write[l++] = light->instance;
-				}
-
 				geom->lighting_dirty = false;
 			}
 
@@ -1929,137 +1389,6 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 
 	RID *directional_light_ptr = &light_instance_cull_result[light_cull_count];
 	directional_light_count = 0;
-
-	// directional lights
-	{
-		Instance **lights_with_shadow = (Instance **)alloca(sizeof(Instance *) * scenario->directional_lights.size());
-		int directional_shadow_count = 0;
-
-		for (List<Instance *>::Element *E = scenario->directional_lights.front(); E; E = E->next()) {
-			if (light_cull_count + directional_light_count >= MAX_LIGHTS_CULLED) {
-				break;
-			}
-
-			if (!E->get()->visible) {
-				continue;
-			}
-
-			InstanceLightData *light = static_cast<InstanceLightData *>(E->get()->base_data);
-
-			//check shadow..
-
-			if (light) {
-				if (p_shadow_atlas.is_valid() && RSG::storage->light_has_shadow(E->get()->base)) {
-					lights_with_shadow[directional_shadow_count++] = E->get();
-				}
-				//add to list
-				directional_light_ptr[directional_light_count++] = light->instance;
-			}
-		}
-
-		RSG::scene_render->set_directional_shadow_count(directional_shadow_count);
-
-		for (int i = 0; i < directional_shadow_count; i++) {
-			_light_instance_update_shadow(lights_with_shadow[i], p_cam_transform, p_cam_projection, p_cam_orthogonal, p_shadow_atlas, scenario, p_visible_layers);
-		}
-	}
-
-	{ //setup shadow maps
-
-		//SortArray<Instance*,_InstanceLightsort> sorter;
-		//sorter.sort(light_cull_result,light_cull_count);
-		for (int i = 0; i < light_cull_count; i++) {
-			Instance *ins = light_cull_result[i];
-
-			if (!p_shadow_atlas.is_valid() || !RSG::storage->light_has_shadow(ins->base)) {
-				continue;
-			}
-
-			InstanceLightData *light = static_cast<InstanceLightData *>(ins->base_data);
-
-			float coverage = 0.f;
-
-			{ //compute coverage
-
-				Transform cam_xf = p_cam_transform;
-				float zn = p_cam_projection.get_z_near();
-				Plane p(cam_xf.origin + cam_xf.basis.get_axis(2) * -zn, -cam_xf.basis.get_axis(2)); //camera near plane
-
-				// near plane half width and height
-				Vector2 vp_half_extents = p_cam_projection.get_viewport_half_extents();
-
-				switch (RSG::storage->light_get_type(ins->base)) {
-					case RS::LIGHT_OMNI: {
-						float radius = RSG::storage->light_get_param(ins->base, RS::LIGHT_PARAM_RANGE);
-
-						//get two points parallel to near plane
-						Vector3 points[2] = {
-							ins->transform.origin,
-							ins->transform.origin + cam_xf.basis.get_axis(0) * radius
-						};
-
-						if (!p_cam_orthogonal) {
-							//if using perspetive, map them to near plane
-							for (int j = 0; j < 2; j++) {
-								if (p.distance_to(points[j]) < 0) {
-									points[j].z = -zn; //small hack to keep size constant when hitting the screen
-								}
-
-								p.intersects_segment(cam_xf.origin, points[j], &points[j]); //map to plane
-							}
-						}
-
-						float screen_diameter = points[0].distance_to(points[1]) * 2;
-						coverage = screen_diameter / (vp_half_extents.x + vp_half_extents.y);
-					} break;
-					case RS::LIGHT_SPOT: {
-						float radius = RSG::storage->light_get_param(ins->base, RS::LIGHT_PARAM_RANGE);
-						float angle = RSG::storage->light_get_param(ins->base, RS::LIGHT_PARAM_SPOT_ANGLE);
-
-						float w = radius * Math::sin(Math::deg2rad(angle));
-						float d = radius * Math::cos(Math::deg2rad(angle));
-
-						Vector3 base = ins->transform.origin - ins->transform.basis.get_axis(2).normalized() * d;
-
-						Vector3 points[2] = {
-							base,
-							base + cam_xf.basis.get_axis(0) * w
-						};
-
-						if (!p_cam_orthogonal) {
-							//if using perspetive, map them to near plane
-							for (int j = 0; j < 2; j++) {
-								if (p.distance_to(points[j]) < 0) {
-									points[j].z = -zn; //small hack to keep size constant when hitting the screen
-								}
-
-								p.intersects_segment(cam_xf.origin, points[j], &points[j]); //map to plane
-							}
-						}
-
-						float screen_diameter = points[0].distance_to(points[1]) * 2;
-						coverage = screen_diameter / (vp_half_extents.x + vp_half_extents.y);
-
-					} break;
-					default: {
-						ERR_PRINT("Invalid Light Type");
-					}
-				}
-			}
-
-			if (light->shadow_dirty) {
-				light->last_version++;
-				light->shadow_dirty = false;
-			}
-
-			bool redraw = RSG::scene_render->shadow_atlas_update_light(p_shadow_atlas, light->instance, coverage, light->last_version);
-
-			if (redraw) {
-				//must redraw!
-				light->shadow_dirty = _light_instance_update_shadow(ins, p_cam_transform, p_cam_projection, p_cam_orthogonal, p_shadow_atlas, scenario, p_visible_layers);
-			}
-		}
-	}
 
 	// Calculate instance->depth from the camera, after shadow calculation has stopped overwriting instance->depth
 	for (int i = 0; i < instance_cull_count; i++) {

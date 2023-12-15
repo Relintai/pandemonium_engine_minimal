@@ -818,69 +818,6 @@ public:
 
 	void update_dirty_multimeshes();
 
-	/* Light API */
-
-	struct Light : Instantiable {
-		RS::LightType type;
-		float param[RS::LIGHT_PARAM_MAX];
-
-		Color color;
-		Color shadow_color;
-
-		RID projector;
-
-		bool shadow;
-		bool negative;
-		bool reverse_cull;
-
-		uint32_t cull_mask;
-
-		RS::LightOmniShadowMode omni_shadow_mode;
-		RS::LightOmniShadowDetail omni_shadow_detail;
-
-		RS::LightDirectionalShadowMode directional_shadow_mode;
-		RS::LightDirectionalShadowDepthRangeMode directional_range_mode;
-
-		bool directional_blend_splits;
-
-		uint64_t version;
-	};
-
-	mutable RID_Owner<Light> light_owner;
-
-	virtual RID light_create(RS::LightType p_type);
-
-	virtual void light_set_color(RID p_light, const Color &p_color);
-	virtual void light_set_param(RID p_light, RS::LightParam p_param, float p_value);
-	virtual void light_set_shadow(RID p_light, bool p_enabled);
-	virtual void light_set_shadow_color(RID p_light, const Color &p_color);
-	virtual void light_set_projector(RID p_light, RID p_texture);
-	virtual void light_set_negative(RID p_light, bool p_enable);
-	virtual void light_set_cull_mask(RID p_light, uint32_t p_mask);
-	virtual void light_set_reverse_cull_face_mode(RID p_light, bool p_enabled);
-
-	virtual void light_omni_set_shadow_mode(RID p_light, RS::LightOmniShadowMode p_mode);
-	virtual void light_omni_set_shadow_detail(RID p_light, RS::LightOmniShadowDetail p_detail);
-
-	virtual void light_directional_set_shadow_mode(RID p_light, RS::LightDirectionalShadowMode p_mode);
-	virtual void light_directional_set_blend_splits(RID p_light, bool p_enable);
-	virtual bool light_directional_get_blend_splits(RID p_light) const;
-
-	virtual RS::LightDirectionalShadowMode light_directional_get_shadow_mode(RID p_light);
-	virtual RS::LightOmniShadowMode light_omni_get_shadow_mode(RID p_light);
-
-	virtual void light_directional_set_shadow_depth_range_mode(RID p_light, RS::LightDirectionalShadowDepthRangeMode p_range_mode);
-	virtual RS::LightDirectionalShadowDepthRangeMode light_directional_get_shadow_depth_range_mode(RID p_light) const;
-
-	virtual bool light_has_shadow(RID p_light) const;
-
-	virtual RS::LightType light_get_type(RID p_light) const;
-	virtual float light_get_param(RID p_light, RS::LightParam p_param);
-	virtual Color light_get_color(RID p_light);
-
-	virtual AABB light_get_aabb(RID p_light) const;
-	virtual uint64_t light_get_version(RID p_light) const;
-
 	/* INSTANCE */
 
 	virtual void instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance);

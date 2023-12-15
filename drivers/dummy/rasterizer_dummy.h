@@ -48,11 +48,6 @@ public:
 	int get_directional_light_shadow_size(RID p_light_intance) { return 0; }
 	void set_directional_shadow_count(int p_count) {}
 
-	RID light_instance_create(RID p_light) { return RID(); }
-	void light_instance_set_transform(RID p_light_instance, const Transform &p_transform) {}
-	void light_instance_set_shadow_transform(RID p_light_instance, const Projection &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_bias_scale = 1.0) {}
-	void light_instance_mark_visible(RID p_light_instance) {}
-
 	void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_environment, RID p_shadow_atlas) {}
 	void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) {}
 
@@ -392,43 +387,6 @@ public:
 
 	MMInterpolator *_multimesh_get_interpolator(RID p_multimesh) const { return nullptr; }
 	void multimesh_attach_canvas_item(RID p_multimesh, RID p_canvas_item, bool p_attach) {}
-
-	/* Light API */
-
-	RID light_create(RS::LightType p_type) { return RID(); }
-
-	RID directional_light_create() { return light_create(RS::LIGHT_DIRECTIONAL); }
-	RID omni_light_create() { return light_create(RS::LIGHT_OMNI); }
-	RID spot_light_create() { return light_create(RS::LIGHT_SPOT); }
-
-	void light_set_color(RID p_light, const Color &p_color) {}
-	void light_set_param(RID p_light, RS::LightParam p_param, float p_value) {}
-	void light_set_shadow(RID p_light, bool p_enabled) {}
-	void light_set_shadow_color(RID p_light, const Color &p_color) {}
-	void light_set_projector(RID p_light, RID p_texture) {}
-	void light_set_negative(RID p_light, bool p_enable) {}
-	void light_set_cull_mask(RID p_light, uint32_t p_mask) {}
-	void light_set_reverse_cull_face_mode(RID p_light, bool p_enabled) {}
-
-	void light_omni_set_shadow_mode(RID p_light, RS::LightOmniShadowMode p_mode) {}
-	void light_omni_set_shadow_detail(RID p_light, RS::LightOmniShadowDetail p_detail) {}
-
-	void light_directional_set_shadow_mode(RID p_light, RS::LightDirectionalShadowMode p_mode) {}
-	void light_directional_set_blend_splits(RID p_light, bool p_enable) {}
-	bool light_directional_get_blend_splits(RID p_light) const { return false; }
-	void light_directional_set_shadow_depth_range_mode(RID p_light, RS::LightDirectionalShadowDepthRangeMode p_range_mode) {}
-	RS::LightDirectionalShadowDepthRangeMode light_directional_get_shadow_depth_range_mode(RID p_light) const { return RS::LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_STABLE; }
-
-	RS::LightDirectionalShadowMode light_directional_get_shadow_mode(RID p_light) { return RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL; }
-	RS::LightOmniShadowMode light_omni_get_shadow_mode(RID p_light) { return RS::LIGHT_OMNI_SHADOW_DUAL_PARABOLOID; }
-
-	bool light_has_shadow(RID p_light) const { return false; }
-
-	RS::LightType light_get_type(RID p_light) const { return RS::LIGHT_OMNI; }
-	AABB light_get_aabb(RID p_light) const { return AABB(); }
-	float light_get_param(RID p_light, RS::LightParam p_param) { return 0.0; }
-	Color light_get_color(RID p_light) { return Color(); }
-	uint64_t light_get_version(RID p_light) const { return 0; }
 
 	/* RENDER TARGET */
 

@@ -209,28 +209,6 @@ public:
 	FUNC2(multimesh_set_visible_instances, RID, int)
 	FUNC1RC(int, multimesh_get_visible_instances, RID)
 
-	/* Light API */
-
-	FUNCRID(directional_light)
-	FUNCRID(omni_light)
-	FUNCRID(spot_light)
-
-	FUNC2(light_set_color, RID, const Color &)
-	FUNC3(light_set_param, RID, LightParam, float)
-	FUNC2(light_set_shadow, RID, bool)
-	FUNC2(light_set_shadow_color, RID, const Color &)
-	FUNC2(light_set_projector, RID, RID)
-	FUNC2(light_set_negative, RID, bool)
-	FUNC2(light_set_cull_mask, RID, uint32_t)
-	FUNC2(light_set_reverse_cull_face_mode, RID, bool)
-
-	FUNC2(light_omni_set_shadow_mode, RID, LightOmniShadowMode)
-	FUNC2(light_omni_set_shadow_detail, RID, LightOmniShadowDetail)
-
-	FUNC2(light_directional_set_shadow_mode, RID, LightDirectionalShadowMode)
-	FUNC2(light_directional_set_blend_splits, RID, bool)
-	FUNC2(light_directional_set_shadow_depth_range_mode, RID, LightDirectionalShadowDepthRangeMode)
-
 	/* CAMERA API */
 
 	FUNCRID(camera)

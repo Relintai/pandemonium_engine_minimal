@@ -387,83 +387,6 @@ public:
 	virtual void multimesh_set_visible_instances(RID p_multimesh, int p_visible) = 0;
 	virtual int multimesh_get_visible_instances(RID p_multimesh) const = 0;
 
-	/* Light API */
-
-	enum LightType {
-		LIGHT_DIRECTIONAL,
-		LIGHT_OMNI,
-		LIGHT_SPOT
-	};
-
-	enum LightParam {
-
-		LIGHT_PARAM_ENERGY,
-		LIGHT_PARAM_INDIRECT_ENERGY,
-		LIGHT_PARAM_SIZE,
-		LIGHT_PARAM_SPECULAR,
-		LIGHT_PARAM_RANGE,
-		LIGHT_PARAM_ATTENUATION,
-		LIGHT_PARAM_SPOT_ANGLE,
-		LIGHT_PARAM_SPOT_ATTENUATION,
-		LIGHT_PARAM_CONTACT_SHADOW_SIZE,
-		LIGHT_PARAM_SHADOW_MAX_DISTANCE,
-		LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET,
-		LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET,
-		LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET,
-		LIGHT_PARAM_SHADOW_NORMAL_BIAS,
-		LIGHT_PARAM_SHADOW_BIAS,
-		LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE,
-		LIGHT_PARAM_MAX
-	};
-
-	virtual RID directional_light_create() = 0;
-	virtual RID omni_light_create() = 0;
-	virtual RID spot_light_create() = 0;
-
-	virtual void light_set_color(RID p_light, const Color &p_color) = 0;
-	virtual void light_set_param(RID p_light, LightParam p_param, float p_value) = 0;
-	virtual void light_set_shadow(RID p_light, bool p_enabled) = 0;
-	virtual void light_set_shadow_color(RID p_light, const Color &p_color) = 0;
-	virtual void light_set_projector(RID p_light, RID p_texture) = 0;
-	virtual void light_set_negative(RID p_light, bool p_enable) = 0;
-	virtual void light_set_cull_mask(RID p_light, uint32_t p_mask) = 0;
-	virtual void light_set_reverse_cull_face_mode(RID p_light, bool p_enabled) = 0;
-
-	// omni light
-	enum LightOmniShadowMode {
-		LIGHT_OMNI_SHADOW_DUAL_PARABOLOID,
-		LIGHT_OMNI_SHADOW_CUBE,
-	};
-
-	virtual void light_omni_set_shadow_mode(RID p_light, LightOmniShadowMode p_mode) = 0;
-
-	// omni light
-	enum LightOmniShadowDetail {
-		LIGHT_OMNI_SHADOW_DETAIL_VERTICAL,
-		LIGHT_OMNI_SHADOW_DETAIL_HORIZONTAL
-	};
-
-	virtual void light_omni_set_shadow_detail(RID p_light, LightOmniShadowDetail p_detail) = 0;
-
-	// directional light
-	enum LightDirectionalShadowMode {
-		LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL,
-		LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS,
-		LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS,
-		LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS
-	};
-
-	virtual void light_directional_set_shadow_mode(RID p_light, LightDirectionalShadowMode p_mode) = 0;
-	virtual void light_directional_set_blend_splits(RID p_light, bool p_enable) = 0;
-
-	enum LightDirectionalShadowDepthRangeMode {
-		LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_STABLE,
-		LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_OPTIMIZED,
-
-	};
-
-	virtual void light_directional_set_shadow_depth_range_mode(RID p_light, LightDirectionalShadowDepthRangeMode p_range_mode) = 0;
-
 	/* CAMERA API */
 
 	virtual RID camera_create() = 0;
@@ -616,7 +539,6 @@ public:
 		INSTANCE_NONE,
 		INSTANCE_MESH,
 		INSTANCE_MULTIMESH,
-		INSTANCE_LIGHT,
 		INSTANCE_MAX,
 
 		INSTANCE_GEOMETRY_MASK = (1 << INSTANCE_MESH) | (1 << INSTANCE_MULTIMESH)
@@ -923,8 +845,6 @@ VARIANT_ENUM_CAST(RenderingServer::ArrayType);
 VARIANT_ENUM_CAST(RenderingServer::ArrayFormat);
 VARIANT_ENUM_CAST(RenderingServer::PrimitiveType);
 VARIANT_ENUM_CAST(RenderingServer::BlendShapeMode);
-VARIANT_ENUM_CAST(RenderingServer::LightType);
-VARIANT_ENUM_CAST(RenderingServer::LightParam);
 VARIANT_ENUM_CAST(RenderingServer::ViewportUpdateMode);
 VARIANT_ENUM_CAST(RenderingServer::ViewportClearMode);
 VARIANT_ENUM_CAST(RenderingServer::ViewportMSAA);
@@ -943,10 +863,6 @@ VARIANT_ENUM_CAST(RenderingServer::MultimeshTransformFormat);
 VARIANT_ENUM_CAST(RenderingServer::MultimeshColorFormat);
 VARIANT_ENUM_CAST(RenderingServer::MultimeshCustomDataFormat);
 VARIANT_ENUM_CAST(RenderingServer::MultimeshPhysicsInterpolationQuality);
-VARIANT_ENUM_CAST(RenderingServer::LightOmniShadowMode);
-VARIANT_ENUM_CAST(RenderingServer::LightOmniShadowDetail);
-VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowMode);
-VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowDepthRangeMode);
 VARIANT_ENUM_CAST(RenderingServer::InstanceFlags);
 VARIANT_ENUM_CAST(RenderingServer::ShadowCastingSetting);
 VARIANT_ENUM_CAST(RenderingServer::TextureType);

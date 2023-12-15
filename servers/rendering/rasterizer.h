@@ -118,12 +118,6 @@ public:
 		}
 	};
 
-	virtual RID light_instance_create(RID p_light) = 0;
-	virtual void light_instance_set_transform(RID p_light_instance, const Transform &p_transform) = 0;
-	virtual void light_instance_set_shadow_transform(RID p_light_instance, const Projection &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_bias_scale = 1.0) = 0;
-	virtual void light_instance_mark_visible(RID p_light_instance) = 0;
-	virtual bool light_instances_can_render_shadow_cube() const { return true; }
-
 	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_shadow_atlas) = 0;
 	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) = 0;
 
@@ -352,43 +346,6 @@ private:
 	void _multimesh_add_to_interpolation_lists(RID p_multimesh, MMInterpolator &r_mmi);
 
 public:
-	/* Light API */
-
-	virtual RID light_create(RS::LightType p_type) = 0;
-
-	RID directional_light_create() { return light_create(RS::LIGHT_DIRECTIONAL); }
-	RID omni_light_create() { return light_create(RS::LIGHT_OMNI); }
-	RID spot_light_create() { return light_create(RS::LIGHT_SPOT); }
-
-	virtual void light_set_color(RID p_light, const Color &p_color) = 0;
-	virtual void light_set_param(RID p_light, RS::LightParam p_param, float p_value) = 0;
-	virtual void light_set_shadow(RID p_light, bool p_enabled) = 0;
-	virtual void light_set_shadow_color(RID p_light, const Color &p_color) = 0;
-	virtual void light_set_projector(RID p_light, RID p_texture) = 0;
-	virtual void light_set_negative(RID p_light, bool p_enable) = 0;
-	virtual void light_set_cull_mask(RID p_light, uint32_t p_mask) = 0;
-	virtual void light_set_reverse_cull_face_mode(RID p_light, bool p_enabled) = 0;
-
-	virtual void light_omni_set_shadow_mode(RID p_light, RS::LightOmniShadowMode p_mode) = 0;
-	virtual void light_omni_set_shadow_detail(RID p_light, RS::LightOmniShadowDetail p_detail) = 0;
-
-	virtual void light_directional_set_shadow_mode(RID p_light, RS::LightDirectionalShadowMode p_mode) = 0;
-	virtual void light_directional_set_blend_splits(RID p_light, bool p_enable) = 0;
-	virtual bool light_directional_get_blend_splits(RID p_light) const = 0;
-	virtual void light_directional_set_shadow_depth_range_mode(RID p_light, RS::LightDirectionalShadowDepthRangeMode p_range_mode) = 0;
-	virtual RS::LightDirectionalShadowDepthRangeMode light_directional_get_shadow_depth_range_mode(RID p_light) const = 0;
-
-	virtual RS::LightDirectionalShadowMode light_directional_get_shadow_mode(RID p_light) = 0;
-	virtual RS::LightOmniShadowMode light_omni_get_shadow_mode(RID p_light) = 0;
-
-	virtual bool light_has_shadow(RID p_light) const = 0;
-
-	virtual RS::LightType light_get_type(RID p_light) const = 0;
-	virtual AABB light_get_aabb(RID p_light) const = 0;
-	virtual float light_get_param(RID p_light, RS::LightParam p_param) = 0;
-	virtual Color light_get_color(RID p_light) = 0;
-	virtual uint64_t light_get_version(RID p_light) const = 0;
-
 	virtual void instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) = 0;
 	virtual void instance_remove_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) = 0;
 

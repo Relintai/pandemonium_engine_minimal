@@ -3543,257 +3543,6 @@ void RasterizerStorageGLES2::update_dirty_blend_shapes() {
 	}
 }
 
-/* Light API */
-
-RID RasterizerStorageGLES2::light_create(RS::LightType p_type) {
-	Light *light = memnew(Light);
-
-	light->type = p_type;
-
-	light->param[RS::LIGHT_PARAM_ENERGY] = 1.0;
-	light->param[RS::LIGHT_PARAM_INDIRECT_ENERGY] = 1.0;
-	light->param[RS::LIGHT_PARAM_SIZE] = 0.0;
-	light->param[RS::LIGHT_PARAM_SPECULAR] = 0.5;
-	light->param[RS::LIGHT_PARAM_RANGE] = 1.0;
-	light->param[RS::LIGHT_PARAM_SPOT_ANGLE] = 45;
-	light->param[RS::LIGHT_PARAM_CONTACT_SHADOW_SIZE] = 45;
-	light->param[RS::LIGHT_PARAM_SHADOW_MAX_DISTANCE] = 0;
-	light->param[RS::LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET] = 0.1;
-	light->param[RS::LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET] = 0.3;
-	light->param[RS::LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET] = 0.6;
-	light->param[RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS] = 0.1;
-	light->param[RS::LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE] = 0.1;
-
-	light->color = Color(1, 1, 1, 1);
-	light->shadow = false;
-	light->negative = false;
-	light->cull_mask = 0xFFFFFFFF;
-	light->directional_shadow_mode = RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL;
-	light->omni_shadow_mode = RS::LIGHT_OMNI_SHADOW_DUAL_PARABOLOID;
-	light->omni_shadow_detail = RS::LIGHT_OMNI_SHADOW_DETAIL_VERTICAL;
-	light->directional_blend_splits = false;
-	light->directional_range_mode = RS::LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_STABLE;
-	light->reverse_cull = false;
-	light->version = 0;
-
-	return light_owner.make_rid(light);
-}
-
-void RasterizerStorageGLES2::light_set_color(RID p_light, const Color &p_color) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->color = p_color;
-}
-
-void RasterizerStorageGLES2::light_set_param(RID p_light, RS::LightParam p_param, float p_value) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-	ERR_FAIL_INDEX(p_param, RS::LIGHT_PARAM_MAX);
-
-	switch (p_param) {
-		case RS::LIGHT_PARAM_RANGE:
-		case RS::LIGHT_PARAM_SPOT_ANGLE:
-		case RS::LIGHT_PARAM_SHADOW_MAX_DISTANCE:
-		case RS::LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET:
-		case RS::LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET:
-		case RS::LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET:
-		case RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS:
-		case RS::LIGHT_PARAM_SHADOW_BIAS: {
-			light->version++;
-			light->instance_change_notify(true, false);
-		} break;
-		default: {
-		}
-	}
-
-	light->param[p_param] = p_value;
-}
-
-void RasterizerStorageGLES2::light_set_shadow(RID p_light, bool p_enabled) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->shadow = p_enabled;
-
-	light->version++;
-	light->instance_change_notify(true, false);
-}
-
-void RasterizerStorageGLES2::light_set_shadow_color(RID p_light, const Color &p_color) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->shadow_color = p_color;
-}
-
-void RasterizerStorageGLES2::light_set_projector(RID p_light, RID p_texture) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->projector = p_texture;
-}
-
-void RasterizerStorageGLES2::light_set_negative(RID p_light, bool p_enable) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->negative = p_enable;
-}
-
-void RasterizerStorageGLES2::light_set_cull_mask(RID p_light, uint32_t p_mask) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->cull_mask = p_mask;
-
-	light->version++;
-	light->instance_change_notify(true, false);
-}
-
-void RasterizerStorageGLES2::light_set_reverse_cull_face_mode(RID p_light, bool p_enabled) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->reverse_cull = p_enabled;
-
-	light->version++;
-	light->instance_change_notify(true, false);
-}
-
-void RasterizerStorageGLES2::light_omni_set_shadow_mode(RID p_light, RS::LightOmniShadowMode p_mode) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->omni_shadow_mode = p_mode;
-
-	light->version++;
-	light->instance_change_notify(true, false);
-}
-
-RS::LightOmniShadowMode RasterizerStorageGLES2::light_omni_get_shadow_mode(RID p_light) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, RS::LIGHT_OMNI_SHADOW_CUBE);
-
-	return light->omni_shadow_mode;
-}
-
-void RasterizerStorageGLES2::light_omni_set_shadow_detail(RID p_light, RS::LightOmniShadowDetail p_detail) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->omni_shadow_detail = p_detail;
-
-	light->version++;
-	light->instance_change_notify(true, false);
-}
-
-void RasterizerStorageGLES2::light_directional_set_shadow_mode(RID p_light, RS::LightDirectionalShadowMode p_mode) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->directional_shadow_mode = p_mode;
-
-	light->version++;
-	light->instance_change_notify(true, false);
-}
-
-void RasterizerStorageGLES2::light_directional_set_blend_splits(RID p_light, bool p_enable) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->directional_blend_splits = p_enable;
-
-	light->version++;
-	light->instance_change_notify(true, false);
-}
-
-bool RasterizerStorageGLES2::light_directional_get_blend_splits(RID p_light) const {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, false);
-	return light->directional_blend_splits;
-}
-
-RS::LightDirectionalShadowMode RasterizerStorageGLES2::light_directional_get_shadow_mode(RID p_light) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL);
-	return light->directional_shadow_mode;
-}
-
-void RasterizerStorageGLES2::light_directional_set_shadow_depth_range_mode(RID p_light, RS::LightDirectionalShadowDepthRangeMode p_range_mode) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND(!light);
-
-	light->directional_range_mode = p_range_mode;
-}
-
-RS::LightDirectionalShadowDepthRangeMode RasterizerStorageGLES2::light_directional_get_shadow_depth_range_mode(RID p_light) const {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, RS::LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_STABLE);
-
-	return light->directional_range_mode;
-}
-
-RS::LightType RasterizerStorageGLES2::light_get_type(RID p_light) const {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, RS::LIGHT_DIRECTIONAL);
-
-	return light->type;
-}
-
-float RasterizerStorageGLES2::light_get_param(RID p_light, RS::LightParam p_param) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, 0.0);
-	ERR_FAIL_INDEX_V(p_param, RS::LIGHT_PARAM_MAX, 0.0);
-
-	return light->param[p_param];
-}
-
-Color RasterizerStorageGLES2::light_get_color(RID p_light) {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, Color());
-
-	return light->color;
-}
-
-bool RasterizerStorageGLES2::light_has_shadow(RID p_light) const {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, false);
-
-	return light->shadow;
-}
-
-uint64_t RasterizerStorageGLES2::light_get_version(RID p_light) const {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, 0);
-
-	return light->version;
-}
-
-AABB RasterizerStorageGLES2::light_get_aabb(RID p_light) const {
-	Light *light = light_owner.getornull(p_light);
-	ERR_FAIL_COND_V(!light, AABB());
-
-	switch (light->type) {
-		case RS::LIGHT_SPOT: {
-			float len = light->param[RS::LIGHT_PARAM_RANGE];
-			float size = Math::tan(Math::deg2rad(light->param[RS::LIGHT_PARAM_SPOT_ANGLE])) * len;
-			return AABB(Vector3(-size, -size, -len), Vector3(size * 2, size * 2, len));
-		};
-
-		case RS::LIGHT_OMNI: {
-			float r = light->param[RS::LIGHT_PARAM_RANGE];
-			return AABB(-Vector3(r, r, r), Vector3(r, r, r) * 2);
-		};
-
-		case RS::LIGHT_DIRECTIONAL: {
-			return AABB();
-		};
-	}
-
-	ERR_FAIL_V(AABB());
-}
-
 ////////
 
 void RasterizerStorageGLES2::instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) {
@@ -3811,10 +3560,6 @@ void RasterizerStorageGLES2::instance_add_dependency(RID p_base, RasterizerScene
 		} break;
 		case RS::INSTANCE_MULTIMESH: {
 			inst = multimesh_owner.getornull(p_base);
-			ERR_FAIL_COND(!inst);
-		} break;
-		case RS::INSTANCE_LIGHT: {
-			inst = light_owner.getornull(p_base);
 			ERR_FAIL_COND(!inst);
 		} break;
 		default: {
@@ -3835,10 +3580,6 @@ void RasterizerStorageGLES2::instance_remove_dependency(RID p_base, RasterizerSc
 		} break;
 		case RS::INSTANCE_MULTIMESH: {
 			inst = multimesh_owner.getornull(p_base);
-			ERR_FAIL_COND(!inst);
-		} break;
-		case RS::INSTANCE_LIGHT: {
-			inst = light_owner.getornull(p_base);
 			ERR_FAIL_COND(!inst);
 		} break;
 		default: {
@@ -4739,8 +4480,6 @@ void RasterizerStorageGLES2::canvas_light_occluder_set_polylines(RID p_occluder,
 RS::InstanceType RasterizerStorageGLES2::get_base_type(RID p_rid) const {
 	if (mesh_owner.owns(p_rid)) {
 		return RS::INSTANCE_MESH;
-	} else if (light_owner.owns(p_rid)) {
-		return RS::INSTANCE_LIGHT;
 	} else if (multimesh_owner.owns(p_rid)) {
 		return RS::INSTANCE_MULTIMESH;
 	} else {
@@ -4878,14 +4617,6 @@ bool RasterizerStorageGLES2::free(RID p_rid) {
 
 		multimesh_owner.free(p_rid);
 		memdelete(multimesh);
-
-		return true;
-	} else if (light_owner.owns(p_rid)) {
-		Light *light = light_owner.get(p_rid);
-		light->instance_remove_deps();
-
-		light_owner.free(p_rid);
-		memdelete(light);
 
 		return true;
 	} else if (canvas_occluder_owner.owns(p_rid)) {

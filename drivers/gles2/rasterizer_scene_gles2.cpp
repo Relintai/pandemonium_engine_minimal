@@ -166,13 +166,6 @@ void RasterizerSceneGLES2::shadow_atlas_set_size(RID p_atlas, int p_size) {
 		shadow_atlas->color = 0;
 	}
 
-	// erase shadow atlast references from lights
-	for (RBMap<RID, uint32_t>::Element *E = shadow_atlas->shadow_owners.front(); E; E = E->next()) {
-		LightInstance *li = light_instance_owner.getornull(E->key());
-		ERR_CONTINUE(!li);
-		li->shadow_atlases.erase(p_atlas);
-	}
-
 	shadow_atlas->shadow_owners.clear();
 
 	shadow_atlas->size = p_size;
@@ -246,17 +239,6 @@ void RasterizerSceneGLES2::shadow_atlas_set_quadrant_subdivision(RID p_atlas, in
 		return;
 	}
 
-	// erase all data from the quadrant
-	for (int i = 0; i < shadow_atlas->quadrants[p_quadrant].shadows.size(); i++) {
-		if (shadow_atlas->quadrants[p_quadrant].shadows[i].owner.is_valid()) {
-			shadow_atlas->shadow_owners.erase(shadow_atlas->quadrants[p_quadrant].shadows[i].owner);
-
-			LightInstance *li = light_instance_owner.getornull(shadow_atlas->quadrants[p_quadrant].shadows[i].owner);
-			ERR_CONTINUE(!li);
-			li->shadow_atlases.erase(p_atlas);
-		}
-	}
-
 	shadow_atlas->quadrants[p_quadrant].shadows.resize(0);
 	shadow_atlas->quadrants[p_quadrant].shadows.resize(subdiv);
 	shadow_atlas->quadrants[p_quadrant].subdivision = subdiv;
@@ -309,29 +291,6 @@ bool RasterizerSceneGLES2::_shadow_atlas_find_shadow(ShadowAtlas *shadow_atlas, 
 		int found_used_idx = -1; // found an existing one, must steal it
 		uint64_t min_pass = 0; // pass of the existing one, try to use the least recently
 
-		for (int j = 0; j < sc; j++) {
-			if (!sarr[j].owner.is_valid()) {
-				found_free_idx = j;
-				break;
-			}
-
-			LightInstance *sli = light_instance_owner.getornull(sarr[j].owner);
-			ERR_CONTINUE(!sli);
-
-			if (sli->last_scene_pass != scene_pass) {
-				// was just allocated, don't kill it so soon, wait a bit...
-
-				if (p_tick - sarr[j].alloc_tick < shadow_atlas_realloc_tolerance_msec) {
-					continue;
-				}
-
-				if (found_used_idx == -1 || sli->last_scene_pass < min_pass) {
-					found_used_idx = j;
-					min_pass = sli->last_scene_pass;
-				}
-			}
-		}
-
 		if (found_free_idx == -1 && found_used_idx == -1) {
 			continue; // nothing found
 		}
@@ -352,9 +311,6 @@ bool RasterizerSceneGLES2::_shadow_atlas_find_shadow(ShadowAtlas *shadow_atlas, 
 bool RasterizerSceneGLES2::shadow_atlas_update_light(RID p_atlas, RID p_light_intance, float p_coverage, uint64_t p_light_version) {
 	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_atlas);
 	ERR_FAIL_COND_V(!shadow_atlas, false);
-
-	LightInstance *li = light_instance_owner.getornull(p_light_intance);
-	ERR_FAIL_COND_V(!li, false);
 
 	if (shadow_atlas->size == 0 || shadow_atlas->smallest_subdiv == 0) {
 		return false;
@@ -425,8 +381,6 @@ bool RasterizerSceneGLES2::shadow_atlas_update_light(RID p_atlas, RID p_light_in
 				// it is take but invalid, so we can take it
 
 				shadow_atlas->shadow_owners.erase(sh->owner);
-				LightInstance *sli = light_instance_owner.get(sh->owner);
-				sli->shadow_atlases.erase(p_atlas);
 			}
 
 			// erase previous
@@ -436,7 +390,6 @@ bool RasterizerSceneGLES2::shadow_atlas_update_light(RID p_atlas, RID p_light_in
 			sh->owner = p_light_intance;
 			sh->alloc_tick = tick;
 			sh->version = p_light_version;
-			li->shadow_atlases.insert(p_atlas);
 
 			// make a new key
 			key = new_quadrant << ShadowAtlas::QUADRANT_SHIFT;
@@ -467,14 +420,11 @@ bool RasterizerSceneGLES2::shadow_atlas_update_light(RID p_atlas, RID p_light_in
 			// it is take but invalid, so we can take it
 
 			shadow_atlas->shadow_owners.erase(sh->owner);
-			LightInstance *sli = light_instance_owner.get(sh->owner);
-			sli->shadow_atlases.erase(p_atlas);
 		}
 
 		sh->owner = p_light_intance;
 		sh->alloc_tick = tick;
 		sh->version = p_light_version;
-		li->shadow_atlases.insert(p_atlas);
 
 		// make a new key
 		uint32_t key = new_quadrant << ShadowAtlas::QUADRANT_SHIFT;
@@ -506,80 +456,9 @@ int RasterizerSceneGLES2::get_directional_light_shadow_size(RID p_light_intance)
 		shadow_size = directional_shadow.size / 2; //more than 4 not supported anyway
 	}
 
-	LightInstance *light_instance = light_instance_owner.getornull(p_light_intance);
-	ERR_FAIL_COND_V(!light_instance, 0);
-
-	switch (light_instance->light_ptr->directional_shadow_mode) {
-		case RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL:
-			break; //none
-		case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS:
-		case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS:
-		case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS:
-			shadow_size /= 2;
-			break;
-	}
-
 	return shadow_size;
 }
-//////////////////////////////////////////////////////
 
-RID RasterizerSceneGLES2::light_instance_create(RID p_light) {
-	LightInstance *light_instance = memnew(LightInstance);
-
-	light_instance->last_scene_pass = 0;
-
-	light_instance->light = p_light;
-	light_instance->light_ptr = storage->light_owner.getornull(p_light);
-
-	light_instance->light_index = 0xFFFF;
-
-	// an ever increasing counter for each light added,
-	// used for sorting lights for a consistent render
-	light_instance->light_counter = _light_counter++;
-
-	if (!light_instance->light_ptr) {
-		memdelete(light_instance);
-		ERR_FAIL_V_MSG(RID(), "Condition ' !light_instance->light_ptr ' is true.");
-	}
-
-	light_instance->self = light_instance_owner.make_rid(light_instance);
-
-	return light_instance->self;
-}
-
-void RasterizerSceneGLES2::light_instance_set_transform(RID p_light_instance, const Transform &p_transform) {
-	LightInstance *light_instance = light_instance_owner.getornull(p_light_instance);
-	ERR_FAIL_COND(!light_instance);
-
-	light_instance->transform = p_transform;
-}
-
-void RasterizerSceneGLES2::light_instance_set_shadow_transform(RID p_light_instance, const Projection &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_bias_scale) {
-	LightInstance *light_instance = light_instance_owner.getornull(p_light_instance);
-	ERR_FAIL_COND(!light_instance);
-
-	if (light_instance->light_ptr->type != RS::LIGHT_DIRECTIONAL) {
-		p_pass = 0;
-	}
-
-	ERR_FAIL_INDEX(p_pass, 4);
-
-	light_instance->shadow_transform[p_pass].camera = p_projection;
-	light_instance->shadow_transform[p_pass].transform = p_transform;
-	light_instance->shadow_transform[p_pass].farplane = p_far;
-	light_instance->shadow_transform[p_pass].split = p_split;
-	light_instance->shadow_transform[p_pass].bias_scale = p_bias_scale;
-}
-
-void RasterizerSceneGLES2::light_instance_mark_visible(RID p_light_instance) {
-	LightInstance *light_instance = light_instance_owner.getornull(p_light_instance);
-	ERR_FAIL_COND(!light_instance);
-
-	light_instance->last_scene_pass = scene_pass;
-}
-
-////////////////////////////
-////////////////////////////
 ////////////////////////////
 
 void RasterizerSceneGLES2::_add_geometry(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, int p_material, bool p_depth_pass, bool p_shadow_pass) {
@@ -720,9 +599,6 @@ void RasterizerSceneGLES2::_add_geometry_with_material(RasterizerStorageGLES2::G
 		e->front_facing = true;
 	}
 
-	e->refprobe_0_index = RenderList::MAX_REFLECTION_PROBES; //refprobe disabled by default
-	e->refprobe_1_index = RenderList::MAX_REFLECTION_PROBES; //refprobe disabled by default
-
 	if (!p_depth_pass) {
 		e->depth_layer = e->instance->depth_layer;
 		e->priority = p_material->render_priority;
@@ -736,57 +612,8 @@ void RasterizerSceneGLES2::_add_geometry_with_material(RasterizerStorageGLES2::G
 
 		//add directional lights
 
-		if (p_material->shader->spatial.unshaded) {
-			e->light_mode = LIGHTMODE_UNSHADED;
-		} else {
-			bool copy = false;
+		e->light_mode = LIGHTMODE_UNSHADED;
 
-			for (int i = 0; i < render_directional_lights; i++) {
-				if (copy) {
-					RenderList::Element *e2 = has_alpha ? render_list.add_alpha_element() : render_list.add_element();
-					if (!e2) {
-						break;
-					}
-					*e2 = *e; //this includes accum ptr :)
-					e = e2;
-				}
-
-				//directional sort key
-				e->light_type1 = 0;
-				e->light_type2 = 1;
-				e->light_index = i;
-
-				copy = true;
-			}
-
-			//add omni / spots
-
-			for (int i = 0; i < e->instance->light_instances.size(); i++) {
-				LightInstance *li = light_instance_owner.getornull(e->instance->light_instances[i]);
-
-				if (!li || li->light_index >= render_light_instance_count || render_light_instances[li->light_index] != li) {
-					continue; // too many or light_index did not correspond to the light instances to be rendered
-				}
-
-				if (copy) {
-					RenderList::Element *e2 = has_alpha ? render_list.add_alpha_element() : render_list.add_element();
-					if (!e2) {
-						break;
-					}
-					*e2 = *e; //this includes accum ptr :)
-					e = e2;
-				}
-
-				//directional sort key
-				e->light_type1 = 1;
-				e->light_type2 = li->light_ptr->type == RenderingServer::LIGHT_OMNI ? 0 : 1;
-				e->light_index = li->light_index;
-
-				copy = true;
-			}
-
-			e->light_mode = LIGHTMODE_NORMAL;
-		}
 	}
 
 	// do not add anything here, as lights are duplicated elements..
@@ -1206,312 +1033,6 @@ void RasterizerSceneGLES2::_render_geometry(RenderList::Element *p_element) {
 	}
 }
 
-void RasterizerSceneGLES2::_setup_light_type(LightInstance *p_light, ShadowAtlas *shadow_atlas) {
-	//turn off all by default
-	state.scene_shader.set_conditional(SceneShaderGLES2::USE_LIGHTING, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::USE_SHADOW, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_5, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_13, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_MODE_DIRECTIONAL, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_MODE_OMNI, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_MODE_SPOT, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM2, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM4, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM_BLEND, false);
-
-	if (!p_light) { //no light, return off
-		return;
-	}
-
-	//turn on lighting
-	state.scene_shader.set_conditional(SceneShaderGLES2::USE_LIGHTING, true);
-
-	switch (p_light->light_ptr->type) {
-		case RS::LIGHT_DIRECTIONAL: {
-			state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_MODE_DIRECTIONAL, true);
-			switch (p_light->light_ptr->directional_shadow_mode) {
-				case RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL: {
-					//no need
-				} break;
-				case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS: {
-					state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM2, true);
-				} break;
-				case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS: {
-					state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM3, true);
-				} break;
-				case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS: {
-					state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM4, true);
-				} break;
-			}
-
-			state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM_BLEND, p_light->light_ptr->directional_blend_splits);
-			if (!state.render_no_shadows && p_light->light_ptr->shadow) {
-				state.scene_shader.set_conditional(SceneShaderGLES2::USE_SHADOW, true);
-				WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0 + storage->config.max_texture_image_units - 3);
-				if (storage->config.use_rgba_3d_shadows) {
-					glBindTexture(GL_TEXTURE_2D, directional_shadow.color);
-				} else {
-					glBindTexture(GL_TEXTURE_2D, directional_shadow.depth);
-				}
-				state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_5, shadow_filter_mode == SHADOW_FILTER_PCF5);
-				state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_13, shadow_filter_mode == SHADOW_FILTER_PCF13);
-			}
-
-		} break;
-		case RS::LIGHT_OMNI: {
-			state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_MODE_OMNI, true);
-			if (!state.render_no_shadows && shadow_atlas && p_light->light_ptr->shadow) {
-				state.scene_shader.set_conditional(SceneShaderGLES2::USE_SHADOW, true);
-				WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0 + storage->config.max_texture_image_units - 3);
-				if (storage->config.use_rgba_3d_shadows) {
-					glBindTexture(GL_TEXTURE_2D, shadow_atlas->color);
-				} else {
-					glBindTexture(GL_TEXTURE_2D, shadow_atlas->depth);
-				}
-				state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_5, shadow_filter_mode == SHADOW_FILTER_PCF5);
-				state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_13, shadow_filter_mode == SHADOW_FILTER_PCF13);
-			}
-		} break;
-		case RS::LIGHT_SPOT: {
-			state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_MODE_SPOT, true);
-			if (!state.render_no_shadows && shadow_atlas && p_light->light_ptr->shadow) {
-				state.scene_shader.set_conditional(SceneShaderGLES2::USE_SHADOW, true);
-				WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0 + storage->config.max_texture_image_units - 3);
-				if (storage->config.use_rgba_3d_shadows) {
-					glBindTexture(GL_TEXTURE_2D, shadow_atlas->color);
-				} else {
-					glBindTexture(GL_TEXTURE_2D, shadow_atlas->depth);
-				}
-				state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_5, shadow_filter_mode == SHADOW_FILTER_PCF5);
-				state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_13, shadow_filter_mode == SHADOW_FILTER_PCF13);
-			}
-		} break;
-	}
-}
-
-void RasterizerSceneGLES2::_setup_light(LightInstance *light, ShadowAtlas *shadow_atlas, const Transform &p_view_transform, bool accum_pass) {
-	RasterizerStorageGLES2::Light *light_ptr = light->light_ptr;
-
-	//common parameters
-	float energy = light_ptr->param[RS::LIGHT_PARAM_ENERGY];
-	float specular = light_ptr->param[RS::LIGHT_PARAM_SPECULAR];
-	float sign = (light_ptr->negative && !accum_pass) ? -1 : 1; //inverse color for base pass lights only
-
-	state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SPECULAR, specular);
-	Color color = light_ptr->color * sign * energy * Math_PI;
-	state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_COLOR, color);
-
-	state.scene_shader.set_uniform(SceneShaderGLES2::SHADOW_COLOR, light_ptr->shadow_color);
-
-	//specific parameters
-
-	switch (light_ptr->type) {
-		case RS::LIGHT_DIRECTIONAL: {
-			//not using inverse for performance, view should be normalized anyway
-			Vector3 direction = p_view_transform.basis.xform_inv(light->transform.basis.xform(Vector3(0, 0, -1))).normalized();
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_DIRECTION, direction);
-
-			Projection matrices[4];
-
-			if (!state.render_no_shadows && light_ptr->shadow && directional_shadow.depth) {
-				int shadow_count = 0;
-				Color split_offsets;
-
-				switch (light_ptr->directional_shadow_mode) {
-					case RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL: {
-						shadow_count = 1;
-					} break;
-
-					case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS: {
-						shadow_count = 2;
-					} break;
-
-					case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS: {
-						shadow_count = 3;
-					} break;
-
-					case RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS: {
-						shadow_count = 4;
-					} break;
-				}
-
-				for (int k = 0; k < shadow_count; k++) {
-					uint32_t x = light->directional_rect.position.x;
-					uint32_t y = light->directional_rect.position.y;
-					uint32_t width = light->directional_rect.size.x;
-					uint32_t height = light->directional_rect.size.y;
-
-					if (light_ptr->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS ||
-							light_ptr->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS) {
-						width /= 2;
-						height /= 2;
-
-						if (k == 1) {
-							x += width;
-						} else if (k == 2) {
-							y += height;
-						} else if (k == 3) {
-							x += width;
-							y += height;
-						}
-
-					} else if (light_ptr->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS) {
-						height /= 2;
-
-						if (k != 0) {
-							y += height;
-						}
-					}
-
-					split_offsets[k] = light->shadow_transform[k].split;
-
-					Transform modelview = (p_view_transform.inverse() * light->shadow_transform[k].transform).affine_inverse();
-
-					Projection bias;
-					bias.set_light_bias();
-					Projection rectm;
-					Rect2 atlas_rect = Rect2(float(x) / directional_shadow.size, float(y) / directional_shadow.size, float(width) / directional_shadow.size, float(height) / directional_shadow.size);
-					rectm.set_light_atlas_rect(atlas_rect);
-
-					Projection shadow_mtx = rectm * bias * light->shadow_transform[k].camera * modelview;
-					matrices[k] = shadow_mtx;
-
-					/*Color light_clamp;
-					light_clamp[0] = atlas_rect.position.x;
-					light_clamp[1] = atlas_rect.position.y;
-					light_clamp[2] = atlas_rect.size.x;
-					light_clamp[3] = atlas_rect.size.y;*/
-				}
-
-				//	state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_CLAMP, light_clamp);
-				state.scene_shader.set_uniform(SceneShaderGLES2::SHADOW_PIXEL_SIZE, Size2(1.0 / directional_shadow.size, 1.0 / directional_shadow.size));
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SPLIT_OFFSETS, split_offsets);
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SHADOW_MATRIX, matrices[0]);
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SHADOW_MATRIX2, matrices[1]);
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SHADOW_MATRIX3, matrices[2]);
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SHADOW_MATRIX4, matrices[3]);
-			}
-		} break;
-		case RS::LIGHT_OMNI: {
-			Vector3 position = p_view_transform.xform_inv(light->transform.origin);
-
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_POSITION, position);
-
-			float range = light_ptr->param[RS::LIGHT_PARAM_RANGE];
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_RANGE, range);
-
-			float attenuation = light_ptr->param[RS::LIGHT_PARAM_ATTENUATION];
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_ATTENUATION, attenuation);
-
-			if (!state.render_no_shadows && light_ptr->shadow && shadow_atlas && shadow_atlas->shadow_owners.has(light->self)) {
-				uint32_t key = shadow_atlas->shadow_owners[light->self];
-
-				uint32_t quadrant = (key >> ShadowAtlas::QUADRANT_SHIFT) & 0x03;
-				uint32_t shadow = key & ShadowAtlas::SHADOW_INDEX_MASK;
-
-				ERR_BREAK(shadow >= (uint32_t)shadow_atlas->quadrants[quadrant].shadows.size());
-
-				uint32_t atlas_size = shadow_atlas->size;
-				uint32_t quadrant_size = atlas_size >> 1;
-
-				uint32_t x = (quadrant & 1) * quadrant_size;
-				uint32_t y = (quadrant >> 1) * quadrant_size;
-
-				uint32_t shadow_size = (quadrant_size / shadow_atlas->quadrants[quadrant].subdivision);
-				x += (shadow % shadow_atlas->quadrants[quadrant].subdivision) * shadow_size;
-				y += (shadow / shadow_atlas->quadrants[quadrant].subdivision) * shadow_size;
-
-				uint32_t width = shadow_size;
-				uint32_t height = shadow_size;
-
-				if (light->light_ptr->omni_shadow_detail == RS::LIGHT_OMNI_SHADOW_DETAIL_HORIZONTAL) {
-					height /= 2;
-				} else {
-					width /= 2;
-				}
-
-				Transform proj = (p_view_transform.inverse() * light->transform).inverse();
-
-				Color light_clamp;
-				light_clamp[0] = float(x) / atlas_size;
-				light_clamp[1] = float(y) / atlas_size;
-				light_clamp[2] = float(width) / atlas_size;
-				light_clamp[3] = float(height) / atlas_size;
-
-				state.scene_shader.set_uniform(SceneShaderGLES2::SHADOW_PIXEL_SIZE, Size2(1.0 / shadow_atlas->size, 1.0 / shadow_atlas->size));
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SHADOW_MATRIX, proj);
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_CLAMP, light_clamp);
-			}
-		} break;
-
-		case RS::LIGHT_SPOT: {
-			Vector3 position = p_view_transform.xform_inv(light->transform.origin);
-
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_POSITION, position);
-
-			Vector3 direction = p_view_transform.inverse().basis.xform(light->transform.basis.xform(Vector3(0, 0, -1))).normalized();
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_DIRECTION, direction);
-			float attenuation = light_ptr->param[RS::LIGHT_PARAM_ATTENUATION];
-			float range = light_ptr->param[RS::LIGHT_PARAM_RANGE];
-			float spot_attenuation = light_ptr->param[RS::LIGHT_PARAM_SPOT_ATTENUATION];
-			float angle = light_ptr->param[RS::LIGHT_PARAM_SPOT_ANGLE];
-			angle = Math::cos(Math::deg2rad(angle));
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_ATTENUATION, attenuation);
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SPOT_ATTENUATION, spot_attenuation);
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SPOT_RANGE, spot_attenuation);
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SPOT_ANGLE, angle);
-			state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_RANGE, range);
-
-			if (!state.render_no_shadows && light->light_ptr->shadow && shadow_atlas && shadow_atlas->shadow_owners.has(light->self)) {
-				uint32_t key = shadow_atlas->shadow_owners[light->self];
-
-				uint32_t quadrant = (key >> ShadowAtlas::QUADRANT_SHIFT) & 0x03;
-				uint32_t shadow = key & ShadowAtlas::SHADOW_INDEX_MASK;
-
-				ERR_BREAK(shadow >= (uint32_t)shadow_atlas->quadrants[quadrant].shadows.size());
-
-				uint32_t atlas_size = shadow_atlas->size;
-				uint32_t quadrant_size = atlas_size >> 1;
-
-				uint32_t x = (quadrant & 1) * quadrant_size;
-				uint32_t y = (quadrant >> 1) * quadrant_size;
-
-				uint32_t shadow_size = (quadrant_size / shadow_atlas->quadrants[quadrant].subdivision);
-				x += (shadow % shadow_atlas->quadrants[quadrant].subdivision) * shadow_size;
-				y += (shadow / shadow_atlas->quadrants[quadrant].subdivision) * shadow_size;
-
-				uint32_t width = shadow_size;
-				uint32_t height = shadow_size;
-
-				Rect2 rect(float(x) / atlas_size, float(y) / atlas_size, float(width) / atlas_size, float(height) / atlas_size);
-
-				Color light_clamp;
-				light_clamp[0] = rect.position.x;
-				light_clamp[1] = rect.position.y;
-				light_clamp[2] = rect.size.x;
-				light_clamp[3] = rect.size.y;
-
-				Transform modelview = (p_view_transform.inverse() * light->transform).inverse();
-
-				Projection bias;
-				bias.set_light_bias();
-
-				Projection rectm;
-				rectm.set_light_atlas_rect(rect);
-
-				Projection shadow_matrix = rectm * bias * light->shadow_transform[0].camera * modelview;
-
-				state.scene_shader.set_uniform(SceneShaderGLES2::SHADOW_PIXEL_SIZE, Size2(1.0 / shadow_atlas->size, 1.0 / shadow_atlas->size));
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_SHADOW_MATRIX, shadow_matrix);
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_CLAMP, light_clamp);
-			}
-
-		} break;
-		default: {
-		}
-	}
-}
-
 void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements, int p_element_count, const Transform &p_view_transform, const Projection &p_projection, const int p_eye, RID p_shadow_atlas, float p_shadow_bias, float p_shadow_normal_bias, bool p_reverse_cull, bool p_alpha_pass, bool p_shadow) {
 	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_shadow_atlas);
 
@@ -1535,7 +1056,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 	Projection projection_inverse = p_projection.inverse();
 
 	bool prev_base_pass = false;
-	LightInstance *prev_light = nullptr;
 	bool prev_vertex_lit = false;
 
 	int prev_blend_mode = -2; //will always catch the first go
@@ -1563,7 +1083,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 		bool rebind = false;
 		bool accum_pass = *e->use_accum_ptr;
 		*e->use_accum_ptr = true; //set to accum for next time this is found
-		LightInstance *light = nullptr;
 		bool rebind_light = false;
 
 		if (!p_shadow && material->shader) {
@@ -1591,27 +1110,7 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 				prev_base_pass = base_pass;
 			}
 
-			if (!unshaded && e->light_index < RenderList::MAX_LIGHTS) {
-				light = render_light_instances[e->light_index];
-				if ((e->instance->layer_mask & light->light_ptr->cull_mask) == 0) {
-					light = nullptr; // Don't use this light, it is culled
-				}
-			}
-
-			if (light != prev_light) {
-				_setup_light_type(light, shadow_atlas);
-				rebind = true;
-				rebind_light = true;
-			}
-
 			int blend_mode = p_alpha_pass ? material->shader->spatial.blend_mode : -1; // -1 no blend, no mix
-
-			if (accum_pass) { //accum pass force pass
-				blend_mode = RasterizerStorageGLES2::Shader::Spatial::BLEND_MODE_ADD;
-				if (light && light->light_ptr->negative) {
-					blend_mode = RasterizerStorageGLES2::Shader::Spatial::BLEND_MODE_SUB;
-				}
-			}
 
 			if (prev_blend_mode != blend_mode) {
 				if (prev_blend_mode == -1 && blend_mode != -1) {
@@ -1657,7 +1156,7 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 			}
 
 			//condition to enable vertex lighting on this object
-			bool vertex_lit = (material->shader->spatial.uses_vertex_lighting || storage->config.force_vertex_shading) && ((!unshaded && light) || using_fog); //fog forces vertex lighting because it still applies even if unshaded or no fog
+			bool vertex_lit = (material->shader->spatial.uses_vertex_lighting || storage->config.force_vertex_shading) && ((!unshaded) || using_fog); //fog forces vertex lighting because it still applies even if unshaded or no fog
 
 			if (vertex_lit != prev_vertex_lit) {
 				state.scene_shader.set_conditional(SceneShaderGLES2::USE_VERTEX_LIGHTING, vertex_lit);
@@ -1751,10 +1250,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 			state.scene_shader.set_uniform(SceneShaderGLES2::SCREEN_PIXEL_SIZE, screen_pixel_size);
 		}
 
-		if (rebind_light && light) {
-			_setup_light(light, shadow_atlas, p_view_transform, accum_pass);
-		}
-
 		state.scene_shader.set_uniform(SceneShaderGLES2::WORLD_TRANSFORM, e->instance->transform);
 
 		_render_geometry(e);
@@ -1764,10 +1259,8 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 		prev_material = material;
 		prev_instancing = instancing;
 		prev_octahedral_compression = octahedral_compression;
-		prev_light = light;
 	}
 
-	_setup_light_type(nullptr, nullptr); //clear light stuff
 	state.scene_shader.set_conditional(SceneShaderGLES2::ENABLE_OCTAHEDRAL_COMPRESSION, false);
 	state.scene_shader.set_conditional(SceneShaderGLES2::USE_SKELETON, false);
 	state.scene_shader.set_conditional(SceneShaderGLES2::SHADELESS, false);
@@ -1926,38 +1419,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	state.screen_pixel_size.x = 1.0 / viewport_width;
 	state.screen_pixel_size.y = 1.0 / viewport_height;
 
-	//push back the directional lights
-
-	if (p_light_cull_count) {
-		//hardcoded limit of 256 lights
-		render_light_instance_count = MIN(RenderList::MAX_LIGHTS, p_light_cull_count);
-		render_light_instances = (LightInstance **)alloca(sizeof(LightInstance *) * render_light_instance_count);
-		render_directional_lights = 0;
-
-		//doing this because directional lights are at the end, put them at the beginning
-		int index = 0;
-		for (int i = render_light_instance_count - 1; i >= 0; i--) {
-			RID light_rid = p_light_cull_result[i];
-
-			LightInstance *light = light_instance_owner.getornull(light_rid);
-
-			if (light->light_ptr->type == RS::LIGHT_DIRECTIONAL) {
-				render_directional_lights++;
-				//as going in reverse, directional lights are always first anyway
-			}
-
-			light->light_index = index;
-			render_light_instances[index] = light;
-
-			index++;
-		}
-
-	} else {
-		render_light_instances = nullptr;
-		render_directional_lights = 0;
-		render_light_instance_count = 0;
-	}
-
 	// render list stuff
 
 	render_list.clear();
@@ -2114,12 +1575,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) {
 	state.render_no_shadows = false;
 
-	LightInstance *light_instance = light_instance_owner.getornull(p_light);
-	ERR_FAIL_COND(!light_instance);
-
-	RasterizerStorageGLES2::Light *light = light_instance->light_ptr;
-	ERR_FAIL_COND(!light);
-
 	uint32_t x;
 	uint32_t y;
 	uint32_t width;
@@ -2138,154 +1593,6 @@ void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 
 	Projection light_projection;
 	Transform light_transform;
-
-	// TODO directional light
-
-	if (light->type == RS::LIGHT_DIRECTIONAL) {
-		// set pssm stuff
-
-		// TODO set this only when changed
-
-		light_instance->light_directional_index = directional_shadow.current_light;
-		light_instance->last_scene_shadow_pass = scene_pass;
-
-		directional_shadow.current_light++;
-
-		if (directional_shadow.light_count == 1) {
-			light_instance->directional_rect = Rect2(0, 0, directional_shadow.size, directional_shadow.size);
-		} else if (directional_shadow.light_count == 2) {
-			light_instance->directional_rect = Rect2(0, 0, directional_shadow.size, directional_shadow.size / 2);
-			if (light_instance->light_directional_index == 1) {
-				light_instance->directional_rect.position.y += light_instance->directional_rect.size.y;
-			}
-		} else { //3 and 4
-			light_instance->directional_rect = Rect2(0, 0, directional_shadow.size / 2, directional_shadow.size / 2);
-			if (light_instance->light_directional_index & 1) {
-				light_instance->directional_rect.position.x += light_instance->directional_rect.size.x;
-			}
-			if (light_instance->light_directional_index / 2) {
-				light_instance->directional_rect.position.y += light_instance->directional_rect.size.y;
-			}
-		}
-
-		light_projection = light_instance->shadow_transform[p_pass].camera;
-		light_transform = light_instance->shadow_transform[p_pass].transform;
-
-		x = light_instance->directional_rect.position.x;
-		y = light_instance->directional_rect.position.y;
-		width = light_instance->directional_rect.size.width;
-		height = light_instance->directional_rect.size.height;
-
-		if (light->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS || light->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS) {
-			width /= 2;
-			height /= 2;
-
-			if (p_pass == 1) {
-				x += width;
-			} else if (p_pass == 2) {
-				y += height;
-			} else if (p_pass == 3) {
-				x += width;
-				y += height;
-			}
-
-		} else if (light->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS) {
-			height /= 2;
-
-			if (p_pass == 0) {
-			} else {
-				y += height;
-			}
-		}
-
-		float bias_mult = Math::lerp(1.0f, light_instance->shadow_transform[p_pass].bias_scale, light->param[RS::LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE]);
-		zfar = light->param[RS::LIGHT_PARAM_RANGE];
-		bias = light->param[RS::LIGHT_PARAM_SHADOW_BIAS] * bias_mult;
-		normal_bias = light->param[RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS] * bias_mult;
-
-		fbo = directional_shadow.fbo;
-	} else {
-		ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_shadow_atlas);
-		ERR_FAIL_COND(!shadow_atlas);
-		ERR_FAIL_COND(!shadow_atlas->shadow_owners.has(p_light));
-
-		fbo = shadow_atlas->fbo;
-
-		uint32_t key = shadow_atlas->shadow_owners[p_light];
-
-		uint32_t quadrant = (key >> ShadowAtlas::QUADRANT_SHIFT) & 0x03;
-		uint32_t shadow = key & ShadowAtlas::SHADOW_INDEX_MASK;
-
-		ERR_FAIL_INDEX((int)shadow, shadow_atlas->quadrants[quadrant].shadows.size());
-
-		uint32_t quadrant_size = shadow_atlas->size >> 1;
-
-		x = (quadrant & 1) * quadrant_size;
-		y = (quadrant >> 1) * quadrant_size;
-
-		uint32_t shadow_size = (quadrant_size / shadow_atlas->quadrants[quadrant].subdivision);
-		x += (shadow % shadow_atlas->quadrants[quadrant].subdivision) * shadow_size;
-		y += (shadow / shadow_atlas->quadrants[quadrant].subdivision) * shadow_size;
-
-		width = shadow_size;
-		height = shadow_size;
-
-		if (light->type == RS::LIGHT_OMNI) {
-			// cubemap only
-			if (light->omni_shadow_mode == RS::LIGHT_OMNI_SHADOW_CUBE && storage->config.support_shadow_cubemaps) {
-				int cubemap_index = shadow_cubemaps.size() - 1;
-
-				// find an appropriate cubemap to render to
-				for (int i = shadow_cubemaps.size() - 1; i >= 0; i--) {
-					if (shadow_cubemaps[i].size > shadow_size) {
-						break;
-					}
-
-					cubemap_index = i;
-				}
-
-				fbo = shadow_cubemaps[cubemap_index].fbo[p_pass];
-				light_projection = light_instance->shadow_transform[0].camera;
-				light_transform = light_instance->shadow_transform[0].transform;
-
-				custom_vp_size = shadow_cubemaps[cubemap_index].size;
-				zfar = light->param[RS::LIGHT_PARAM_RANGE];
-
-				current_cubemap = cubemap_index;
-			} else {
-				//dual parabolloid
-				state.shadow_is_dual_parabolloid = true;
-				light_projection = light_instance->shadow_transform[0].camera;
-				light_transform = light_instance->shadow_transform[0].transform;
-
-				if (light->omni_shadow_detail == RS::LIGHT_OMNI_SHADOW_DETAIL_HORIZONTAL) {
-					height /= 2;
-					y += p_pass * height;
-				} else {
-					width /= 2;
-					x += p_pass * width;
-				}
-
-				state.dual_parbolloid_direction = p_pass == 0 ? 1.0 : -1.0;
-				flip_facing = (p_pass == 1);
-				zfar = light->param[RS::LIGHT_PARAM_RANGE];
-				bias = light->param[RS::LIGHT_PARAM_SHADOW_BIAS];
-
-				state.dual_parbolloid_zfar = zfar;
-
-				state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH_DUAL_PARABOLOID, true);
-			}
-
-		} else if (light->type == RS::LIGHT_SPOT) {
-			light_projection = light_instance->shadow_transform[0].camera;
-			light_transform = light_instance->shadow_transform[0].transform;
-
-			flip_facing = false;
-			zfar = light->param[RS::LIGHT_PARAM_RANGE];
-			bias = light->param[RS::LIGHT_PARAM_SHADOW_BIAS];
-			normal_bias = light->param[RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS];
-		}
-	}
 
 	render_list.clear();
 
@@ -2321,10 +1628,6 @@ void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 	}
 	glDisable(GL_SCISSOR_TEST);
 
-	if (light->reverse_cull) {
-		flip_facing = !flip_facing;
-	}
-
 	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH, true);
 	state.scene_shader.set_conditional(SceneShaderGLES2::OUTPUT_LINEAR, false); // just in case, should be false already
 
@@ -2332,53 +1635,6 @@ void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 
 	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH, false);
 	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH_DUAL_PARABOLOID, false);
-
-	// convert cubemap to dual paraboloid if needed
-	if (light->type == RS::LIGHT_OMNI && (light->omni_shadow_mode == RS::LIGHT_OMNI_SHADOW_CUBE && storage->config.support_shadow_cubemaps) && p_pass == 5) {
-		ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_shadow_atlas);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, shadow_atlas->fbo);
-		state.cube_to_dp_shader.bind();
-
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, shadow_cubemaps[current_cubemap].cubemap);
-
-		glDisable(GL_CULL_FACE);
-
-		for (int i = 0; i < 2; i++) {
-			state.cube_to_dp_shader.set_uniform(CubeToDpShaderGLES2::Z_FLIP, i == 1);
-			state.cube_to_dp_shader.set_uniform(CubeToDpShaderGLES2::Z_NEAR, light_projection.get_z_near());
-			state.cube_to_dp_shader.set_uniform(CubeToDpShaderGLES2::Z_FAR, light_projection.get_z_far());
-			state.cube_to_dp_shader.set_uniform(CubeToDpShaderGLES2::BIAS, light->param[RS::LIGHT_PARAM_SHADOW_BIAS]);
-
-			uint32_t local_width = width;
-			uint32_t local_height = height;
-			uint32_t local_x = x;
-			uint32_t local_y = y;
-
-			if (light->omni_shadow_detail == RS::LIGHT_OMNI_SHADOW_DETAIL_HORIZONTAL) {
-				local_height /= 2;
-				local_y += i * local_height;
-			} else {
-				local_width /= 2;
-				local_x += i * local_width;
-			}
-
-			glViewport(local_x, local_y, local_width, local_height);
-			glScissor(local_x, local_y, local_width, local_height);
-
-			glEnable(GL_SCISSOR_TEST);
-
-			glClearDepth(1.0f);
-
-			glClear(GL_DEPTH_BUFFER_BIT);
-			glDisable(GL_SCISSOR_TEST);
-
-			glDisable(GL_BLEND);
-
-			storage->_copy_screen();
-		}
-	}
 
 	if (storage->frame.current_rt) {
 		glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
@@ -2393,25 +1649,7 @@ void RasterizerSceneGLES2::set_scene_pass(uint64_t p_pass) {
 }
 
 bool RasterizerSceneGLES2::free(RID p_rid) {
-	if (light_instance_owner.owns(p_rid)) {
-		LightInstance *light_instance = light_instance_owner.getptr(p_rid);
-
-		//remove from shadow atlases..
-		for (RBSet<RID>::Element *E = light_instance->shadow_atlases.front(); E; E = E->next()) {
-			ShadowAtlas *shadow_atlas = shadow_atlas_owner.get(E->get());
-			ERR_CONTINUE(!shadow_atlas->shadow_owners.has(p_rid));
-			uint32_t key = shadow_atlas->shadow_owners[p_rid];
-			uint32_t q = (key >> ShadowAtlas::QUADRANT_SHIFT) & 0x3;
-			uint32_t s = key & ShadowAtlas::SHADOW_INDEX_MASK;
-
-			shadow_atlas->quadrants[q].shadows.write[s].owner = RID();
-			shadow_atlas->shadow_owners.erase(p_rid);
-		}
-
-		light_instance_owner.free(p_rid);
-		memdelete(light_instance);
-
-	} else if (shadow_atlas_owner.owns(p_rid)) {
+	if (shadow_atlas_owner.owns(p_rid)) {
 		ShadowAtlas *shadow_atlas = shadow_atlas_owner.get(p_rid);
 		shadow_atlas_set_size(p_rid, 0);
 		shadow_atlas_owner.free(p_rid);

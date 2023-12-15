@@ -113,102 +113,6 @@ public:
 		Color default_ambient;
 		Color default_bg;
 
-		// ResolveShaderGLES3 resolve_shader;
-		// ScreenSpaceReflectionShaderGLES3 ssr_shader;
-		// EffectBlurShaderGLES3 effect_blur_shader;
-		// SubsurfScatteringShaderGLES3 sss_shader;
-		// SsaoMinifyShaderGLES3 ssao_minify_shader;
-		// SsaoShaderGLES3 ssao_shader;
-		// SsaoBlurShaderGLES3 ssao_blur_shader;
-		// ExposureShaderGLES3 exposure_shader;
-
-		/*
-		struct SceneDataUBO {
-			//this is a std140 compatible struct. Please read the OpenGL 3.3 Specificaiton spec before doing any changes
-			float projection_matrix[16];
-			float inv_projection_matrix[16];
-			float camera_inverse_matrix[16];
-			float camera_matrix[16];
-			float ambient_light_color[4];
-			float bg_color[4];
-			float fog_color_enabled[4];
-			float fog_sun_color_amount[4];
-
-			float ambient_energy;
-			float bg_energy;
-			float z_offset;
-			float z_slope_scale;
-			float shadow_dual_paraboloid_render_zfar;
-			float shadow_dual_paraboloid_render_side;
-			float viewport_size[2];
-			float screen_pixel_size[2];
-			float shadow_atlas_pixel_size[2];
-			float shadow_directional_pixel_size[2];
-
-			float time;
-			float z_far;
-			float reflection_multiplier;
-			float subsurface_scatter_width;
-			float ambient_occlusion_affect_light;
-
-			uint32_t fog_depth_enabled;
-			float fog_depth_begin;
-			float fog_depth_curve;
-			uint32_t fog_transmit_enabled;
-			float fog_transmit_curve;
-			uint32_t fog_height_enabled;
-			float fog_height_min;
-			float fog_height_max;
-			float fog_height_curve;
-			// make sure this struct is padded to be a multiple of 16 bytes for webgl
-
-		} ubo_data;
-
-		GLuint scene_ubo;
-
-		struct Environment3DRadianceUBO {
-
-			float transform[16];
-			float ambient_contribution;
-			uint8_t padding[12];
-
-		} env_radiance_data;
-
-		GLuint env_radiance_ubo;
-
-		GLuint sky_array;
-
-		GLuint directional_ubo;
-
-		GLuint spot_array_ubo;
-		GLuint omni_array_ubo;
-		GLuint reflection_array_ubo;
-
-		GLuint immediate_buffer;
-		GLuint immediate_array;
-
-		uint32_t ubo_light_size;
-		uint8_t *spot_array_tmp;
-		uint8_t *omni_array_tmp;
-		uint8_t *reflection_array_tmp;
-
-		int max_ubo_lights;
-		int max_forward_lights_per_object;
-		int max_ubo_reflections;
-		int max_skeleton_bones;
-
-		bool used_contact_shadows;
-
-		int spot_light_count;
-		int omni_light_count;
-		int directional_light_count;
-
-		bool used_sss;
-		bool using_contact_shadows;
-
-		RS::ViewportDebugDraw debug_draw;
-		*/
-
 		bool cull_front;
 		bool cull_disabled;
 
@@ -301,57 +205,6 @@ public:
 	virtual int get_directional_light_shadow_size(RID p_light_intance);
 	virtual void set_directional_shadow_count(int p_count);
 
-	/* LIGHT INSTANCE */
-
-	struct LightInstance : public RID_Data {
-		struct ShadowTransform {
-			Projection camera;
-			Transform transform;
-			float farplane;
-			float split;
-			float bias_scale;
-		};
-
-		ShadowTransform shadow_transform[4];
-
-		RID self;
-		RID light;
-
-		RasterizerStorageGLES2::Light *light_ptr;
-		Transform transform;
-
-		Vector3 light_vector;
-		Vector3 spot_vector;
-		float linear_att;
-
-		// TODO passes and all that stuff ?
-		uint64_t last_scene_pass;
-		uint64_t last_scene_shadow_pass;
-
-		uint16_t light_index;
-		uint16_t light_directional_index;
-
-		Rect2 directional_rect;
-
-		// an ever increasing counter for each light added,
-		// used for sorting lights for a consistent render
-		uint32_t light_counter;
-
-		RBSet<RID> shadow_atlases; // atlases where this light is registered
-	};
-
-	mutable RID_Owner<LightInstance> light_instance_owner;
-
-	virtual RID light_instance_create(RID p_light);
-	virtual void light_instance_set_transform(RID p_light_instance, const Transform &p_transform);
-	virtual void light_instance_set_shadow_transform(RID p_light_instance, const Projection &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_bias_scale = 1.0);
-	virtual void light_instance_mark_visible(RID p_light_instance);
-	virtual bool light_instances_can_render_shadow_cube() const { return storage->config.support_shadow_cubemaps; }
-
-	LightInstance **render_light_instances;
-	int render_directional_lights;
-	int render_light_instance_count;
-
 	/* RENDER LIST */
 
 	enum LightMode {
@@ -362,7 +215,6 @@ public:
 	struct RenderList {
 		enum {
 			MAX_LIGHTS = 255,
-			MAX_REFLECTION_PROBES = 255,
 			DEFAULT_MAX_ELEMENTS = 65536
 		};
 
@@ -544,8 +396,6 @@ public:
 	_FORCE_INLINE_ void _set_cull(bool p_front, bool p_disabled, bool p_reverse_cull);
 	_FORCE_INLINE_ bool _setup_material(RasterizerStorageGLES2::Material *p_material, bool p_alpha_pass, Size2i p_skeleton_tex_size = Size2i(0, 0));
 	_FORCE_INLINE_ void _setup_geometry(RenderList::Element *p_element);
-	_FORCE_INLINE_ void _setup_light_type(LightInstance *p_light, ShadowAtlas *shadow_atlas);
-	_FORCE_INLINE_ void _setup_light(LightInstance *p_light, ShadowAtlas *shadow_atlas, const Transform &p_view_transform, bool accum_pass);
 	_FORCE_INLINE_ void _render_geometry(RenderList::Element *p_element);
 
 	void _post_process(const Projection &p_cam_projection);

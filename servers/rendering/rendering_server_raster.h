@@ -42,7 +42,6 @@ class RenderingServerRaster : public RenderingServer {
 	enum {
 
 		MAX_INSTANCE_CULL = 8192,
-		MAX_INSTANCE_LIGHTS = 4,
 		LIGHT_CACHE_DIRTY = -1,
 		MAX_LIGHTS_CULLED = 256,
 		MAX_LIGHT_SAMPLERS = 256,
@@ -282,28 +281,6 @@ public:
 
 	BIND2(multimesh_set_visible_instances, RID, int)
 	BIND1RC(int, multimesh_get_visible_instances, RID)
-
-	/* Light API */
-
-	BIND0R(RID, directional_light_create)
-	BIND0R(RID, omni_light_create)
-	BIND0R(RID, spot_light_create)
-
-	BIND2(light_set_color, RID, const Color &)
-	BIND3(light_set_param, RID, LightParam, float)
-	BIND2(light_set_shadow, RID, bool)
-	BIND2(light_set_shadow_color, RID, const Color &)
-	BIND2(light_set_projector, RID, RID)
-	BIND2(light_set_negative, RID, bool)
-	BIND2(light_set_cull_mask, RID, uint32_t)
-	BIND2(light_set_reverse_cull_face_mode, RID, bool)
-
-	BIND2(light_omni_set_shadow_mode, RID, LightOmniShadowMode)
-	BIND2(light_omni_set_shadow_detail, RID, LightOmniShadowDetail)
-
-	BIND2(light_directional_set_shadow_mode, RID, LightDirectionalShadowMode)
-	BIND2(light_directional_set_blend_splits, RID, bool)
-	BIND2(light_directional_set_shadow_depth_range_mode, RID, LightDirectionalShadowDepthRangeMode)
 
 #undef BINDBASE
 //from now on, calls forwarded to this singleton

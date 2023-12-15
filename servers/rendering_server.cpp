@@ -1920,29 +1920,6 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("multimesh_set_physics_interpolation_quality", "multimesh", "quality"), &RenderingServer::multimesh_set_physics_interpolation_quality);
 	ClassDB::bind_method(D_METHOD("multimesh_instance_reset_physics_interpolation", "multimesh", "index"), &RenderingServer::multimesh_instance_reset_physics_interpolation);
 
-#ifndef _3D_DISABLED
-	ClassDB::bind_method(D_METHOD("directional_light_create"), &RenderingServer::directional_light_create);
-	ClassDB::bind_method(D_METHOD("omni_light_create"), &RenderingServer::omni_light_create);
-	ClassDB::bind_method(D_METHOD("spot_light_create"), &RenderingServer::spot_light_create);
-
-	ClassDB::bind_method(D_METHOD("light_set_color", "light", "color"), &RenderingServer::light_set_color);
-	ClassDB::bind_method(D_METHOD("light_set_param", "light", "param", "value"), &RenderingServer::light_set_param);
-	ClassDB::bind_method(D_METHOD("light_set_shadow", "light", "enabled"), &RenderingServer::light_set_shadow);
-	ClassDB::bind_method(D_METHOD("light_set_shadow_color", "light", "color"), &RenderingServer::light_set_shadow_color);
-	ClassDB::bind_method(D_METHOD("light_set_projector", "light", "texture"), &RenderingServer::light_set_projector);
-	ClassDB::bind_method(D_METHOD("light_set_negative", "light", "enable"), &RenderingServer::light_set_negative);
-	ClassDB::bind_method(D_METHOD("light_set_cull_mask", "light", "mask"), &RenderingServer::light_set_cull_mask);
-	ClassDB::bind_method(D_METHOD("light_set_reverse_cull_face_mode", "light", "enabled"), &RenderingServer::light_set_reverse_cull_face_mode);
-
-	ClassDB::bind_method(D_METHOD("light_omni_set_shadow_mode", "light", "mode"), &RenderingServer::light_omni_set_shadow_mode);
-	ClassDB::bind_method(D_METHOD("light_omni_set_shadow_detail", "light", "detail"), &RenderingServer::light_omni_set_shadow_detail);
-
-	ClassDB::bind_method(D_METHOD("light_directional_set_shadow_mode", "light", "mode"), &RenderingServer::light_directional_set_shadow_mode);
-	ClassDB::bind_method(D_METHOD("light_directional_set_blend_splits", "light", "enable"), &RenderingServer::light_directional_set_blend_splits);
-	ClassDB::bind_method(D_METHOD("light_directional_set_shadow_depth_range_mode", "light", "range_mode"), &RenderingServer::light_directional_set_shadow_depth_range_mode);
-
-#endif
-
 	ClassDB::bind_method(D_METHOD("camera_create"), &RenderingServer::camera_create);
 	ClassDB::bind_method(D_METHOD("camera_set_perspective", "camera", "fovy_degrees", "z_near", "z_far"), &RenderingServer::camera_set_perspective);
 	ClassDB::bind_method(D_METHOD("camera_set_orthogonal", "camera", "size", "z_near", "z_far"), &RenderingServer::camera_set_orthogonal);
@@ -2219,40 +2196,6 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(BLEND_SHAPE_MODE_NORMALIZED);
 	BIND_ENUM_CONSTANT(BLEND_SHAPE_MODE_RELATIVE);
 
-	BIND_ENUM_CONSTANT(LIGHT_DIRECTIONAL);
-	BIND_ENUM_CONSTANT(LIGHT_OMNI);
-	BIND_ENUM_CONSTANT(LIGHT_SPOT);
-
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_ENERGY);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_INDIRECT_ENERGY);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SIZE);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SPECULAR);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_RANGE);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_ATTENUATION);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SPOT_ANGLE);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SPOT_ATTENUATION);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_CONTACT_SHADOW_SIZE);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SHADOW_MAX_DISTANCE);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SHADOW_NORMAL_BIAS);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SHADOW_BIAS);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE);
-	BIND_ENUM_CONSTANT(LIGHT_PARAM_MAX);
-
-	BIND_ENUM_CONSTANT(LIGHT_OMNI_SHADOW_DUAL_PARABOLOID);
-	BIND_ENUM_CONSTANT(LIGHT_OMNI_SHADOW_CUBE);
-	BIND_ENUM_CONSTANT(LIGHT_OMNI_SHADOW_DETAIL_VERTICAL);
-	BIND_ENUM_CONSTANT(LIGHT_OMNI_SHADOW_DETAIL_HORIZONTAL);
-
-	BIND_ENUM_CONSTANT(LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL);
-	BIND_ENUM_CONSTANT(LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS);
-	BIND_ENUM_CONSTANT(LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS);
-	BIND_ENUM_CONSTANT(LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS);
-	BIND_ENUM_CONSTANT(LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_STABLE);
-	BIND_ENUM_CONSTANT(LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_OPTIMIZED);
-
 	BIND_ENUM_CONSTANT(VIEWPORT_UPDATE_DISABLED);
 	BIND_ENUM_CONSTANT(VIEWPORT_UPDATE_ONCE);
 	BIND_ENUM_CONSTANT(VIEWPORT_UPDATE_WHEN_VISIBLE);
@@ -2298,7 +2241,6 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(INSTANCE_NONE);
 	BIND_ENUM_CONSTANT(INSTANCE_MESH);
 	BIND_ENUM_CONSTANT(INSTANCE_MULTIMESH);
-	BIND_ENUM_CONSTANT(INSTANCE_LIGHT);
 	BIND_ENUM_CONSTANT(INSTANCE_MAX);
 	BIND_ENUM_CONSTANT(INSTANCE_GEOMETRY_MASK);
 
