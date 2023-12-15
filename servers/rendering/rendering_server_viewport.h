@@ -44,8 +44,6 @@ public:
 		RID parent;
 
 		Size2i size;
-		RID camera;
-		RID scenario;
 
 		RS::ViewportUpdateMode update_mode;
 		RID render_target;
@@ -57,13 +55,6 @@ public:
 
 		bool hide_scenario;
 		bool hide_canvas;
-		bool disable_environment;
-		bool disable_3d;
-		bool disable_3d_by_usage;
-		bool keep_3d_linear;
-
-		RID shadow_atlas;
-		int shadow_atlas_size;
 
 		int render_info[RS::VIEWPORT_RENDER_INFO_MAX];
 		RS::ViewportDebugDraw debug_draw;
@@ -107,12 +98,7 @@ public:
 			update_mode = RS::VIEWPORT_UPDATE_WHEN_VISIBLE;
 			clear_mode = RS::VIEWPORT_CLEAR_ALWAYS;
 			transparent_bg = false;
-			disable_environment = false;
 			viewport_to_screen = 0;
-			shadow_atlas_size = 0;
-			disable_3d = false;
-			disable_3d_by_usage = false;
-			keep_3d_linear = false;
 			debug_draw = RS::VIEWPORT_DEBUG_DRAW_DISABLED;
 			for (int i = 0; i < RS::VIEWPORT_RENDER_INFO_MAX; i++) {
 				render_info[i] = 0;
@@ -158,11 +144,7 @@ public:
 
 	RID viewport_get_texture(RID p_viewport) const;
 
-	void viewport_set_hide_scenario(RID p_viewport, bool p_hide);
 	void viewport_set_hide_canvas(RID p_viewport, bool p_hide);
-	void viewport_set_disable_environment(RID p_viewport, bool p_disable);
-	void viewport_set_disable_3d(RID p_viewport, bool p_disable);
-	void viewport_set_keep_3d_linear(RID p_viewport, bool p_keep_3d_linear);
 
 	void viewport_attach_canvas(RID p_viewport, RID p_canvas);
 	void viewport_remove_canvas(RID p_viewport, RID p_canvas);

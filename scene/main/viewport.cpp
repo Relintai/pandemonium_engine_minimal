@@ -2484,24 +2484,6 @@ bool Viewport::is_input_disabled() const {
 	return disable_input;
 }
 
-void Viewport::set_disable_3d(bool p_disable) {
-	disable_3d = p_disable;
-	RS::get_singleton()->viewport_set_disable_3d(viewport, p_disable);
-}
-
-bool Viewport::is_3d_disabled() const {
-	return disable_3d;
-}
-
-void Viewport::set_keep_3d_linear(bool p_keep_3d_linear) {
-	keep_3d_linear = p_keep_3d_linear;
-	RS::get_singleton()->viewport_set_keep_3d_linear(viewport, keep_3d_linear);
-}
-
-bool Viewport::get_keep_3d_linear() const {
-	return keep_3d_linear;
-}
-
 Variant Viewport::gui_get_drag_data() const {
 	return gui.drag_data;
 }
@@ -2779,12 +2761,6 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_disable_input", "disable"), &Viewport::set_disable_input);
 	ClassDB::bind_method(D_METHOD("is_input_disabled"), &Viewport::is_input_disabled);
 
-	ClassDB::bind_method(D_METHOD("set_disable_3d", "disable"), &Viewport::set_disable_3d);
-	ClassDB::bind_method(D_METHOD("is_3d_disabled"), &Viewport::is_3d_disabled);
-
-	ClassDB::bind_method(D_METHOD("set_keep_3d_linear", "keep_3d_linear"), &Viewport::set_keep_3d_linear);
-	ClassDB::bind_method(D_METHOD("get_keep_3d_linear"), &Viewport::get_keep_3d_linear);
-
 	ClassDB::bind_method(D_METHOD("_gui_show_tooltip"), &Viewport::_gui_show_tooltip);
 	ClassDB::bind_method(D_METHOD("_gui_remove_focus"), &Viewport::_gui_remove_focus);
 	ClassDB::bind_method(D_METHOD("_post_gui_grab_click_focus"), &Viewport::_post_gui_grab_click_focus);
@@ -2819,9 +2795,7 @@ void Viewport::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "sharpen_intensity"), "set_sharpen_intensity", "get_sharpen_intensity");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "hdr"), "set_hdr", "get_hdr");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_32_bpc_depth"), "set_use_32_bpc_depth", "get_use_32_bpc_depth");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "disable_3d"), "set_disable_3d", "is_3d_disabled");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "keep_3d_linear"), "set_keep_3d_linear", "get_keep_3d_linear");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "usage", PROPERTY_HINT_ENUM, "2D,2D Without Sampling,3D,3D Without Effects"), "set_usage", "get_usage");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "usage", PROPERTY_HINT_ENUM, "2D,2D Without Sampling"), "set_usage", "get_usage");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "render_direct_to_screen"), "set_use_render_direct_to_screen", "is_using_render_direct_to_screen");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "debug_draw", PROPERTY_HINT_ENUM, "Disabled,Unshaded,Overdraw,Wireframe"), "set_debug_draw", "get_debug_draw");
 	ADD_GROUP("Render Target", "render_target_");
@@ -2868,8 +2842,6 @@ void Viewport::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(USAGE_2D);
 	BIND_ENUM_CONSTANT(USAGE_2D_NO_SAMPLING);
-	BIND_ENUM_CONSTANT(USAGE_3D);
-	BIND_ENUM_CONSTANT(USAGE_3D_NO_EFFECTS);
 
 	BIND_ENUM_CONSTANT(CLEAR_MODE_ALWAYS);
 	BIND_ENUM_CONSTANT(CLEAR_MODE_NEVER);
@@ -2979,7 +2951,7 @@ Viewport::Viewport() {
 	hdr = true;
 	use_32_bpc_depth = false;
 
-	usage = USAGE_3D;
+	usage = USAGE_2D;
 	debug_draw = DEBUG_DRAW_DISABLED;
 	clear_mode = CLEAR_MODE_ALWAYS;
 

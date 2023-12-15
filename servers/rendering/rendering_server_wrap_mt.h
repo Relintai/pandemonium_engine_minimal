@@ -230,9 +230,6 @@ public:
 	FUNC1RC(RID, viewport_get_texture, RID)
 
 	FUNC2(viewport_set_hide_canvas, RID, bool)
-	FUNC2(viewport_set_disable_environment, RID, bool)
-	FUNC2(viewport_set_disable_3d, RID, bool)
-	FUNC2(viewport_set_keep_3d_linear, RID, bool)
 
 	FUNC2(viewport_attach_canvas, RID, RID)
 

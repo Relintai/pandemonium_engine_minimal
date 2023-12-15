@@ -108,8 +108,6 @@ public:
 	enum Usage {
 		USAGE_2D,
 		USAGE_2D_NO_SAMPLING,
-		USAGE_3D,
-		USAGE_3D_NO_EFFECTS,
 	};
 
 	enum RenderInfo {
@@ -213,12 +211,6 @@ public:
 
 	void set_disable_input(bool p_disable);
 	bool is_input_disabled() const;
-
-	void set_disable_3d(bool p_disable);
-	bool is_3d_disabled() const;
-
-	void set_keep_3d_linear(bool p_keep_3d_linear);
-	bool get_keep_3d_linear() const;
 
 	void set_attach_to_screen_rect(const Rect2 &p_rect);
 	Rect2 get_attach_to_screen_rect() const;

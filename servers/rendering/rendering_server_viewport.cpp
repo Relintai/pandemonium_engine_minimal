@@ -281,40 +281,11 @@ RID RenderingServerViewport::viewport_get_texture(RID p_viewport) const {
 	return RSG::storage->render_target_get_texture(viewport->render_target);
 }
 
-void RenderingServerViewport::viewport_set_hide_scenario(RID p_viewport, bool p_hide) {
-	Viewport *viewport = viewport_owner.getornull(p_viewport);
-	ERR_FAIL_COND(!viewport);
-
-	viewport->hide_scenario = p_hide;
-}
 void RenderingServerViewport::viewport_set_hide_canvas(RID p_viewport, bool p_hide) {
 	Viewport *viewport = viewport_owner.getornull(p_viewport);
 	ERR_FAIL_COND(!viewport);
 
 	viewport->hide_canvas = p_hide;
-}
-void RenderingServerViewport::viewport_set_disable_environment(RID p_viewport, bool p_disable) {
-	Viewport *viewport = viewport_owner.getornull(p_viewport);
-	ERR_FAIL_COND(!viewport);
-
-	viewport->disable_environment = p_disable;
-}
-
-void RenderingServerViewport::viewport_set_disable_3d(RID p_viewport, bool p_disable) {
-	Viewport *viewport = viewport_owner.getornull(p_viewport);
-	ERR_FAIL_COND(!viewport);
-
-	viewport->disable_3d = p_disable;
-	//RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D, p_disable);
-	//this should be just for disabling rendering of 3D, to actually disable it, set usage
-}
-
-void RenderingServerViewport::viewport_set_keep_3d_linear(RID p_viewport, bool p_keep_3d_linear) {
-	Viewport *viewport = viewport_owner.getornull(p_viewport);
-	ERR_FAIL_COND(!viewport);
-
-	viewport->keep_3d_linear = p_keep_3d_linear;
-	RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_KEEP_3D_LINEAR, p_keep_3d_linear);
 }
 
 void RenderingServerViewport::viewport_attach_canvas(RID p_viewport, RID p_canvas) {
@@ -423,26 +394,11 @@ void RenderingServerViewport::viewport_set_usage(RID p_viewport, RS::ViewportUsa
 			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D, true);
 			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D_EFFECTS, true);
 			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_SAMPLING, false);
-
-			viewport->disable_3d_by_usage = true;
 		} break;
 		case RS::VIEWPORT_USAGE_2D_NO_SAMPLING: {
 			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D, true);
 			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D_EFFECTS, true);
 			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_SAMPLING, true);
-			viewport->disable_3d_by_usage = true;
-		} break;
-		case RS::VIEWPORT_USAGE_3D: {
-			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D, false);
-			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D_EFFECTS, false);
-			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_SAMPLING, false);
-			viewport->disable_3d_by_usage = false;
-		} break;
-		case RS::VIEWPORT_USAGE_3D_NO_EFFECTS: {
-			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D, false);
-			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_3D_EFFECTS, true);
-			RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_NO_SAMPLING, false);
-			viewport->disable_3d_by_usage = false;
 		} break;
 	}
 }
@@ -470,7 +426,6 @@ bool RenderingServerViewport::free(RID p_rid) {
 		Viewport *viewport = viewport_owner.getornull(p_rid);
 
 		RSG::storage->free(viewport->render_target);
-		RSG::scene_render->free(viewport->shadow_atlas);
 
 		while (viewport->canvas_map.front()) {
 			viewport_remove_canvas(p_rid, viewport->canvas_map.front()->key());

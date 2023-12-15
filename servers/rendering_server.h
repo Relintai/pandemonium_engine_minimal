@@ -420,10 +420,7 @@ public:
 	virtual RID viewport_get_texture(RID p_viewport) const = 0;
 
 	virtual void viewport_set_hide_canvas(RID p_viewport, bool p_hide) = 0;
-	virtual void viewport_set_disable_environment(RID p_viewport, bool p_disable) = 0;
-	virtual void viewport_set_disable_3d(RID p_viewport, bool p_disable) = 0;
-	virtual void viewport_set_keep_3d_linear(RID p_viewport, bool p_disable) = 0;
-
+	
 	virtual void viewport_attach_canvas(RID p_viewport, RID p_canvas) = 0;
 	virtual void viewport_remove_canvas(RID p_viewport, RID p_canvas) = 0;
 	virtual void viewport_set_canvas_transform(RID p_viewport, RID p_canvas, const Transform2D &p_offset) = 0;
@@ -450,8 +447,6 @@ public:
 	enum ViewportUsage {
 		VIEWPORT_USAGE_2D,
 		VIEWPORT_USAGE_2D_NO_SAMPLING,
-		VIEWPORT_USAGE_3D,
-		VIEWPORT_USAGE_3D_NO_EFFECTS,
 	};
 
 	virtual void viewport_set_hdr(RID p_viewport, bool p_enabled) = 0;
