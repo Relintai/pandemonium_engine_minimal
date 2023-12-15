@@ -1294,45 +1294,6 @@ bool RasterizerCanvasGLES2::try_join_item(Item *p_ci, RenderItemState &r_ris, bo
 		join = false;
 	}
 
-	RasterizerStorageGLES2::Skeleton *skeleton = nullptr;
-
-	{
-		//skeleton handling
-		if (p_ci->skeleton.is_valid() && storage->skeleton_owner.owns(p_ci->skeleton)) {
-			skeleton = storage->skeleton_owner.get(p_ci->skeleton);
-			if (!skeleton->use_2d) {
-				skeleton = nullptr;
-			}
-		}
-
-		bool skeleton_prevent_join = false;
-
-		bool use_skeleton = skeleton != nullptr;
-		if (r_ris.prev_use_skeleton != use_skeleton) {
-			if (!bdata.settings_use_software_skinning) {
-				r_ris.rebind_shader = true;
-			}
-
-			r_ris.prev_use_skeleton = use_skeleton;
-			//			join = false;
-			skeleton_prevent_join = true;
-		}
-
-		if (skeleton) {
-			//			join = false;
-			skeleton_prevent_join = true;
-			state.using_skeleton = true;
-		} else {
-			state.using_skeleton = false;
-		}
-
-		if (skeleton_prevent_join) {
-			if (!bdata.settings_use_software_skinning) {
-				join = false;
-			}
-		}
-	}
-
 	Item *material_owner = p_ci->material_owner ? p_ci->material_owner : p_ci;
 
 	RID material = material_owner->material;
@@ -1591,37 +1552,6 @@ void RasterizerCanvasGLES2::_legacy_canvas_render_item(Item *p_ci, RenderItemSta
 			_copy_texscreen(Rect2());
 		} else {
 			_copy_texscreen(p_ci->copy_back_buffer->rect);
-		}
-	}
-
-	RasterizerStorageGLES2::Skeleton *skeleton = nullptr;
-
-	{
-		//skeleton handling
-		if (p_ci->skeleton.is_valid() && storage->skeleton_owner.owns(p_ci->skeleton)) {
-			skeleton = storage->skeleton_owner.get(p_ci->skeleton);
-			if (!skeleton->use_2d) {
-				skeleton = nullptr;
-			} else {
-				state.skeleton_transform = r_ris.item_group_base_transform * skeleton->base_transform_2d;
-				state.skeleton_transform_inverse = state.skeleton_transform.affine_inverse();
-				state.skeleton_texture_size = Vector2(skeleton->size * 2, 0);
-			}
-		}
-
-		bool use_skeleton = skeleton != nullptr;
-		if (r_ris.prev_use_skeleton != use_skeleton) {
-			r_ris.rebind_shader = true;
-			state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_SKELETON, use_skeleton);
-			r_ris.prev_use_skeleton = use_skeleton;
-		}
-
-		if (skeleton) {
-			WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0 + storage->config.max_texture_image_units - 3);
-			glBindTexture(GL_TEXTURE_2D, skeleton->tex_id);
-			state.using_skeleton = true;
-		} else {
-			state.using_skeleton = false;
 		}
 	}
 
@@ -1957,38 +1887,6 @@ void RasterizerCanvasGLES2::render_joined_item(const BItemJoined &p_bij, RenderI
 			_copy_texscreen(ci->copy_back_buffer->rect);
 		}
 	}
-
-	if (!bdata.settings_use_batching || !bdata.settings_use_software_skinning) {
-		RasterizerStorageGLES2::Skeleton *skeleton = nullptr;
-
-		//skeleton handling
-		if (ci->skeleton.is_valid() && storage->skeleton_owner.owns(ci->skeleton)) {
-			skeleton = storage->skeleton_owner.get(ci->skeleton);
-			if (!skeleton->use_2d) {
-				skeleton = nullptr;
-			} else {
-				state.skeleton_transform = r_ris.item_group_base_transform * skeleton->base_transform_2d;
-				state.skeleton_transform_inverse = state.skeleton_transform.affine_inverse();
-				state.skeleton_texture_size = Vector2(skeleton->size * 2, 0);
-			}
-		}
-
-		bool use_skeleton = skeleton != nullptr;
-		if (r_ris.prev_use_skeleton != use_skeleton) {
-			r_ris.rebind_shader = true;
-			state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_SKELETON, use_skeleton);
-			r_ris.prev_use_skeleton = use_skeleton;
-		}
-
-		if (skeleton) {
-			WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0 + storage->config.max_texture_image_units - 3);
-			glBindTexture(GL_TEXTURE_2D, skeleton->tex_id);
-			state.using_skeleton = true;
-		} else {
-			state.using_skeleton = false;
-		}
-
-	} // if not using batching
 
 	Item *material_owner = ci->material_owner ? ci->material_owner : ci;
 

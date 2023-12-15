@@ -83,11 +83,6 @@ public:
 		bool using_large_vertex;
 
 		bool using_ninepatch;
-		bool using_skeleton;
-
-		Transform2D skeleton_transform;
-		Transform2D skeleton_transform_inverse;
-		Size2i skeleton_texture_size;
 
 		RID current_tex;
 		RID current_normal;

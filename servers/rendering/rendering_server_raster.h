@@ -243,7 +243,6 @@ public:
 
 	BIND2RC(AABB, mesh_surface_get_aabb, RID, int)
 	BIND2RC(Vector<PoolVector<uint8_t>>, mesh_surface_get_blend_shapes, RID, int)
-	BIND2RC(Vector<AABB>, mesh_surface_get_skeleton_aabb, RID, int)
 
 	BIND2(mesh_remove_surface, RID, int)
 	BIND1RC(int, mesh_get_surface_count, RID)
@@ -298,17 +297,6 @@ public:
 	BIND1(immediate_clear, RID)
 	BIND2(immediate_set_material, RID, RID)
 	BIND1RC(RID, immediate_get_material, RID)
-
-	/* SKELETON API */
-
-	BIND0R(RID, skeleton_create)
-	BIND3(skeleton_allocate, RID, int, bool)
-	BIND1RC(int, skeleton_get_bone_count, RID)
-	BIND3(skeleton_bone_set_transform, RID, int, const Transform &)
-	BIND2RC(Transform, skeleton_bone_get_transform, RID, int)
-	BIND3(skeleton_bone_set_transform_2d, RID, int, const Transform2D &)
-	BIND2RC(Transform2D, skeleton_bone_get_transform_2d, RID, int)
-	BIND2(skeleton_set_base_transform_2d, RID, const Transform2D &)
 
 	/* Light API */
 

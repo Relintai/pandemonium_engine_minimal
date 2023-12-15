@@ -361,12 +361,6 @@ public:
 
 		return m->surfaces[p_surface].blend_shapes;
 	}
-	Vector<AABB> mesh_surface_get_skeleton_aabb(RID p_mesh, int p_surface) const {
-		DummyMesh *m = mesh_owner.getornull(p_mesh);
-		ERR_FAIL_COND_V(!m, Vector<AABB>());
-
-		return m->surfaces[p_surface].bone_aabbs;
-	}
 
 	void mesh_remove_surface(RID p_mesh, int p_index) {
 		DummyMesh *m = mesh_owner.getornull(p_mesh);
@@ -384,7 +378,7 @@ public:
 	void mesh_set_custom_aabb(RID p_mesh, const AABB &p_aabb) {}
 	AABB mesh_get_custom_aabb(RID p_mesh) const { return AABB(); }
 
-	AABB mesh_get_aabb(RID p_mesh, RID p_skeleton) const { return AABB(); }
+	AABB mesh_get_aabb(RID p_mesh) const { return AABB(); }
 	void mesh_clear(RID p_mesh) {}
 
 	/* MULTIMESH API */
@@ -426,20 +420,6 @@ public:
 	void immediate_set_material(RID p_immediate, RID p_material) {}
 	RID immediate_get_material(RID p_immediate) const { return RID(); }
 	AABB immediate_get_aabb(RID p_immediate) const { return AABB(); }
-
-	/* SKELETON API */
-
-	RID skeleton_create() { return RID(); }
-	void skeleton_allocate(RID p_skeleton, int p_bones, bool p_2d_skeleton = false) {}
-	void skeleton_set_base_transform_2d(RID p_skeleton, const Transform2D &p_base_transform) {}
-	void skeleton_set_world_transform(RID p_skeleton, bool p_enable, const Transform &p_world_transform) {}
-	int skeleton_get_bone_count(RID p_skeleton) const { return 0; }
-	void skeleton_bone_set_transform(RID p_skeleton, int p_bone, const Transform &p_transform) {}
-	Transform skeleton_bone_get_transform(RID p_skeleton, int p_bone) const { return Transform(); }
-	void skeleton_bone_set_transform_2d(RID p_skeleton, int p_bone, const Transform2D &p_transform) {}
-	Transform2D skeleton_bone_get_transform_2d(RID p_skeleton, int p_bone) const { return Transform2D(); }
-	uint32_t skeleton_get_revision(RID p_skeleton) const { return 0; }
-	void skeleton_attach_canvas_item(RID p_skeleton, RID p_canvas_item, bool p_attach) {}
 
 	/* Light API */
 

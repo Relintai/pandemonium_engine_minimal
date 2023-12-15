@@ -57,7 +57,6 @@ public:
 		bool shrink_textures_x2;
 		bool use_fast_texture_filter;
 		bool use_anisotropic_filter;
-		bool use_skeleton_software;
 		bool use_physical_light_attenuation;
 
 		int max_vertex_texture_image_units;
@@ -122,10 +121,6 @@ public:
 		bool use_rgba_2d_shadows;
 
 		GLuint quadie;
-
-		size_t skeleton_transform_buffer_size;
-		GLuint skeleton_transform_buffer;
-		PoolVector<float> skeleton_transform_cpu_buffer;
 
 		size_t blend_shape_transform_cpu_buffer_size;
 		PoolVector<float> blend_shape_transform_cpu_buffer;
@@ -641,9 +636,6 @@ public:
 
 		RS::PrimitiveType primitive;
 
-		Vector<AABB> skeleton_bone_aabb;
-		Vector<bool> skeleton_bone_used;
-
 		bool active;
 
 		PoolVector<uint8_t> data;
@@ -736,7 +728,6 @@ public:
 
 	virtual AABB mesh_surface_get_aabb(RID p_mesh, int p_surface) const;
 	virtual Vector<PoolVector<uint8_t>> mesh_surface_get_blend_shapes(RID p_mesh, int p_surface) const;
-	virtual Vector<AABB> mesh_surface_get_skeleton_aabb(RID p_mesh, int p_surface) const;
 
 	virtual void mesh_remove_surface(RID p_mesh, int p_surface);
 	virtual int mesh_get_surface_count(RID p_mesh) const;
@@ -744,7 +735,7 @@ public:
 	virtual void mesh_set_custom_aabb(RID p_mesh, const AABB &p_aabb);
 	virtual AABB mesh_get_custom_aabb(RID p_mesh) const;
 
-	virtual AABB mesh_get_aabb(RID p_mesh, RID p_skeleton) const;
+	virtual AABB mesh_get_aabb(RID p_mesh) const;
 	virtual void mesh_clear(RID p_mesh);
 
 	void update_dirty_blend_shapes();
@@ -873,54 +864,6 @@ public:
 	virtual void immediate_set_material(RID p_immediate, RID p_material);
 	virtual RID immediate_get_material(RID p_immediate) const;
 	virtual AABB immediate_get_aabb(RID p_immediate) const;
-
-	/* SKELETON API */
-
-	struct Skeleton : RID_Data {
-		bool use_2d;
-
-		int size;
-		uint32_t revision;
-
-		// TODO use float textures for storage
-
-		Vector<float> bone_data;
-
-		GLuint tex_id;
-
-		SelfList<Skeleton> update_list;
-		RBSet<RasterizerScene::InstanceBase *> instances;
-
-		Transform2D base_transform_2d;
-		LocalVector<RID> linked_canvas_items;
-
-		Skeleton() :
-				use_2d(false),
-				size(0),
-				revision(1),
-				tex_id(0),
-				update_list(this) {
-		}
-	};
-
-	mutable RID_Owner<Skeleton> skeleton_owner;
-
-	SelfList<Skeleton>::List skeleton_update_list;
-
-	void update_dirty_skeletons();
-
-	virtual RID skeleton_create();
-	virtual void skeleton_allocate(RID p_skeleton, int p_bones, bool p_2d_skeleton = false);
-	virtual int skeleton_get_bone_count(RID p_skeleton) const;
-	virtual void skeleton_bone_set_transform(RID p_skeleton, int p_bone, const Transform &p_transform);
-	virtual Transform skeleton_bone_get_transform(RID p_skeleton, int p_bone) const;
-	virtual void skeleton_bone_set_transform_2d(RID p_skeleton, int p_bone, const Transform2D &p_transform);
-	virtual Transform2D skeleton_bone_get_transform_2d(RID p_skeleton, int p_bone) const;
-	virtual void skeleton_set_base_transform_2d(RID p_skeleton, const Transform2D &p_base_transform);
-	virtual uint32_t skeleton_get_revision(RID p_skeleton) const;
-	virtual void skeleton_attach_canvas_item(RID p_skeleton, RID p_canvas_item, bool p_attach);
-
-	void _update_skeleton_transform_buffer(const PoolVector<float> &p_data, size_t p_size);
 
 	/* Light API */
 

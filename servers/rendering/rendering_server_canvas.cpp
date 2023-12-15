@@ -1645,31 +1645,6 @@ void RenderingServerCanvas::canvas_light_occluder_transform_physics_interpolatio
 }
 
 void RenderingServerCanvas::canvas_item_attach_skeleton(RID p_item, RID p_skeleton) {
-	Item *canvas_item = canvas_item_owner.getornull(p_item);
-	ERR_FAIL_COND(!canvas_item);
-
-	if (_canvas_cull_mode == CANVAS_CULL_MODE_NODE) {
-		// No op?
-		if (canvas_item->skeleton == p_skeleton) {
-			return;
-		}
-
-		// Detach from any previous skeleton.
-		if (canvas_item->skeleton.is_valid()) {
-			RSG::storage->skeleton_attach_canvas_item(canvas_item->skeleton, p_item, false);
-		}
-
-		canvas_item->skeleton = p_skeleton;
-
-		// Attach to new skeleton.
-		if (p_skeleton.is_valid()) {
-			RSG::storage->skeleton_attach_canvas_item(p_skeleton, p_item, true);
-		}
-
-		_make_bound_dirty(canvas_item);
-	} else {
-		canvas_item->skeleton = p_skeleton;
-	}
 }
 
 // Canvas items may contain references to other resources (such as MultiMesh).

@@ -1820,15 +1820,6 @@ Array RenderingServer::mesh_surface_get_blend_shape_arrays(RID p_mesh, int p_sur
 	}
 }
 
-Array RenderingServer::_mesh_surface_get_skeleton_aabb_bind(RID p_mesh, int p_surface) const {
-	Vector<AABB> vec = RS::get_singleton()->mesh_surface_get_skeleton_aabb(p_mesh, p_surface);
-	Array arr;
-	for (int i = 0; i < vec.size(); i++) {
-		arr[i] = vec[i];
-	}
-	return arr;
-}
-
 void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("force_sync"), &RenderingServer::sync);
 	ClassDB::bind_method(D_METHOD("force_draw", "swap_buffers", "frame_step"), &RenderingServer::draw, DEFVAL(true), DEFVAL(0.0));
@@ -1901,7 +1892,6 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("mesh_surface_get_format", "mesh", "surface"), &RenderingServer::mesh_surface_get_format);
 	ClassDB::bind_method(D_METHOD("mesh_surface_get_primitive_type", "mesh", "surface"), &RenderingServer::mesh_surface_get_primitive_type);
 	ClassDB::bind_method(D_METHOD("mesh_surface_get_aabb", "mesh", "surface"), &RenderingServer::mesh_surface_get_aabb);
-	ClassDB::bind_method(D_METHOD("mesh_surface_get_skeleton_aabb", "mesh", "surface"), &RenderingServer::_mesh_surface_get_skeleton_aabb_bind);
 	ClassDB::bind_method(D_METHOD("mesh_remove_surface", "mesh", "index"), &RenderingServer::mesh_remove_surface);
 	ClassDB::bind_method(D_METHOD("mesh_get_surface_count", "mesh"), &RenderingServer::mesh_get_surface_count);
 	ClassDB::bind_method(D_METHOD("mesh_set_custom_aabb", "mesh", "aabb"), &RenderingServer::mesh_set_custom_aabb);
@@ -1944,14 +1934,6 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("immediate_set_material", "immediate", "material"), &RenderingServer::immediate_set_material);
 	ClassDB::bind_method(D_METHOD("immediate_get_material", "immediate"), &RenderingServer::immediate_get_material);
 #endif
-
-	ClassDB::bind_method(D_METHOD("skeleton_create"), &RenderingServer::skeleton_create);
-	ClassDB::bind_method(D_METHOD("skeleton_allocate", "skeleton", "bones", "is_2d_skeleton"), &RenderingServer::skeleton_allocate, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("skeleton_get_bone_count", "skeleton"), &RenderingServer::skeleton_get_bone_count);
-	ClassDB::bind_method(D_METHOD("skeleton_bone_set_transform", "skeleton", "bone", "transform"), &RenderingServer::skeleton_bone_set_transform);
-	ClassDB::bind_method(D_METHOD("skeleton_bone_get_transform", "skeleton", "bone"), &RenderingServer::skeleton_bone_get_transform);
-	ClassDB::bind_method(D_METHOD("skeleton_bone_set_transform_2d", "skeleton", "bone", "transform"), &RenderingServer::skeleton_bone_set_transform_2d);
-	ClassDB::bind_method(D_METHOD("skeleton_bone_get_transform_2d", "skeleton", "bone"), &RenderingServer::skeleton_bone_get_transform_2d);
 
 #ifndef _3D_DISABLED
 	ClassDB::bind_method(D_METHOD("directional_light_create"), &RenderingServer::directional_light_create);

@@ -2388,8 +2388,6 @@ void RasterizerStorageGLES2::mesh_add_surface(RID p_mesh, uint32_t p_format, RS:
 	surface->primitive = p_primitive;
 	surface->mesh = mesh;
 	surface->format = p_format;
-	surface->skeleton_bone_aabb = p_bone_aabbs;
-	surface->skeleton_bone_used.resize(surface->skeleton_bone_aabb.size());
 
 	surface->aabb = p_aabb;
 	surface->max_bone = p_bone_aabbs.size();
@@ -2398,10 +2396,6 @@ void RasterizerStorageGLES2::mesh_add_surface(RID p_mesh, uint32_t p_format, RS:
 	surface->data = array;
 	surface->index_data = p_index_array;
 	surface->total_data_size += surface->array_byte_size + surface->index_array_byte_size;
-
-	for (int i = 0; i < surface->skeleton_bone_used.size(); i++) {
-		surface->skeleton_bone_used.write[i] = !(surface->skeleton_bone_aabb[i].size.x < 0 || surface->skeleton_bone_aabb[i].size.y < 0 || surface->skeleton_bone_aabb[i].size.z < 0);
-	}
 
 	for (int i = 0; i < RS::ARRAY_MAX; i++) {
 		surface->attribs[i] = attribs[i];
@@ -2611,13 +2605,6 @@ Vector<PoolVector<uint8_t>> RasterizerStorageGLES2::mesh_surface_get_blend_shape
 
 	return mesh->surfaces[p_surface]->blend_shape_data;
 }
-Vector<AABB> RasterizerStorageGLES2::mesh_surface_get_skeleton_aabb(RID p_mesh, int p_surface) const {
-	const Mesh *mesh = mesh_owner.getornull(p_mesh);
-	ERR_FAIL_COND_V(!mesh, Vector<AABB>());
-	ERR_FAIL_INDEX_V(p_surface, mesh->surfaces.size(), Vector<AABB>());
-
-	return mesh->surfaces[p_surface]->skeleton_bone_aabb;
-}
 
 void RasterizerStorageGLES2::mesh_remove_surface(RID p_mesh, int p_surface) {
 	Mesh *mesh = mesh_owner.getornull(p_mesh);
@@ -2667,7 +2654,7 @@ AABB RasterizerStorageGLES2::mesh_get_custom_aabb(RID p_mesh) const {
 	return mesh->custom_aabb;
 }
 
-AABB RasterizerStorageGLES2::mesh_get_aabb(RID p_mesh, RID p_skeleton) const {
+AABB RasterizerStorageGLES2::mesh_get_aabb(RID p_mesh) const {
 	Mesh *mesh = mesh_owner.get(p_mesh);
 	ERR_FAIL_COND_V(!mesh, AABB());
 
@@ -2675,105 +2662,13 @@ AABB RasterizerStorageGLES2::mesh_get_aabb(RID p_mesh, RID p_skeleton) const {
 		return mesh->custom_aabb;
 	}
 
-	Skeleton *sk = nullptr;
-	if (p_skeleton.is_valid()) {
-		sk = skeleton_owner.get(p_skeleton);
-	}
-
 	AABB aabb;
 
-	if (sk && sk->size != 0) {
-		for (int i = 0; i < mesh->surfaces.size(); i++) {
-			AABB laabb;
-			if ((mesh->surfaces[i]->format & RS::ARRAY_FORMAT_BONES) && mesh->surfaces[i]->skeleton_bone_aabb.size()) {
-				int bs = mesh->surfaces[i]->skeleton_bone_aabb.size();
-				const AABB *skbones = mesh->surfaces[i]->skeleton_bone_aabb.ptr();
-				const bool *skused = mesh->surfaces[i]->skeleton_bone_used.ptr();
-
-				int sbs = sk->size;
-				ERR_CONTINUE(bs > sbs);
-				const float *texture = sk->bone_data.ptr();
-
-				bool first = true;
-				if (sk->use_2d) {
-					for (int j = 0; j < bs; j++) {
-						if (!skused[j]) {
-							continue;
-						}
-
-						int base_ofs = j * 2 * 4;
-
-						Transform mtx;
-
-						mtx.basis[0].x = texture[base_ofs + 0];
-						mtx.basis[0].y = texture[base_ofs + 1];
-						mtx.origin.x = texture[base_ofs + 3];
-						base_ofs += 4;
-						mtx.basis[1].x = texture[base_ofs + 0];
-						mtx.basis[1].y = texture[base_ofs + 1];
-						mtx.origin.y = texture[base_ofs + 3];
-
-						AABB baabb = mtx.xform(skbones[j]);
-
-						if (first) {
-							laabb = baabb;
-							first = false;
-						} else {
-							laabb.merge_with(baabb);
-						}
-					}
-				} else {
-					for (int j = 0; j < bs; j++) {
-						if (!skused[j]) {
-							continue;
-						}
-
-						int base_ofs = j * 3 * 4;
-
-						Transform mtx;
-
-						mtx.basis[0].x = texture[base_ofs + 0];
-						mtx.basis[0].y = texture[base_ofs + 1];
-						mtx.basis[0].z = texture[base_ofs + 2];
-						mtx.origin.x = texture[base_ofs + 3];
-						base_ofs += 4;
-						mtx.basis[1].x = texture[base_ofs + 0];
-						mtx.basis[1].y = texture[base_ofs + 1];
-						mtx.basis[1].z = texture[base_ofs + 2];
-						mtx.origin.y = texture[base_ofs + 3];
-						base_ofs += 4;
-						mtx.basis[2].x = texture[base_ofs + 0];
-						mtx.basis[2].y = texture[base_ofs + 1];
-						mtx.basis[2].z = texture[base_ofs + 2];
-						mtx.origin.z = texture[base_ofs + 3];
-
-						AABB baabb = mtx.xform(skbones[j]);
-						if (first) {
-							laabb = baabb;
-							first = false;
-						} else {
-							laabb.merge_with(baabb);
-						}
-					}
-				}
-
-			} else {
-				laabb = mesh->surfaces[i]->aabb;
-			}
-
-			if (i == 0) {
-				aabb = laabb;
-			} else {
-				aabb.merge_with(laabb);
-			}
-		}
-	} else {
-		for (int i = 0; i < mesh->surfaces.size(); i++) {
-			if (i == 0) {
-				aabb = mesh->surfaces[i]->aabb;
-			} else {
-				aabb.merge_with(mesh->surfaces[i]->aabb);
-			}
+	for (int i = 0; i < mesh->surfaces.size(); i++) {
+		if (i == 0) {
+			aabb = mesh->surfaces[i]->aabb;
+		} else {
+			aabb.merge_with(mesh->surfaces[i]->aabb);
 		}
 	}
 
@@ -3265,7 +3160,7 @@ void RasterizerStorageGLES2::update_dirty_multimeshes() {
 			AABB mesh_aabb;
 
 			if (multimesh->mesh.is_valid()) {
-				mesh_aabb = mesh_get_aabb(multimesh->mesh, RID());
+				mesh_aabb = mesh_get_aabb(multimesh->mesh);
 			}
 
 			mesh_aabb.size += Vector3(0.001, 0.001, 0.001); //in case mesh is empty in one of the sides
@@ -3479,205 +3374,6 @@ RID RasterizerStorageGLES2::immediate_get_material(RID p_immediate) const {
 	const Immediate *im = immediate_owner.get(p_immediate);
 	ERR_FAIL_COND_V(!im, RID());
 	return im->material;
-}
-
-/* SKELETON API */
-
-RID RasterizerStorageGLES2::skeleton_create() {
-	Skeleton *skeleton = memnew(Skeleton);
-
-	glGenTextures(1, &skeleton->tex_id);
-
-	return skeleton_owner.make_rid(skeleton);
-}
-
-void RasterizerStorageGLES2::skeleton_allocate(RID p_skeleton, int p_bones, bool p_2d_skeleton) {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND(!skeleton);
-	ERR_FAIL_COND(p_bones < 0);
-
-	if (skeleton->size == p_bones && skeleton->use_2d == p_2d_skeleton) {
-		return;
-	}
-
-	skeleton->size = p_bones;
-	skeleton->use_2d = p_2d_skeleton;
-
-	if (!config.use_skeleton_software) {
-		gl_wrapper.gl_active_texture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, skeleton->tex_id);
-
-#ifdef GLES_OVER_GL
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_bones * (skeleton->use_2d ? 2 : 3), 1, 0, GL_RGBA, GL_FLOAT, nullptr);
-#else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p_bones * (skeleton->use_2d ? 2 : 3), 1, 0, GL_RGBA, GL_FLOAT, NULL);
-#endif
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	if (skeleton->use_2d) {
-		skeleton->bone_data.resize(p_bones * 4 * 2);
-	} else {
-		skeleton->bone_data.resize(p_bones * 4 * 3);
-	}
-}
-
-int RasterizerStorageGLES2::skeleton_get_bone_count(RID p_skeleton) const {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND_V(!skeleton, 0);
-
-	return skeleton->size;
-}
-
-void RasterizerStorageGLES2::skeleton_bone_set_transform(RID p_skeleton, int p_bone, const Transform &p_transform) {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND(!skeleton);
-
-	ERR_FAIL_INDEX(p_bone, skeleton->size);
-	ERR_FAIL_COND(skeleton->use_2d);
-
-	float *bone_data = skeleton->bone_data.ptrw();
-
-	int base_offset = p_bone * 4 * 3;
-
-	bone_data[base_offset + 0] = p_transform.basis[0].x;
-	bone_data[base_offset + 1] = p_transform.basis[0].y;
-	bone_data[base_offset + 2] = p_transform.basis[0].z;
-	bone_data[base_offset + 3] = p_transform.origin.x;
-
-	bone_data[base_offset + 4] = p_transform.basis[1].x;
-	bone_data[base_offset + 5] = p_transform.basis[1].y;
-	bone_data[base_offset + 6] = p_transform.basis[1].z;
-	bone_data[base_offset + 7] = p_transform.origin.y;
-
-	bone_data[base_offset + 8] = p_transform.basis[2].x;
-	bone_data[base_offset + 9] = p_transform.basis[2].y;
-	bone_data[base_offset + 10] = p_transform.basis[2].z;
-	bone_data[base_offset + 11] = p_transform.origin.z;
-
-	if (!skeleton->update_list.in_list()) {
-		skeleton_update_list.add(&skeleton->update_list);
-	}
-}
-
-Transform RasterizerStorageGLES2::skeleton_bone_get_transform(RID p_skeleton, int p_bone) const {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND_V(!skeleton, Transform());
-
-	ERR_FAIL_INDEX_V(p_bone, skeleton->size, Transform());
-	ERR_FAIL_COND_V(skeleton->use_2d, Transform());
-
-	const float *bone_data = skeleton->bone_data.ptr();
-
-	Transform ret;
-
-	int base_offset = p_bone * 4 * 3;
-
-	ret.basis[0].x = bone_data[base_offset + 0];
-	ret.basis[0].y = bone_data[base_offset + 1];
-	ret.basis[0].z = bone_data[base_offset + 2];
-	ret.origin.x = bone_data[base_offset + 3];
-
-	ret.basis[1].x = bone_data[base_offset + 4];
-	ret.basis[1].y = bone_data[base_offset + 5];
-	ret.basis[1].z = bone_data[base_offset + 6];
-	ret.origin.y = bone_data[base_offset + 7];
-
-	ret.basis[2].x = bone_data[base_offset + 8];
-	ret.basis[2].y = bone_data[base_offset + 9];
-	ret.basis[2].z = bone_data[base_offset + 10];
-	ret.origin.z = bone_data[base_offset + 11];
-
-	return ret;
-}
-void RasterizerStorageGLES2::skeleton_bone_set_transform_2d(RID p_skeleton, int p_bone, const Transform2D &p_transform) {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND(!skeleton);
-
-	ERR_FAIL_INDEX(p_bone, skeleton->size);
-	ERR_FAIL_COND(!skeleton->use_2d);
-
-	float *bone_data = skeleton->bone_data.ptrw();
-
-	int base_offset = p_bone * 4 * 2;
-
-	bone_data[base_offset + 0] = p_transform[0][0];
-	bone_data[base_offset + 1] = p_transform[1][0];
-	bone_data[base_offset + 2] = 0;
-	bone_data[base_offset + 3] = p_transform[2][0];
-	bone_data[base_offset + 4] = p_transform[0][1];
-	bone_data[base_offset + 5] = p_transform[1][1];
-	bone_data[base_offset + 6] = 0;
-	bone_data[base_offset + 7] = p_transform[2][1];
-
-	if (!skeleton->update_list.in_list()) {
-		skeleton_update_list.add(&skeleton->update_list);
-	}
-
-	skeleton->revision++;
-}
-
-Transform2D RasterizerStorageGLES2::skeleton_bone_get_transform_2d(RID p_skeleton, int p_bone) const {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND_V(!skeleton, Transform2D());
-
-	ERR_FAIL_INDEX_V(p_bone, skeleton->size, Transform2D());
-	ERR_FAIL_COND_V(!skeleton->use_2d, Transform2D());
-
-	const float *bone_data = skeleton->bone_data.ptr();
-
-	Transform2D ret;
-
-	int base_offset = p_bone * 4 * 2;
-
-	ret[0][0] = bone_data[base_offset + 0];
-	ret[1][0] = bone_data[base_offset + 1];
-	ret[2][0] = bone_data[base_offset + 3];
-	ret[0][1] = bone_data[base_offset + 4];
-	ret[1][1] = bone_data[base_offset + 5];
-	ret[2][1] = bone_data[base_offset + 7];
-
-	return ret;
-}
-
-void RasterizerStorageGLES2::skeleton_set_base_transform_2d(RID p_skeleton, const Transform2D &p_base_transform) {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND(!skeleton);
-
-	skeleton->base_transform_2d = p_base_transform;
-}
-
-void RasterizerStorageGLES2::skeleton_attach_canvas_item(RID p_skeleton, RID p_canvas_item, bool p_attach) {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_NULL(skeleton);
-	ERR_FAIL_COND(!p_canvas_item.is_valid());
-
-	if (p_attach) {
-#ifdef DEV_ENABLED
-		// skeleton_attach_canvas_item() is not bound,
-		// and checks in canvas_item_attach_skeleton() should prevent this,
-		// but there isn't much harm in a DEV_ENABLED check here.
-		int64_t found = skeleton->linked_canvas_items.find(p_canvas_item);
-		ERR_FAIL_COND(found != -1);
-#endif
-
-		skeleton->linked_canvas_items.push_back(p_canvas_item);
-	} else {
-		int64_t found = skeleton->linked_canvas_items.find(p_canvas_item);
-		ERR_FAIL_COND(found == -1);
-		skeleton->linked_canvas_items.remove_unordered(found);
-	}
-}
-
-uint32_t RasterizerStorageGLES2::skeleton_get_revision(RID p_skeleton) const {
-	const Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND_V(!skeleton, 0);
-	return skeleton->revision;
 }
 
 void RasterizerStorageGLES2::update_dirty_blend_shapes() {
@@ -3980,66 +3676,6 @@ void RasterizerStorageGLES2::update_dirty_blend_shapes() {
 			}
 		}
 		blend_shapes_update_list.remove(blend_shapes_update_list.first());
-	}
-}
-
-void RasterizerStorageGLES2::_update_skeleton_transform_buffer(const PoolVector<float> &p_data, size_t p_size) {
-	glBindBuffer(GL_ARRAY_BUFFER, resources.skeleton_transform_buffer);
-
-	uint32_t buffer_size = p_size * sizeof(float);
-
-	if (p_size > resources.skeleton_transform_buffer_size) {
-		// new requested buffer is bigger, so resizing the GPU buffer
-
-		resources.skeleton_transform_buffer_size = p_size;
-
-		glBufferData(GL_ARRAY_BUFFER, buffer_size, p_data.read().ptr(), GL_DYNAMIC_DRAW);
-	} else {
-		// this may not be best, it could be better to use glBufferData in both cases.
-		buffer_orphan_and_upload(resources.skeleton_transform_buffer_size * sizeof(float), 0, buffer_size, p_data.read().ptr(), GL_ARRAY_BUFFER, true);
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void RasterizerStorageGLES2::update_dirty_skeletons() {
-	// 2D Skeletons always need to update the polygons so they
-	// know the bounds have changed.
-	// TODO : Could we have a separate list for 2D only?
-	SelfList<Skeleton> *ele = skeleton_update_list.first();
-
-	while (ele) {
-		Skeleton *skeleton = ele->self();
-
-		int num_linked = skeleton->linked_canvas_items.size();
-		for (int n = 0; n < num_linked; n++) {
-			const RID &rid = skeleton->linked_canvas_items[n];
-			RSG::canvas->_canvas_item_invalidate_local_bound(rid);
-		}
-
-		ele = ele->next();
-	}
-
-	if (config.use_skeleton_software) {
-		return;
-	}
-
-	gl_wrapper.gl_active_texture(GL_TEXTURE0);
-
-	while (skeleton_update_list.first()) {
-		Skeleton *skeleton = skeleton_update_list.first()->self();
-
-		if (skeleton->size) {
-			glBindTexture(GL_TEXTURE_2D, skeleton->tex_id);
-
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, skeleton->size * (skeleton->use_2d ? 2 : 3), 1, GL_RGBA, GL_FLOAT, skeleton->bone_data.ptr());
-		}
-
-		for (RBSet<RasterizerScene::InstanceBase *>::Element *E = skeleton->instances.front(); E; E = E->next()) {
-			E->get()->base_changed(true, false);
-		}
-
-		skeleton_update_list.remove(skeleton_update_list.first());
 	}
 }
 
@@ -4471,17 +4107,9 @@ int RasterizerStorageGLES2::reflection_probe_get_resolution(RID p_probe) const {
 ////////
 
 void RasterizerStorageGLES2::instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND(!skeleton);
-
-	skeleton->instances.insert(p_instance);
 }
 
 void RasterizerStorageGLES2::instance_remove_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) {
-	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
-	ERR_FAIL_COND(!skeleton);
-
-	skeleton->instances.erase(p_instance);
 }
 
 void RasterizerStorageGLES2::instance_add_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance) {
@@ -5530,27 +5158,6 @@ bool RasterizerStorageGLES2::free(RID p_rid) {
 		memdelete(m);
 
 		return true;
-	} else if (skeleton_owner.owns(p_rid)) {
-		Skeleton *s = skeleton_owner.get(p_rid);
-
-		if (s->update_list.in_list()) {
-			skeleton_update_list.remove(&s->update_list);
-		}
-
-		for (RBSet<RasterizerScene::InstanceBase *>::Element *E = s->instances.front(); E; E = E->next()) {
-			E->get()->skeleton = RID();
-		}
-
-		skeleton_allocate(p_rid, 0, false);
-
-		if (s->tex_id) {
-			glDeleteTextures(1, &s->tex_id);
-		}
-
-		skeleton_owner.free(p_rid);
-		memdelete(s);
-
-		return true;
 	} else if (mesh_owner.owns(p_rid)) {
 		Mesh *mesh = mesh_owner.get(p_rid);
 
@@ -5667,10 +5274,6 @@ bool RasterizerStorageGLES2::has_os_feature(const String &p_feature) const {
 
 	if (p_feature == "etc") {
 		return config.etc1_supported;
-	}
-
-	if (p_feature == "skinning_fallback") {
-		return config.use_skeleton_software;
 	}
 
 	return false;
@@ -5985,10 +5588,6 @@ void RasterizerStorageGLES2::initialize() {
 	glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &config.max_cubemap_texture_size);
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, config.max_viewport_dimensions);
 
-	// the use skeleton software path should be used if either float texture is not supported,
-	// OR max_vertex_texture_image_units is zero
-	config.use_skeleton_software = (config.float_texture_supported == false) || (config.max_vertex_texture_image_units == 0);
-
 	shaders.copy.init();
 	shaders.cubemap_filter.init();
 	bool ggx_hq = GLOBAL_GET("rendering/quality/reflections/high_quality_ggx");
@@ -6093,12 +5692,6 @@ void RasterizerStorageGLES2::initialize() {
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	// skeleton buffer
-	{
-		resources.skeleton_transform_buffer_size = 0;
-		glGenBuffers(1, &resources.skeleton_transform_buffer);
-	}
-
 	// blend buffer
 	{
 		resources.blend_shape_transform_cpu_buffer_size = 0;
@@ -6182,7 +5775,6 @@ void RasterizerStorageGLES2::update_dirty_resources() {
 	update_dirty_shaders();
 	update_dirty_materials();
 	update_dirty_blend_shapes();
-	update_dirty_skeletons();
 	update_dirty_multimeshes();
 }
 

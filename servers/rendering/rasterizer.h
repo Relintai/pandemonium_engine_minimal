@@ -275,7 +275,6 @@ public:
 
 	virtual AABB mesh_surface_get_aabb(RID p_mesh, int p_surface) const = 0;
 	virtual Vector<PoolVector<uint8_t>> mesh_surface_get_blend_shapes(RID p_mesh, int p_surface) const = 0;
-	virtual Vector<AABB> mesh_surface_get_skeleton_aabb(RID p_mesh, int p_surface) const = 0;
 
 	virtual void mesh_remove_surface(RID p_mesh, int p_index) = 0;
 	virtual int mesh_get_surface_count(RID p_mesh) const = 0;
@@ -283,7 +282,7 @@ public:
 	virtual void mesh_set_custom_aabb(RID p_mesh, const AABB &p_aabb) = 0;
 	virtual AABB mesh_get_custom_aabb(RID p_mesh) const = 0;
 
-	virtual AABB mesh_get_aabb(RID p_mesh, RID p_skeleton) const = 0;
+	virtual AABB mesh_get_aabb(RID p_mesh) const = 0;
 
 	virtual void mesh_clear(RID p_mesh) = 0;
 
@@ -381,19 +380,6 @@ public:
 	virtual void immediate_set_material(RID p_immediate, RID p_material) = 0;
 	virtual RID immediate_get_material(RID p_immediate) const = 0;
 	virtual AABB immediate_get_aabb(RID p_immediate) const = 0;
-
-	/* SKELETON API */
-
-	virtual RID skeleton_create() = 0;
-	virtual void skeleton_allocate(RID p_skeleton, int p_bones, bool p_2d_skeleton = false) = 0;
-	virtual int skeleton_get_bone_count(RID p_skeleton) const = 0;
-	virtual void skeleton_bone_set_transform(RID p_skeleton, int p_bone, const Transform &p_transform) = 0;
-	virtual Transform skeleton_bone_get_transform(RID p_skeleton, int p_bone) const = 0;
-	virtual void skeleton_bone_set_transform_2d(RID p_skeleton, int p_bone, const Transform2D &p_transform) = 0;
-	virtual Transform2D skeleton_bone_get_transform_2d(RID p_skeleton, int p_bone) const = 0;
-	virtual void skeleton_set_base_transform_2d(RID p_skeleton, const Transform2D &p_base_transform) = 0;
-	virtual uint32_t skeleton_get_revision(RID p_skeleton) const = 0;
-	virtual void skeleton_attach_canvas_item(RID p_skeleton, RID p_canvas_item, bool p_attach) = 0;
 
 	/* Light API */
 
@@ -838,7 +824,6 @@ public:
 		Vector<Command *> commands;
 		mutable Rect2 rect;
 		RID material;
-		RID skeleton;
 
 		//RS::MaterialBlendMode blend_mode;
 		int32_t light_mask;
@@ -870,7 +855,6 @@ public:
 
 	private:
 		Rect2 calculate_polygon_bounds(const Item::CommandPolygon &p_polygon) const;
-		void precalculate_polygon_bone_bounds(const Item::CommandPolygon &p_polygon) const;
 
 	public:
 		// the rect containing this item and all children,
@@ -890,20 +874,7 @@ public:
 			}
 
 			if (!rect_dirty && !update_when_visible) {
-				if (skeleton == RID()) {
-					return rect;
-				} else {
-					// special case for skeletons
-					uint32_t rev = RasterizerStorage::base_singleton->skeleton_get_revision(skeleton);
-					if (rev == skeleton_revision) {
-						// no change to the skeleton since we last calculated the bounding rect
-						return rect;
-					} else {
-						// We need to recalculate.
-						// Mark as done for next time.
-						skeleton_revision = rev;
-					}
-				}
+				return rect;
 			}
 
 			//must update rect
@@ -984,7 +955,7 @@ public:
 					} break;
 					case Item::Command::TYPE_MESH: {
 						const Item::CommandMesh *mesh = static_cast<const Item::CommandMesh *>(c);
-						AABB aabb = RasterizerStorage::base_singleton->mesh_get_aabb(mesh->mesh, RID());
+						AABB aabb = RasterizerStorage::base_singleton->mesh_get_aabb(mesh->mesh);
 
 						r = Rect2(aabb.position.x, aabb.position.y, aabb.size.x, aabb.size.y);
 

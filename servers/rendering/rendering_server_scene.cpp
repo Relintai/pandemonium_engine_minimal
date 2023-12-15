@@ -1320,7 +1320,7 @@ void RenderingServerScene::_update_instance_aabb(Instance *p_instance) {
 			if (p_instance->custom_aabb) {
 				new_aabb = *p_instance->custom_aabb;
 			} else {
-				new_aabb = RSG::storage->mesh_get_aabb(p_instance->base, p_instance->skeleton);
+				new_aabb = RSG::storage->mesh_get_aabb(p_instance->base);
 			}
 
 		} break;

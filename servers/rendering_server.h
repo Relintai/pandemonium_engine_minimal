@@ -322,8 +322,6 @@ public:
 
 	virtual AABB mesh_surface_get_aabb(RID p_mesh, int p_surface) const = 0;
 	virtual Vector<PoolVector<uint8_t>> mesh_surface_get_blend_shapes(RID p_mesh, int p_surface) const = 0;
-	virtual Vector<AABB> mesh_surface_get_skeleton_aabb(RID p_mesh, int p_surface) const = 0;
-	Array _mesh_surface_get_skeleton_aabb_bind(RID p_mesh, int p_surface) const;
 
 	virtual void mesh_remove_surface(RID p_mesh, int p_index) = 0;
 	virtual int mesh_get_surface_count(RID p_mesh) const = 0;
@@ -404,17 +402,6 @@ public:
 	virtual void immediate_clear(RID p_immediate) = 0;
 	virtual void immediate_set_material(RID p_immediate, RID p_material) = 0;
 	virtual RID immediate_get_material(RID p_immediate) const = 0;
-
-	/* SKELETON API */
-
-	virtual RID skeleton_create() = 0;
-	virtual void skeleton_allocate(RID p_skeleton, int p_bones, bool p_2d_skeleton = false) = 0;
-	virtual int skeleton_get_bone_count(RID p_skeleton) const = 0;
-	virtual void skeleton_bone_set_transform(RID p_skeleton, int p_bone, const Transform &p_transform) = 0;
-	virtual Transform skeleton_bone_get_transform(RID p_skeleton, int p_bone) const = 0;
-	virtual void skeleton_bone_set_transform_2d(RID p_skeleton, int p_bone, const Transform2D &p_transform) = 0;
-	virtual Transform2D skeleton_bone_get_transform_2d(RID p_skeleton, int p_bone) const = 0;
-	virtual void skeleton_set_base_transform_2d(RID p_skeleton, const Transform2D &p_base_transform) = 0;
 
 	/* Light API */
 

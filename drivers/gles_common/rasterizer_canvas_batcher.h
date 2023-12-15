@@ -310,7 +310,6 @@ public:
 			settings_scissor_lights = false;
 			settings_scissor_threshold = -1.0f;
 			settings_use_single_rect_fallback = false;
-			settings_use_software_skinning = true;
 			settings_ninepatch_mode = 0; // default
 			settings_light_max_join_items = 16;
 
@@ -435,7 +434,6 @@ public:
 		float settings_scissor_threshold; // 0.0 to 1.0
 		int settings_item_reordering_lookahead;
 		bool settings_use_single_rect_fallback;
-		bool settings_use_software_skinning;
 		int settings_light_max_join_items;
 		int settings_ninepatch_mode;
 
@@ -643,7 +641,6 @@ protected:
 
 		return TM_ALL;
 	}
-	bool _software_skin_poly(RasterizerCanvas::Item::CommandPolygon *p_poly, RasterizerCanvas::Item *p_item, BatchVertex *bvs, BatchColor *vertex_colors, const FillState &p_fill_state, const BatchColor *p_precalced_colors);
 
 	typename T_STORAGE::Texture *_get_canvas_texture(const RID &p_texture) const {
 		if (p_texture.is_valid()) {
@@ -1027,7 +1024,6 @@ PREAMBLE(void)::batch_initialize() {
 	bdata.settings_item_reordering_lookahead = GLOBAL_GET("rendering/batching/parameters/item_reordering_lookahead");
 	bdata.settings_light_max_join_items = GLOBAL_GET("rendering/batching/lights/max_join_items");
 	bdata.settings_use_single_rect_fallback = GLOBAL_GET("rendering/batching/options/single_rect_fallback");
-	bdata.settings_use_software_skinning = GLOBAL_GET("rendering/2d/options/use_software_skinning");
 	bdata.settings_ninepatch_mode = GLOBAL_GET("rendering/2d/options/ninepatch_mode");
 
 	// allow user to override the api usage techniques using project settings
@@ -1736,173 +1732,12 @@ bool C_PREAMBLE::_prefill_polygon(RasterizerCanvas::Item::CommandPolygon *p_poly
 		precalced_colors[n] = vcol;
 	}
 
-	if (!_software_skin_poly(p_poly, p_item, bvs, vertex_colors, r_fill_state, precalced_colors)) {
-		bool software_transform = (r_fill_state.transform_mode != TM_NONE) && (!use_large_verts);
+	bool software_transform = (r_fill_state.transform_mode != TM_NONE) && (!use_large_verts);
 
-		for (int n = 0; n < num_inds; n++) {
-			int ind = p_poly->indices[n];
-
-			DEV_CHECK_ONCE(ind < p_poly->points.size());
-
-			// recover at runtime from invalid polys (the editor may send invalid polys)
-			if ((unsigned int)ind >= (unsigned int)num_verts) {
-				// will recover as long as there is at least one vertex.
-				// if there are no verts, we will have quick rejected earlier in this function
-				ind = 0;
-			}
-
-			// this could be moved outside the loop
-			if (software_transform) {
-				Vector2 pos = p_poly->points[ind];
-				_software_transform_vertex(pos, r_fill_state.transform_combined);
-				bvs[n].pos.set(pos.x, pos.y);
-			} else {
-				const Point2 &pos = p_poly->points[ind];
-				bvs[n].pos.set(pos.x, pos.y);
-			}
-
-			if (ind < p_poly->uvs.size()) {
-				const Point2 &uv = p_poly->uvs[ind];
-				bvs[n].uv.set(uv.x, uv.y);
-			} else {
-				bvs[n].uv.set(0.0f, 0.0f);
-			}
-
-			vertex_colors[n] = precalced_colors[ind];
-
-			if (use_modulate) {
-				vertex_modulates[n] = vertex_modulates[0];
-			}
-
-			if (use_large_verts) {
-				// reuse precalced transform (same for each vertex within polygon)
-				pBT[n] = pBT[0];
-			}
-		}
-	} // if not software skinning
-	else {
-		// software skinning extra passes
-		if (use_modulate) {
-			for (int n = 0; n < num_inds; n++) {
-				vertex_modulates[n] = vertex_modulates[0];
-			}
-		}
-		// not sure if this will produce garbage if software skinning is changing vertex pos
-		// in the shader, but is included for completeness
-		if (use_large_verts) {
-			for (int n = 0; n < num_inds; n++) {
-				pBT[n] = pBT[0];
-			}
-		}
-	}
-
-	// increment total vert count
-	bdata.total_verts += num_inds;
-
-	return false;
-}
-
-PREAMBLE(bool)::_software_skin_poly(RasterizerCanvas::Item::CommandPolygon *p_poly, RasterizerCanvas::Item *p_item, BatchVertex *bvs, BatchColor *vertex_colors, const FillState &p_fill_state, const BatchColor *p_precalced_colors) {
-	//	alternatively could check get_this()->state.using_skeleton
-	if (p_item->skeleton == RID()) {
-		return false;
-	}
-
-	int num_inds = p_poly->indices.size();
-	int num_verts = p_poly->points.size();
-
-	RID skeleton = p_item->skeleton;
-	int bone_count = RasterizerStorage::base_singleton->skeleton_get_bone_count(skeleton);
-
-	// we want a temporary buffer of positions to transform
-	Vector2 *pTemps = (Vector2 *)alloca(num_verts * sizeof(Vector2));
-	memset((void *)pTemps, 0, num_verts * sizeof(Vector2));
-
-	// only the inverse appears to be needed
-	const Transform2D &skel_trans_inv = p_fill_state.skeleton_base_inverse_xform;
-	// we can't get this from the state, because more than one skeleton item may have been joined together..
-	// we need to handle the base skeleton on a per item basis as the joined item is rendered.
-	// const Transform2D &skel_trans = get_this()->state.skeleton_transform;
-	// const Transform2D &skel_trans_inv = get_this()->state.skeleton_transform_inverse;
-
-	// get the bone transforms.
-	// this is not ideal because we don't know in advance which bones are needed
-	// for any particular poly, but depends how cheap the skeleton_bone_get_transform_2d call is
-	Transform2D *bone_transforms = (Transform2D *)alloca(bone_count * sizeof(Transform2D));
-	for (int b = 0; b < bone_count; b++) {
-		bone_transforms[b] = RasterizerStorage::base_singleton->skeleton_bone_get_transform_2d(skeleton, b);
-	}
-
-	if (num_verts && (p_poly->bones.size() == num_verts * 4) && (p_poly->weights.size() == p_poly->bones.size())) {
-		// instead of using the p_item->xform we use the final transform,
-		// because we want the poly transform RELATIVE to the base skeleton.
-		Transform2D item_transform = skel_trans_inv * p_item->final_transform;
-
-		Transform2D item_transform_inv = item_transform.affine_inverse();
-
-		for (int n = 0; n < num_verts; n++) {
-			const Vector2 &src_pos = p_poly->points[n];
-			Vector2 &dst_pos = pTemps[n];
-
-			// there can be an offset on the polygon at rigging time, this has to be accounted for
-			// note it may be possible that this could be concatenated with the bone transforms to save extra transforms - not sure yet
-			Vector2 src_pos_back_transformed = item_transform.xform(src_pos);
-
-			float total_weight = 0.0f;
-
-			for (int k = 0; k < 4; k++) {
-				int bone_id = p_poly->bones[n * 4 + k];
-				float weight = p_poly->weights[n * 4 + k];
-				if (weight == 0.0f) {
-					continue;
-				}
-
-				total_weight += weight;
-
-				DEV_CHECK_ONCE(bone_id < bone_count);
-				const Transform2D &bone_tr = bone_transforms[bone_id];
-
-				Vector2 pos = bone_tr.xform(src_pos_back_transformed);
-
-				dst_pos += pos * weight;
-			}
-
-			// this is some unexplained weirdness with verts with no weights,
-			// but it seemed to work for the example project ... watch for regressions
-			if (total_weight < 0.01f) {
-				dst_pos = src_pos;
-			} else {
-				dst_pos /= total_weight;
-
-				// retransform back from the poly offset space
-				dst_pos = item_transform_inv.xform(dst_pos);
-			}
-		}
-
-	} // if bone format matches
-	else {
-		// not rigged properly, just copy the verts directly
-		for (int n = 0; n < num_verts; n++) {
-			const Vector2 &src_pos = p_poly->points[n];
-			Vector2 &dst_pos = pTemps[n];
-
-			dst_pos = src_pos;
-		}
-	}
-
-	// software transform with combined matrix?
-	if (p_fill_state.transform_mode != TM_NONE) {
-		for (int n = 0; n < num_verts; n++) {
-			Vector2 &dst_pos = pTemps[n];
-			_software_transform_vertex(dst_pos, p_fill_state.transform_combined);
-		}
-	}
-
-	// output to the batch verts
 	for (int n = 0; n < num_inds; n++) {
 		int ind = p_poly->indices[n];
 
-		DEV_CHECK_ONCE(ind < num_verts);
+		DEV_CHECK_ONCE(ind < p_poly->points.size());
 
 		// recover at runtime from invalid polys (the editor may send invalid polys)
 		if ((unsigned int)ind >= (unsigned int)num_verts) {
@@ -1911,8 +1746,15 @@ PREAMBLE(bool)::_software_skin_poly(RasterizerCanvas::Item::CommandPolygon *p_po
 			ind = 0;
 		}
 
-		const Point2 &pos = pTemps[ind];
-		bvs[n].pos.set(pos.x, pos.y);
+		// this could be moved outside the loop
+		if (software_transform) {
+			Vector2 pos = p_poly->points[ind];
+			_software_transform_vertex(pos, r_fill_state.transform_combined);
+			bvs[n].pos.set(pos.x, pos.y);
+		} else {
+			const Point2 &pos = p_poly->points[ind];
+			bvs[n].pos.set(pos.x, pos.y);
+		}
 
 		if (ind < p_poly->uvs.size()) {
 			const Point2 &uv = p_poly->uvs[ind];
@@ -1921,10 +1763,22 @@ PREAMBLE(bool)::_software_skin_poly(RasterizerCanvas::Item::CommandPolygon *p_po
 			bvs[n].uv.set(0.0f, 0.0f);
 		}
 
-		vertex_colors[n] = p_precalced_colors[ind];
+		vertex_colors[n] = precalced_colors[ind];
+
+		if (use_modulate) {
+			vertex_modulates[n] = vertex_modulates[0];
+		}
+
+		if (use_large_verts) {
+			// reuse precalced transform (same for each vertex within polygon)
+			pBT[n] = pBT[0];
+		}
 	}
 
-	return true;
+	// increment total vert count
+	bdata.total_verts += num_inds;
+
+	return false;
 }
 
 T_PREAMBLE
@@ -2760,7 +2614,7 @@ PREAMBLE(bool)::prefill_joined_item(FillState &r_fill_state, int &r_command_star
 				if (buffer_full) {
 					return true;
 				}
-				
+
 			} break;
 			case RasterizerCanvas::Item::Command::TYPE_MULTIRECT: {
 				RasterizerCanvas::Item::CommandMultiRect *mrect = static_cast<RasterizerCanvas::Item::CommandMultiRect *>(command);
@@ -2828,48 +2682,23 @@ PREAMBLE(bool)::prefill_joined_item(FillState &r_fill_state, int &r_command_star
 
 			case RasterizerCanvas::Item::Command::TYPE_POLYGON: {
 				RasterizerCanvas::Item::CommandPolygon *polygon = static_cast<RasterizerCanvas::Item::CommandPolygon *>(command);
-#ifdef GLES_OVER_GL
-				// anti aliasing not accelerated .. it is problematic because it requires a 2nd line drawn around the outside of each
-				// poly, which would require either a second list of indices or a second list of vertices for this step
-				bool use_legacy_path = false;
 
-				if (polygon->antialiased) {
-					// anti aliasing is also not supported for software skinned meshes.
-					// we can't easily revert, so we force software skinned meshes to run through
-					// batching path with no AA.
-					use_legacy_path = !bdata.settings_use_software_skinning || p_item->skeleton == RID();
-				}
+				// unoptimized - could this be done once per batch / batch texture?
+				bool send_light_angles = polygon->normal_map != RID();
 
-				if (use_legacy_path) {
-					// not accelerated
+				bool buffer_full = false;
+
+				if (send_light_angles) {
+					// polygon with light angles is not yet implemented
+					// for batching .. this means software skinned with light angles won't work
 					_prefill_default_batch(r_fill_state, command_num, *p_item);
 				} else {
-#endif
-					// not using software skinning?
-					if (!bdata.settings_use_software_skinning && get_this()->state.using_skeleton) {
-						// not accelerated
-						_prefill_default_batch(r_fill_state, command_num, *p_item);
-					} else {
-						// unoptimized - could this be done once per batch / batch texture?
-						bool send_light_angles = polygon->normal_map != RID();
+					buffer_full = _prefill_polygon<false>(polygon, r_fill_state, r_command_start, command_num, command_count, p_item, multiply_final_modulate);
+				}
 
-						bool buffer_full = false;
-
-						if (send_light_angles) {
-							// polygon with light angles is not yet implemented
-							// for batching .. this means software skinned with light angles won't work
-							_prefill_default_batch(r_fill_state, command_num, *p_item);
-						} else {
-							buffer_full = _prefill_polygon<false>(polygon, r_fill_state, r_command_start, command_num, command_count, p_item, multiply_final_modulate);
-						}
-
-						if (buffer_full) {
-							return true;
-						}
-					} // if not using hardware skinning path
-#ifdef GLES_OVER_GL
-				} // if not anti-aliased poly
-#endif
+				if (buffer_full) {
+					return true;
+				}
 
 			} break;
 		}
@@ -3031,20 +2860,6 @@ PREAMBLE(void)::render_joined_item_commands(const BItemJoined &p_bij, Rasterizer
 		// ONCE OFF fill state setup, that will be retained over multiple calls to
 		// prefill_joined_item()
 		fill_state.transform_combined = item->final_transform;
-
-		// calculate skeleton base inverse transform if required for software skinning
-		// put in the fill state as this is readily accessible from the software skinner
-		if (item->skeleton.is_valid() && bdata.settings_use_software_skinning && get_storage()->skeleton_owner.owns(item->skeleton)) {
-			typename T_STORAGE::Skeleton *skeleton = nullptr;
-			skeleton = get_storage()->skeleton_owner.get(item->skeleton);
-
-			if (skeleton->use_2d) {
-				// with software skinning we still need to know the skeleton inverse transform, the other two aren't needed
-				// but are left in for simplicity here
-				Transform2D skeleton_transform = p_ris.item_group_base_transform * skeleton->base_transform_2d;
-				fill_state.skeleton_base_inverse_xform = skeleton_transform.affine_inverse();
-			}
-		}
 
 		// decide the initial transform mode, and make a backup
 		// in orig_transform_mode in case we need to switch back
@@ -3644,10 +3459,6 @@ PREAMBLE(bool)::_detect_item_batch_break(RenderItemState &r_ris, RasterizerCanva
 
 					// light angles not yet implemented, treat as default
 					if (poly->normal_map != RID()) {
-						return true;
-					}
-
-					if (!get_this()->bdata.settings_use_software_skinning && poly->bones.size()) {
 						return true;
 					}
 

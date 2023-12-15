@@ -146,7 +146,6 @@ void RenderingServerWrapMT::finish() {
 	mesh_free_cached_ids();
 	multimesh_free_cached_ids();
 	immediate_free_cached_ids();
-	skeleton_free_cached_ids();
 	directional_light_free_cached_ids();
 	omni_light_free_cached_ids();
 	spot_light_free_cached_ids();

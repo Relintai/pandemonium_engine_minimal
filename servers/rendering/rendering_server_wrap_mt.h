@@ -169,7 +169,6 @@ public:
 
 	FUNC2RC(AABB, mesh_surface_get_aabb, RID, int)
 	FUNC2RC(Vector<PoolVector<uint8_t>>, mesh_surface_get_blend_shapes, RID, int)
-	FUNC2RC(Vector<AABB>, mesh_surface_get_skeleton_aabb, RID, int)
 
 	FUNC2(mesh_remove_surface, RID, int)
 	FUNC1RC(int, mesh_get_surface_count, RID)
@@ -224,17 +223,6 @@ public:
 	FUNC1(immediate_clear, RID)
 	FUNC2(immediate_set_material, RID, RID)
 	FUNC1RC(RID, immediate_get_material, RID)
-
-	/* SKELETON API */
-
-	FUNCRID(skeleton)
-	FUNC3(skeleton_allocate, RID, int, bool)
-	FUNC1RC(int, skeleton_get_bone_count, RID)
-	FUNC3(skeleton_bone_set_transform, RID, int, const Transform &)
-	FUNC2RC(Transform, skeleton_bone_get_transform, RID, int)
-	FUNC3(skeleton_bone_set_transform_2d, RID, int, const Transform2D &)
-	FUNC2RC(Transform2D, skeleton_bone_get_transform_2d, RID, int)
-	FUNC2(skeleton_set_base_transform_2d, RID, const Transform2D &)
 
 	/* Light API */
 

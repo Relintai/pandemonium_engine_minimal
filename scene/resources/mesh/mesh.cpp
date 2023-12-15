@@ -624,14 +624,6 @@ bool ArrayMesh::_get(const StringName &p_name, Variant &r_ret) const {
 	d["format"] = RS::get_singleton()->mesh_surface_get_format(mesh, idx);
 	d["aabb"] = RS::get_singleton()->mesh_surface_get_aabb(mesh, idx);
 
-	Vector<AABB> skel_aabb = RS::get_singleton()->mesh_surface_get_skeleton_aabb(mesh, idx);
-	Array arr;
-	arr.resize(skel_aabb.size());
-	for (int i = 0; i < skel_aabb.size(); i++) {
-		arr[i] = skel_aabb[i];
-	}
-	d["skeleton_aabb"] = arr;
-
 	Vector<PoolVector<uint8_t>> blend_shape_data = RS::get_singleton()->mesh_surface_get_blend_shapes(mesh, idx);
 
 	Array md;

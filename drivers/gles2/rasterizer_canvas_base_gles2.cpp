@@ -149,7 +149,6 @@ void RasterizerCanvasBaseGLES2::canvas_end() {
 	}
 
 	state.using_texture_rect = false;
-	state.using_skeleton = false;
 	state.using_ninepatch = false;
 	state.using_transparent_rt = false;
 }
@@ -342,12 +341,6 @@ void RasterizerCanvasBaseGLES2::_set_uniforms() {
 		screen_pixel_size.y = 1.0 / storage->frame.current_rt->height;
 
 		state.canvas_shader.set_uniform(CanvasShaderGLES2::SCREEN_PIXEL_SIZE, screen_pixel_size);
-	}
-
-	if (state.using_skeleton) {
-		state.canvas_shader.set_uniform(CanvasShaderGLES2::SKELETON_TRANSFORM, state.skeleton_transform);
-		state.canvas_shader.set_uniform(CanvasShaderGLES2::SKELETON_TRANSFORM_INVERSE, state.skeleton_transform_inverse);
-		state.canvas_shader.set_uniform(CanvasShaderGLES2::SKELETON_TEXTURE_SIZE, state.skeleton_texture_size);
 	}
 
 	if (state.using_light) {
@@ -1053,7 +1046,6 @@ void RasterizerCanvasBaseGLES2::initialize() {
 
 	state.using_light = nullptr;
 	state.using_transparent_rt = false;
-	state.using_skeleton = false;
 }
 
 void RasterizerCanvasBaseGLES2::finalize() {
