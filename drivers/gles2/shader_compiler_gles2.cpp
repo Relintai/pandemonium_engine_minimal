@@ -1078,8 +1078,6 @@ ShaderCompilerGLES2::ShaderCompilerGLES2() {
 	actions[RS::SHADER_CANVAS_ITEM].usage_defines["NORMALMAP"] = "#define NORMALMAP_USED\n";
 	actions[RS::SHADER_CANVAS_ITEM].usage_defines["LIGHT"] = "#define USE_LIGHT_SHADER_CODE\n";
 	actions[RS::SHADER_CANVAS_ITEM].render_mode_defines["skip_vertex_transform"] = "#define SKIP_TRANSFORM_USED\n";
-	actions[RS::SHADER_CANVAS_ITEM].usage_defines["SHADOW_VEC"] = "#define SHADOW_VEC_USED\n";
-
 	// Ported from GLES3
 
 	actions[RS::SHADER_CANVAS_ITEM].usage_defines["sinh"] = "#define SINH_USED\n";

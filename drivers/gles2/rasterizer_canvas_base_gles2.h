@@ -77,7 +77,6 @@ public:
 		bool using_texture_rect;
 
 		bool using_modulate;
-		bool using_large_vertex;
 
 		bool using_ninepatch;
 

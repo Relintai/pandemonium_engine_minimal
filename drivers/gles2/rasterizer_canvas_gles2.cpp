@@ -1211,8 +1211,6 @@ void RasterizerCanvasGLES2::canvas_render_items_implementation(Item *p_item_list
 	ris.item_group_modulate = p_modulate;
 	ris.item_group_base_transform = p_base_transform;
 
-	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_SKELETON, false);
-
 	state.current_tex = RID();
 	state.current_tex_ptr = nullptr;
 	state.current_normal = RID();
@@ -1236,8 +1234,6 @@ void RasterizerCanvasGLES2::canvas_render_items_implementation(Item *p_item_list
 	if (ris.current_clip) {
 		glDisable(GL_SCISSOR_TEST);
 	}
-
-	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_SKELETON, false);
 }
 
 // This function is a dry run of the state changes when drawing the item.

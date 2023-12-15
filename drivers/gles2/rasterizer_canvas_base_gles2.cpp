@@ -42,13 +42,9 @@
 void RasterizerCanvasBaseGLES2::canvas_begin() {
 	state.using_transparent_rt = false;
 
-	// always start with light_angle unset
-	state.using_large_vertex = false;
 	state.using_modulate = false;
 
-	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_ATTRIB_LIGHT_ANGLE, false);
 	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_ATTRIB_MODULATE, false);
-	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_ATTRIB_LARGE_VERTEX, false);
 	state.canvas_shader.bind();
 
 	int viewport_x, viewport_y, viewport_width, viewport_height;
@@ -155,11 +151,6 @@ void RasterizerCanvasBaseGLES2::_set_texture_rect_mode(bool p_texture_rect, bool
 	if (state.using_modulate != p_modulate) {
 		state.using_modulate = p_modulate;
 		state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_ATTRIB_MODULATE, p_modulate);
-	}
-
-	if (state.using_large_vertex != p_large_vertex) {
-		state.using_large_vertex = p_large_vertex;
-		state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_ATTRIB_LARGE_VERTEX, p_large_vertex);
 	}
 }
 
@@ -840,11 +831,9 @@ void RasterizerCanvasBaseGLES2::initialize() {
 
 	state.canvas_shader.init();
 
-	state.using_large_vertex = false;
 	state.using_modulate = false;
 
 	_set_texture_rect_mode(true);
-	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_RGBA_SHADOWS, storage->config.use_rgba_2d_shadows);
 
 	state.canvas_shader.bind();
 

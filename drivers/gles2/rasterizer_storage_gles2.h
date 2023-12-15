@@ -78,9 +78,6 @@ public:
 
 		bool force_vertex_shading;
 
-		bool use_rgba_2d_shadows;
-		bool use_rgba_3d_shadows;
-
 		float anisotropic_level;
 
 		bool support_32_bits_indices;
@@ -115,8 +112,7 @@ public:
 		GLuint mipmap_blur_color;
 
 		GLuint radical_inverse_vdc_cache_tex;
-		bool use_rgba_2d_shadows;
-
+		
 		GLuint quadie;
 
 		size_t blend_shape_transform_cpu_buffer_size;

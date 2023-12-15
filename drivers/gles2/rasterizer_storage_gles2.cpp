@@ -4360,15 +4360,9 @@ void RasterizerStorageGLES2::initialize() {
 #endif
 
 #ifdef GLES_OVER_GL
-	config.use_rgba_2d_shadows = false;
 	config.support_depth_texture = true;
-	config.use_rgba_3d_shadows = false;
-	config.support_depth_cubemaps = true;
 #else
-	config.use_rgba_2d_shadows = !(config.float_texture_supported && config.extensions.has("GL_EXT_texture_rg"));
 	config.support_depth_texture = config.extensions.has("GL_OES_depth_texture") || config.extensions.has("WEBGL_depth_texture");
-	config.use_rgba_3d_shadows = !config.support_depth_texture;
-	config.support_depth_cubemaps = config.extensions.has("GL_OES_depth_texture_cube_map");
 #endif
 
 #ifdef GLES_OVER_GL
@@ -4461,7 +4455,6 @@ void RasterizerStorageGLES2::initialize() {
 			if (status != GL_FRAMEBUFFER_COMPLETE) {
 				//if it fails again depth textures aren't supported, use rgba shadows and renderbuffer for depth
 				config.support_depth_texture = false;
-				config.use_rgba_3d_shadows = true;
 			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, system_fbo);
