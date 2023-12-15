@@ -5,7 +5,5 @@ Import("env")
 if "GLES2_GLSL" in env["BUILDERS"]:
     env.GLES2_GLSL("copy.glsl")
     env.GLES2_GLSL("canvas.glsl")
-    env.GLES2_GLSL("canvas_shadow.glsl")
-    env.GLES2_GLSL("effect_blur.glsl")
     env.GLES2_GLSL("lens_distorted.glsl")
     env.Depends(Glob("*.glsl.gen.h"), "#gles_builders.py")

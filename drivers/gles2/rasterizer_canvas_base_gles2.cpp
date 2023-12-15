@@ -838,8 +838,6 @@ void RasterizerCanvasBaseGLES2::initialize() {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-	state.canvas_shadow_shader.init();
-
 	state.canvas_shader.init();
 
 	state.using_large_vertex = false;

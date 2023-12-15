@@ -38,7 +38,6 @@
 #include "shaders/lens_distorted.glsl.gen.h"
 
 #include "drivers/gles_common/rasterizer_storage_common.h"
-#include "shaders/canvas_shadow.glsl.gen.h"
 
 class RasterizerCanvasBaseGLES2 : public RasterizerCanvas {
 public:
@@ -73,7 +72,6 @@ public:
 		Uniforms uniforms;
 		bool canvas_texscreen_used;
 		CanvasShaderGLES2 canvas_shader;
-		CanvasShadowShaderGLES2 canvas_shadow_shader;
 		LensDistortedShaderGLES2 lens_shader;
 
 		bool using_texture_rect;
