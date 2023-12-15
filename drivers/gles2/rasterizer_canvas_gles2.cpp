@@ -34,7 +34,6 @@
 #include "core/os/os.h"
 #include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles_common/rasterizer_asserts.h"
-#include "rasterizer_scene_gles2.h"
 #include "servers/rendering/rendering_server_raster.h"
 
 static const GLenum gl_primitive[] = {

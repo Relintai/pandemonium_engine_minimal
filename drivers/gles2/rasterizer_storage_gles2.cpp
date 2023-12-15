@@ -33,7 +33,6 @@
 #include "core/config/project_settings.h"
 #include "core/math/transform.h"
 #include "rasterizer_canvas_gles2.h"
-#include "rasterizer_scene_gles2.h"
 #include "servers/rendering/rendering_server_canvas.h"
 #include "servers/rendering/rendering_server_globals.h"
 #include "servers/rendering/shader_language.h"
@@ -1155,8 +1154,8 @@ RID RasterizerStorageGLES2::texture_create_radiance_cubemap(RID p_source, int p_
 
 RID RasterizerStorageGLES2::shader_create() {
 	Shader *shader = memnew(Shader);
-	shader->mode = RS::SHADER_SPATIAL;
-	shader->shader = &scene->state.scene_shader;
+	shader->mode = RS::SHADER_CANVAS_ITEM;
+	shader->shader = &canvas->state.canvas_shader;
 	RID rid = shader_owner.make_rid(shader);
 	_shader_make_dirty(shader);
 	shader->self = rid;
@@ -1181,12 +1180,10 @@ void RasterizerStorageGLES2::shader_set_code(RID p_shader, const String &p_code)
 	String mode_string = ShaderLanguage::get_shader_type(p_code);
 	RS::ShaderMode mode;
 
-	if (mode_string == "canvas_item") {
-		mode = RS::SHADER_CANVAS_ITEM;
-	} else if (mode_string == "particles") {
+	if (mode_string == "particles") {
 		mode = RS::SHADER_PARTICLES;
 	} else {
-		mode = RS::SHADER_SPATIAL;
+		mode = RS::SHADER_CANVAS_ITEM;
 	}
 
 	if (shader->custom_code_id && mode != shader->mode) {
@@ -1199,9 +1196,6 @@ void RasterizerStorageGLES2::shader_set_code(RID p_shader, const String &p_code)
 	// TODO handle all shader types
 	if (mode == RS::SHADER_CANVAS_ITEM) {
 		shader->shader = &canvas->state.canvas_shader;
-
-	} else if (mode == RS::SHADER_SPATIAL) {
-		shader->shader = &scene->state.scene_shader;
 	} else {
 		return;
 	}
@@ -1277,79 +1271,6 @@ void RasterizerStorageGLES2::_update_shader(Shader *p_shader) const {
 
 			actions = &shaders.actions_canvas;
 			actions->uniforms = &p_shader->uniforms;
-		} break;
-
-		case RS::SHADER_SPATIAL: {
-			p_shader->spatial.blend_mode = Shader::Spatial::BLEND_MODE_MIX;
-			p_shader->spatial.depth_draw_mode = Shader::Spatial::DEPTH_DRAW_OPAQUE;
-			p_shader->spatial.cull_mode = Shader::Spatial::CULL_MODE_BACK;
-			p_shader->spatial.uses_alpha = false;
-			p_shader->spatial.uses_alpha_scissor = false;
-			p_shader->spatial.uses_discard = false;
-			p_shader->spatial.unshaded = false;
-			p_shader->spatial.no_depth_test = false;
-			p_shader->spatial.uses_sss = false;
-			p_shader->spatial.uses_time = false;
-			p_shader->spatial.uses_vertex_lighting = false;
-			p_shader->spatial.uses_screen_texture = false;
-			p_shader->spatial.uses_depth_texture = false;
-			p_shader->spatial.uses_vertex = false;
-			p_shader->spatial.uses_tangent = false;
-			p_shader->spatial.uses_ensure_correct_normals = false;
-			p_shader->spatial.writes_modelview_or_projection = false;
-			p_shader->spatial.uses_world_coordinates = false;
-
-			shaders.actions_scene.render_mode_values["blend_add"] = Pair<int *, int>(&p_shader->spatial.blend_mode, Shader::Spatial::BLEND_MODE_ADD);
-			shaders.actions_scene.render_mode_values["blend_mix"] = Pair<int *, int>(&p_shader->spatial.blend_mode, Shader::Spatial::BLEND_MODE_MIX);
-			shaders.actions_scene.render_mode_values["blend_sub"] = Pair<int *, int>(&p_shader->spatial.blend_mode, Shader::Spatial::BLEND_MODE_SUB);
-			shaders.actions_scene.render_mode_values["blend_mul"] = Pair<int *, int>(&p_shader->spatial.blend_mode, Shader::Spatial::BLEND_MODE_MUL);
-
-			shaders.actions_scene.render_mode_values["depth_draw_opaque"] = Pair<int *, int>(&p_shader->spatial.depth_draw_mode, Shader::Spatial::DEPTH_DRAW_OPAQUE);
-			shaders.actions_scene.render_mode_values["depth_draw_always"] = Pair<int *, int>(&p_shader->spatial.depth_draw_mode, Shader::Spatial::DEPTH_DRAW_ALWAYS);
-			shaders.actions_scene.render_mode_values["depth_draw_never"] = Pair<int *, int>(&p_shader->spatial.depth_draw_mode, Shader::Spatial::DEPTH_DRAW_NEVER);
-			shaders.actions_scene.render_mode_values["depth_draw_alpha_prepass"] = Pair<int *, int>(&p_shader->spatial.depth_draw_mode, Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS);
-
-			shaders.actions_scene.render_mode_values["cull_front"] = Pair<int *, int>(&p_shader->spatial.cull_mode, Shader::Spatial::CULL_MODE_FRONT);
-			shaders.actions_scene.render_mode_values["cull_back"] = Pair<int *, int>(&p_shader->spatial.cull_mode, Shader::Spatial::CULL_MODE_BACK);
-			shaders.actions_scene.render_mode_values["cull_disabled"] = Pair<int *, int>(&p_shader->spatial.cull_mode, Shader::Spatial::CULL_MODE_DISABLED);
-
-			shaders.actions_scene.render_mode_flags["unshaded"] = &p_shader->spatial.unshaded;
-			shaders.actions_scene.render_mode_flags["depth_test_disable"] = &p_shader->spatial.no_depth_test;
-
-			shaders.actions_scene.render_mode_flags["vertex_lighting"] = &p_shader->spatial.uses_vertex_lighting;
-
-			shaders.actions_scene.render_mode_flags["world_vertex_coords"] = &p_shader->spatial.uses_world_coordinates;
-
-			shaders.actions_scene.render_mode_flags["ensure_correct_normals"] = &p_shader->spatial.uses_ensure_correct_normals;
-
-			shaders.actions_scene.usage_flag_pointers["ALPHA"] = &p_shader->spatial.uses_alpha;
-			shaders.actions_scene.usage_flag_pointers["ALPHA_SCISSOR"] = &p_shader->spatial.uses_alpha_scissor;
-
-			shaders.actions_scene.usage_flag_pointers["SSS_STRENGTH"] = &p_shader->spatial.uses_sss;
-			shaders.actions_scene.usage_flag_pointers["DISCARD"] = &p_shader->spatial.uses_discard;
-			shaders.actions_scene.usage_flag_pointers["SCREEN_TEXTURE"] = &p_shader->spatial.uses_screen_texture;
-			shaders.actions_scene.usage_flag_pointers["DEPTH_TEXTURE"] = &p_shader->spatial.uses_depth_texture;
-			shaders.actions_scene.usage_flag_pointers["TIME"] = &p_shader->spatial.uses_time;
-
-			// Use of any of these BUILTINS indicate the need for transformed tangents.
-			// This is needed to know when to transform tangents in software skinning.
-			shaders.actions_scene.usage_flag_pointers["TANGENT"] = &p_shader->spatial.uses_tangent;
-			shaders.actions_scene.usage_flag_pointers["NORMALMAP"] = &p_shader->spatial.uses_tangent;
-
-			shaders.actions_scene.write_flag_pointers["MODELVIEW_MATRIX"] = &p_shader->spatial.writes_modelview_or_projection;
-			shaders.actions_scene.write_flag_pointers["PROJECTION_MATRIX"] = &p_shader->spatial.writes_modelview_or_projection;
-			shaders.actions_scene.write_flag_pointers["VERTEX"] = &p_shader->spatial.uses_vertex;
-
-			actions = &shaders.actions_scene;
-			actions->uniforms = &p_shader->uniforms;
-
-			if (p_shader->spatial.uses_screen_texture && p_shader->spatial.uses_depth_texture) {
-				ERR_PRINT_ONCE("Using both SCREEN_TEXTURE and DEPTH_TEXTURE is not supported in GLES2");
-			}
-
-			if (p_shader->spatial.uses_depth_texture && !config.support_depth_texture) {
-				ERR_PRINT_ONCE("Using DEPTH_TEXTURE is not permitted on this hardware, operation will fail.");
-			}
 		} break;
 
 		default: {
@@ -1800,39 +1721,6 @@ void RasterizerStorageGLES2::_update_material(Material *p_material) {
 
 	if (p_material->shader && !p_material->shader->valid) {
 		return;
-	}
-
-	{
-		bool can_cast_shadow = false;
-		bool is_animated = false;
-
-		if (p_material->shader && p_material->shader->mode == RS::SHADER_SPATIAL) {
-			if (p_material->shader->spatial.blend_mode == Shader::Spatial::BLEND_MODE_MIX &&
-					(!(p_material->shader->spatial.uses_alpha && !p_material->shader->spatial.uses_alpha_scissor) || p_material->shader->spatial.depth_draw_mode == Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS)) {
-				can_cast_shadow = true;
-			}
-
-			if (p_material->shader->spatial.uses_discard && p_material->shader->uses_fragment_time) {
-				is_animated = true;
-			}
-
-			if (p_material->shader->spatial.uses_vertex && p_material->shader->uses_vertex_time) {
-				is_animated = true;
-			}
-
-			if (can_cast_shadow != p_material->can_cast_shadow_cache || is_animated != p_material->is_animated_cache) {
-				p_material->can_cast_shadow_cache = can_cast_shadow;
-				p_material->is_animated_cache = is_animated;
-
-				for (RBMap<Geometry *, int>::Element *E = p_material->geometry_owners.front(); E; E = E->next()) {
-					E->key()->material_changed_notify();
-				}
-
-				for (RBMap<RasterizerScene::InstanceBase *, int>::Element *E = p_material->instance_owners.front(); E; E = E->next()) {
-					E->key()->base_changed(false, true);
-				}
-			}
-		}
 	}
 
 	// uniforms and other things will be set in the use_material method in ShaderGLES2
@@ -4605,9 +4493,6 @@ void RasterizerStorageGLES2::initialize() {
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, config.max_viewport_dimensions);
 
 	shaders.copy.init();
-	shaders.cubemap_filter.init();
-	bool ggx_hq = GLOBAL_GET("rendering/quality/reflections/high_quality_ggx");
-	shaders.cubemap_filter.set_conditional(CubemapFilterShaderGLES2::LOW_QUALITY, !ggx_hq);
 
 	{
 		// quad for copying stuff

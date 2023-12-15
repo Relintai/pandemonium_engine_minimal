@@ -224,7 +224,6 @@ RenderingServerRaster::RenderingServerRaster() {
 	RSG::rasterizer = Rasterizer::create();
 	RSG::storage = RSG::rasterizer->get_storage();
 	RSG::canvas_render = RSG::rasterizer->get_canvas();
-	RSG::scene_render = RSG::rasterizer->get_scene();
 
 	for (int i = 0; i < 4; i++) {
 		black_margin[i] = 0;

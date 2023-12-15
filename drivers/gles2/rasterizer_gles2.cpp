@@ -156,10 +156,6 @@ RasterizerCanvas *RasterizerGLES2::get_canvas() {
 	return canvas;
 }
 
-RasterizerScene *RasterizerGLES2::get_scene() {
-	return scene;
-}
-
 Error RasterizerGLES2::is_viable() {
 #ifdef GLAD_ENABLED
 	if (!gladLoadGL()) {
@@ -264,7 +260,6 @@ void RasterizerGLES2::initialize() {
 	print_line("OpenGL ES 2.0 Renderer: " + RenderingServer::get_singleton()->get_video_adapter_name());
 	storage->initialize();
 	canvas->initialize();
-	scene->initialize();
 }
 
 void RasterizerGLES2::begin_frame(double frame_step) {
@@ -289,8 +284,6 @@ void RasterizerGLES2::begin_frame(double frame_step) {
 
 	storage->info.render_final = storage->info.render;
 	storage->info.render.reset();
-
-	scene->iteration();
 }
 
 void RasterizerGLES2::set_current_render_target(RID p_render_target) {
@@ -526,19 +519,15 @@ bool RasterizerGLES2::gl_check_errors() {
 RasterizerGLES2::RasterizerGLES2() {
 	storage = memnew(RasterizerStorageGLES2);
 	canvas = memnew(RasterizerCanvasGLES2);
-	scene = memnew(RasterizerSceneGLES2);
+
 	canvas->storage = storage;
-	canvas->scene_render = scene;
 	storage->canvas = canvas;
-	scene->storage = storage;
-	storage->scene = scene;
 
 	time_total = 0;
 	time_scale = 1;
 }
 
 RasterizerGLES2::~RasterizerGLES2() {
-	memdelete(scene);
 	memdelete(canvas);
 
 	// Storage needs to be deleted after canvas as canvas destructor frees RIDs

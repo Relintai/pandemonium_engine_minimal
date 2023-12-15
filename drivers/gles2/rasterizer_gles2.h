@@ -31,7 +31,6 @@
 /*************************************************************************/
 
 #include "rasterizer_canvas_gles2.h"
-#include "rasterizer_scene_gles2.h"
 #include "rasterizer_storage_gles2.h"
 #include "servers/rendering/rasterizer.h"
 
@@ -40,7 +39,6 @@ class RasterizerGLES2 : public Rasterizer {
 
 	RasterizerStorageGLES2 *storage;
 	RasterizerCanvasGLES2 *canvas;
-	RasterizerSceneGLES2 *scene;
 
 	double time_total;
 	float time_scale;
@@ -48,7 +46,6 @@ class RasterizerGLES2 : public Rasterizer {
 public:
 	virtual RasterizerStorage *get_storage();
 	virtual RasterizerCanvas *get_canvas();
-	virtual RasterizerScene *get_scene();
 
 	virtual void set_boot_image(const Ref<Image> &p_image, const Color &p_color, bool p_scale, bool p_use_filter = true);
 	virtual void set_shader_time_scale(float p_scale);

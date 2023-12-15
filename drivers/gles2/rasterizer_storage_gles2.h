@@ -40,16 +40,13 @@
 #include "shader_gles2.h"
 
 #include "shaders/copy.glsl.gen.h"
-#include "shaders/cubemap_filter.glsl.gen.h"
 
 class RasterizerCanvasGLES2;
-class RasterizerSceneGLES2;
 
 #define WRAPPED_GL_ACTIVE_TEXTURE storage->gl_wrapper.gl_active_texture
 class RasterizerStorageGLES2 : public RasterizerStorage {
 public:
 	RasterizerCanvasGLES2 *canvas;
-	RasterizerSceneGLES2 *scene;
 
 	static GLuint system_fbo;
 
@@ -130,7 +127,6 @@ public:
 		ShaderCompilerGLES2 compiler;
 
 		CopyShaderGLES2 copy;
-		CubemapFilterShaderGLES2 cubemap_filter;
 
 		ShaderCompilerGLES2::IdentifierActions actions_canvas;
 		ShaderCompilerGLES2::IdentifierActions actions_scene;

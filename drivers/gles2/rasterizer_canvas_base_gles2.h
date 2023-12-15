@@ -94,8 +94,6 @@ public:
 
 	typedef void Texture;
 
-	RasterizerSceneGLES2 *scene_render;
-
 	RasterizerStorageGLES2 *storage;
 
 	// allow user to choose api usage
