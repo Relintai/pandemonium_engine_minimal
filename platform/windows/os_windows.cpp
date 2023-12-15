@@ -1735,10 +1735,6 @@ void OS_Windows::set_main_loop(MainLoop *p_main_loop) {
 }
 
 void OS_Windows::finalize() {
-#ifdef WINMIDI_ENABLED
-	driver_midi.close();
-#endif
-
 	if (main_loop)
 		memdelete(main_loop);
 

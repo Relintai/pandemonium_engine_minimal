@@ -1810,10 +1810,6 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 }
 
 void OS_OSX::finalize() {
-#ifdef COREMIDI_ENABLED
-	midi_driver.close();
-#endif
-
 	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDistributedCenter(), NULL, kTISNotifySelectedKeyboardInputSourceChanged, NULL);
 	CGDisplayRemoveReconfigurationCallback(displays_arrangement_changed, NULL);
 
