@@ -539,13 +539,6 @@ void register_scene_types() {
 	ClassDB::register_class<SceneTree>();
 	ClassDB::register_virtual_class<SceneTreeTimer>(); //sorry, you can't create it
 
-#ifndef DISABLE_DEPRECATED
-	ClassDB::add_compatibility_class("ImageSkyBox", "PanoramaSky");
-	ClassDB::add_compatibility_class("FixedSpatialMaterial", "SpatialMaterial");
-	ClassDB::add_compatibility_class("Mesh", "ArrayMesh");
-
-#endif
-
 	OS::get_singleton()->yield(); //may take time to init
 
 	for (int i = 0; i < 20; i++) {
