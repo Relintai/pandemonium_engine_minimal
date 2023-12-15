@@ -361,43 +361,8 @@ public:
 
 	BIND2(scenario_set_debug, RID, ScenarioDebugMode)
 
-	/* INSTANCING API */
-
-	BIND0R(RID, instance_create)
-
-	BIND2(instance_set_base, RID, RID)
-	BIND2(instance_set_scenario, RID, RID)
-	BIND2(instance_set_layer_mask, RID, uint32_t)
-	BIND3(instance_set_pivot_data, RID, float, bool)
-	BIND2(instance_set_transform, RID, const Transform &)
-	BIND2(instance_set_interpolated, RID, bool)
-	BIND1(instance_reset_physics_interpolation, RID)
-	BIND2(instance_attach_object_instance_id, RID, ObjectID)
-	BIND3(instance_set_blend_shape_weight, RID, int, float)
-	BIND3(instance_set_surface_material, RID, int, RID)
-	BIND2(instance_set_visible, RID, bool)
-
-	BIND2(instance_set_custom_aabb, RID, AABB)
-
-	BIND2(instance_attach_skeleton, RID, RID)
-	BIND2(instance_set_exterior, RID, bool)
-
-	BIND2(instance_set_extra_visibility_margin, RID, real_t)
-
 	// Callbacks
 	BIND1(callbacks_register, RenderingServerCallbacks *)
-
-	// don't use these in a game!
-	BIND2RC(Vector<ObjectID>, instances_cull_aabb, const AABB &, RID)
-	BIND3RC(Vector<ObjectID>, instances_cull_ray, const Vector3 &, const Vector3 &, RID)
-	BIND2RC(Vector<ObjectID>, instances_cull_convex, const Vector<Plane> &, RID)
-
-	BIND3(instance_geometry_set_flag, RID, InstanceFlags, bool)
-	BIND2(instance_geometry_set_material_override, RID, RID)
-	BIND2(instance_geometry_set_material_overlay, RID, RID)
-
-	BIND5(instance_geometry_set_draw_range, RID, float, float, float, float)
-	BIND2(instance_geometry_set_as_instance_lod, RID, RID)
 
 #undef BINDBASE
 //from now on, calls forwarded to this singleton

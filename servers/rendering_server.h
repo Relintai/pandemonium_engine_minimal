@@ -538,52 +538,13 @@ public:
 		INSTANCE_GEOMETRY_MASK = (1 << INSTANCE_MESH) | (1 << INSTANCE_MULTIMESH)
 	};
 
-	virtual RID instance_create2(RID p_base, RID p_scenario);
-
-	virtual RID instance_create() = 0;
-
-	virtual void instance_set_base(RID p_instance, RID p_base) = 0;
-	virtual void instance_set_scenario(RID p_instance, RID p_scenario) = 0;
-	virtual void instance_set_layer_mask(RID p_instance, uint32_t p_mask) = 0;
-	virtual void instance_set_pivot_data(RID p_instance, float p_sorting_offset, bool p_use_aabb_center) = 0;
-	virtual void instance_set_transform(RID p_instance, const Transform &p_transform) = 0;
-	virtual void instance_set_interpolated(RID p_instance, bool p_interpolated) = 0;
-	virtual void instance_reset_physics_interpolation(RID p_instance) = 0;
-	virtual void instance_attach_object_instance_id(RID p_instance, ObjectID p_id) = 0;
-	virtual void instance_set_blend_shape_weight(RID p_instance, int p_shape, float p_weight) = 0;
-	virtual void instance_set_surface_material(RID p_instance, int p_surface, RID p_material) = 0;
-	virtual void instance_set_visible(RID p_instance, bool p_visible) = 0;
-
-	virtual void instance_set_custom_aabb(RID p_instance, AABB aabb) = 0;
-
-	virtual void instance_attach_skeleton(RID p_instance, RID p_skeleton) = 0;
-	virtual void instance_set_exterior(RID p_instance, bool p_enabled) = 0;
-
-	virtual void instance_set_extra_visibility_margin(RID p_instance, real_t p_margin) = 0;
-
 	// callbacks are used to send messages back from the visual server to scene tree in thread friendly manner
 	virtual void callbacks_register(RenderingServerCallbacks *p_callbacks) = 0;
-
-	// don't use these in a game!
-	virtual Vector<ObjectID> instances_cull_aabb(const AABB &p_aabb, RID p_scenario = RID()) const = 0;
-	virtual Vector<ObjectID> instances_cull_ray(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario = RID()) const = 0;
-	virtual Vector<ObjectID> instances_cull_convex(const Vector<Plane> &p_convex, RID p_scenario = RID()) const = 0;
-
-	Array _instances_cull_aabb_bind(const AABB &p_aabb, RID p_scenario = RID()) const;
-	Array _instances_cull_ray_bind(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario = RID()) const;
-	Array _instances_cull_convex_bind(const Array &p_convex, RID p_scenario = RID()) const;
 
 	enum InstanceFlags {
 		INSTANCE_FLAG_DRAW_NEXT_FRAME_IF_VISIBLE,
 		INSTANCE_FLAG_MAX
 	};
-
-	virtual void instance_geometry_set_flag(RID p_instance, InstanceFlags p_flags, bool p_enabled) = 0;
-	virtual void instance_geometry_set_material_override(RID p_instance, RID p_material) = 0;
-	virtual void instance_geometry_set_material_overlay(RID p_instance, RID p_material) = 0;
-
-	virtual void instance_geometry_set_draw_range(RID p_instance, float p_min, float p_max, float p_min_margin, float p_max_margin) = 0;
-	virtual void instance_geometry_set_as_instance_lod(RID p_instance, RID p_as_lod_of_instance) = 0;
 
 	/* CANVAS (2D) */
 

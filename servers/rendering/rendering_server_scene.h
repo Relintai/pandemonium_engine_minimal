@@ -332,7 +332,6 @@ public:
 		InstanceBaseData *base_data;
 
 		virtual void base_removed() {
-			singleton->instance_set_base(self, RID());
 		}
 
 		virtual void base_changed(bool p_aabb, bool p_materials) {
@@ -421,44 +420,11 @@ public:
 
 	RID_Owner<Instance> instance_owner;
 
-	virtual RID instance_create();
-
-	virtual void instance_set_base(RID p_instance, RID p_base);
-	virtual void instance_set_scenario(RID p_instance, RID p_scenario);
-	virtual void instance_set_layer_mask(RID p_instance, uint32_t p_mask);
-	virtual void instance_set_pivot_data(RID p_instance, float p_sorting_offset, bool p_use_aabb_center);
-	virtual void instance_set_transform(RID p_instance, const Transform &p_transform);
-	virtual void instance_set_interpolated(RID p_instance, bool p_interpolated);
-	virtual void instance_reset_physics_interpolation(RID p_instance);
-	virtual void instance_attach_object_instance_id(RID p_instance, ObjectID p_id);
-	virtual void instance_set_blend_shape_weight(RID p_instance, int p_shape, float p_weight);
-	virtual void instance_set_surface_material(RID p_instance, int p_surface, RID p_material);
-	virtual void instance_set_visible(RID p_instance, bool p_visible);
-
-	virtual void instance_set_custom_aabb(RID p_instance, AABB p_aabb);
-
-	virtual void instance_attach_skeleton(RID p_instance, RID p_skeleton);
-	virtual void instance_set_exterior(RID p_instance, bool p_enabled);
-
-	virtual void instance_set_extra_visibility_margin(RID p_instance, real_t p_margin);
-
 public:
 	virtual void callbacks_register(RenderingServerCallbacks *p_callbacks);
 	RenderingServerCallbacks *get_callbacks() const {
 		return _rendering_server_callbacks;
 	}
-
-	// don't use these in a game!
-	virtual Vector<ObjectID> instances_cull_aabb(const AABB &p_aabb, RID p_scenario = RID()) const;
-	virtual Vector<ObjectID> instances_cull_ray(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario = RID()) const;
-	virtual Vector<ObjectID> instances_cull_convex(const Vector<Plane> &p_convex, RID p_scenario = RID()) const;
-
-	virtual void instance_geometry_set_flag(RID p_instance, RS::InstanceFlags p_flags, bool p_enabled);
-	virtual void instance_geometry_set_material_override(RID p_instance, RID p_material);
-	virtual void instance_geometry_set_material_overlay(RID p_instance, RID p_material);
-
-	virtual void instance_geometry_set_draw_range(RID p_instance, float p_min, float p_max, float p_min_margin, float p_max_margin);
-	virtual void instance_geometry_set_as_instance_lod(RID p_instance, RID p_as_lod_of_instance);
 
 	_FORCE_INLINE_ void _update_instance(Instance *p_instance);
 	_FORCE_INLINE_ void _update_instance_aabb(Instance *p_instance);
