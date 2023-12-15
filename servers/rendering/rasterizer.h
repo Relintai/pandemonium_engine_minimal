@@ -381,15 +381,6 @@ public:
 	virtual void render_target_set_use_debanding(RID p_render_target, bool p_debanding) = 0;
 	virtual void render_target_set_sharpen_intensity(RID p_render_target, float p_intensity) = 0;
 
-	/* CANVAS SHADOW */
-
-	virtual RID canvas_light_shadow_buffer_create(int p_width) = 0;
-
-	/* LIGHT SHADOW MAPPING */
-
-	virtual RID canvas_light_occluder_create() = 0;
-	virtual void canvas_light_occluder_set_polylines(RID p_occluder, const PoolVector<Vector2> &p_lines) = 0;
-
 	/* INTERPOLATION */
 	struct InterpolationData {
 		void notify_free_multimesh(RID p_rid);
@@ -439,80 +430,6 @@ public:
 		CANVAS_RECT_TRANSPOSE = 16,
 		CANVAS_RECT_CLIP_UV = 32
 	};
-
-	struct Light : public RID_Data {
-		bool enabled : 1;
-		bool on_interpolate_transform_list : 1;
-		bool interpolated : 1;
-		Color color;
-		Transform2D xform_curr;
-		Transform2D xform_prev;
-		float height;
-		float energy;
-		float scale;
-		int z_min;
-		int z_max;
-		int layer_min;
-		int layer_max;
-		int item_mask;
-		int item_shadow_mask;
-		RS::CanvasLightMode mode;
-		RID texture;
-		Vector2 texture_offset;
-		RID canvas;
-		RID shadow_buffer;
-		int shadow_buffer_size;
-		float shadow_gradient_length;
-		RS::CanvasLightShadowFilter shadow_filter;
-		Color shadow_color;
-		float shadow_smooth;
-
-		void *texture_cache; // implementation dependent
-		Rect2 rect_cache;
-		Transform2D xform_cache;
-		float radius_cache; //used for shadow far plane
-		Projection shadow_matrix_cache;
-
-		Transform2D light_shader_xform;
-		Vector2 light_shader_pos;
-
-		Light *shadows_next_ptr;
-		Light *filter_next_ptr;
-		Light *next_ptr;
-		Light *mask_next_ptr;
-
-		RID light_internal;
-
-		Light() {
-			enabled = true;
-			on_interpolate_transform_list = false;
-			interpolated = true;
-			color = Color(1, 1, 1);
-			shadow_color = Color(0, 0, 0, 0);
-			height = 0;
-			z_min = -1024;
-			z_max = 1024;
-			layer_min = 0;
-			layer_max = 0;
-			item_mask = 1;
-			scale = 1.0;
-			energy = 1.0;
-			item_shadow_mask = 1;
-			mode = RS::CANVAS_LIGHT_MODE_ADD;
-			texture_cache = nullptr;
-			next_ptr = nullptr;
-			mask_next_ptr = nullptr;
-			filter_next_ptr = nullptr;
-			shadow_buffer_size = 2048;
-			shadow_gradient_length = 0;
-			shadow_filter = RS::CANVAS_LIGHT_FILTER_NONE;
-			shadow_smooth = 0.0;
-		}
-	};
-
-	virtual RID light_internal_create() = 0;
-	virtual void light_internal_update(RID p_rid, Light *p_light) = 0;
-	virtual void light_internal_free(RID p_rid) = 0;
 
 	struct Item : public RID_Data {
 		struct Command {
@@ -970,38 +887,9 @@ public:
 	virtual void canvas_begin() = 0;
 	virtual void canvas_end() = 0;
 
-	virtual void canvas_render_items_begin(const Color &p_modulate, Light *p_light, const Transform2D &p_base_transform) {}
+	virtual void canvas_render_items_begin(const Color &p_modulate, const Transform2D &p_base_transform) {}
 	virtual void canvas_render_items_end() {}
-	virtual void canvas_render_items(Item *p_item_list, int p_z, const Color &p_modulate, Light *p_light, const Transform2D &p_base_transform) = 0;
-	virtual void canvas_debug_viewport_shadows(Light *p_lights_with_shadow) = 0;
-
-	struct LightOccluderInstance : public RID_Data {
-		bool enabled : 1;
-		bool on_interpolate_transform_list : 1;
-		bool interpolated : 1;
-		RID canvas;
-		RID polygon;
-		RID polygon_buffer;
-		Rect2 aabb_cache;
-		Transform2D xform_curr;
-		Transform2D xform_prev;
-		Transform2D xform_cache;
-		int light_mask;
-		RS::CanvasOccluderPolygonCullMode cull_cache;
-
-		LightOccluderInstance *next;
-
-		LightOccluderInstance() {
-			enabled = true;
-			next = nullptr;
-			light_mask = 1;
-			cull_cache = RS::CANVAS_OCCLUDER_POLYGON_CULL_DISABLED;
-			on_interpolate_transform_list = false;
-			interpolated = true;
-		}
-	};
-
-	virtual void canvas_light_shadow_buffer_update(RID p_buffer, const Transform2D &p_light_xform, int p_light_mask, float p_near, float p_far, LightOccluderInstance *p_occluders, Projection *p_xform_cache) = 0;
+	virtual void canvas_render_items(Item *p_item_list, int p_z, const Color &p_modulate, const Transform2D &p_base_transform) = 0;
 
 	virtual void reset_canvas() = 0;
 

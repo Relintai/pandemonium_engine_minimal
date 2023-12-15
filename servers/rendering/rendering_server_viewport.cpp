@@ -91,110 +91,12 @@ void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 		RBMap<Viewport::CanvasKey, Viewport::CanvasData *> canvas_map;
 
 		Rect2 clip_rect(0, 0, p_viewport->size.x, p_viewport->size.y);
-		RasterizerCanvas::Light *lights = nullptr;
-		RasterizerCanvas::Light *lights_with_shadow = nullptr;
-		RasterizerCanvas::Light *lights_with_mask = nullptr;
 		Rect2 shadow_rect;
 
 		for (RBMap<RID, Viewport::CanvasData>::Element *E = p_viewport->canvas_map.front(); E; E = E->next()) {
 			RenderingServerCanvas::Canvas *canvas = static_cast<RenderingServerCanvas::Canvas *>(E->get().canvas);
 
-			Transform2D xf = _canvas_get_transform(p_viewport, canvas, &E->get(), clip_rect.size);
-
-			//find lights in canvas
-
-			for (RBSet<RasterizerCanvas::Light *>::Element *F = canvas->lights.front(); F; F = F->next()) {
-				RasterizerCanvas::Light *cl = F->get();
-				if (cl->enabled && cl->texture.is_valid()) {
-					//not super efficient..
-					Size2 tsize = RSG::storage->texture_size_with_proxy(cl->texture);
-					// Skip using lights with texture of 0 size
-					if (!tsize.x || !tsize.y) {
-						continue;
-					}
-					tsize *= cl->scale;
-
-					Vector2 offset = tsize / 2.0;
-					cl->rect_cache = Rect2(-offset + cl->texture_offset, tsize);
-
-					if (!RSG::canvas->_interpolation_data.interpolation_enabled || !cl->interpolated) {
-						cl->xform_cache = xf * cl->xform_curr;
-					} else {
-						real_t f = Engine::get_singleton()->get_physics_interpolation_fraction();
-						TransformInterpolator::interpolate_transform_2d(cl->xform_prev, cl->xform_curr, cl->xform_cache, f);
-						cl->xform_cache = xf * cl->xform_cache;
-					}
-
-					if (clip_rect.intersects_transformed(cl->xform_cache, cl->rect_cache)) {
-						cl->filter_next_ptr = lights;
-						lights = cl;
-						cl->texture_cache = nullptr;
-						Transform2D scale;
-						scale.scale(cl->rect_cache.size);
-						scale.columns[2] = cl->rect_cache.position;
-						cl->light_shader_xform = (cl->xform_cache * scale).affine_inverse();
-						cl->light_shader_pos = cl->xform_cache[2];
-						if (cl->shadow_buffer.is_valid()) {
-							cl->shadows_next_ptr = lights_with_shadow;
-							if (lights_with_shadow == nullptr) {
-								shadow_rect = cl->xform_cache.xform(cl->rect_cache);
-							} else {
-								shadow_rect = shadow_rect.merge(cl->xform_cache.xform(cl->rect_cache));
-							}
-							lights_with_shadow = cl;
-							cl->radius_cache = cl->rect_cache.size.length();
-						}
-						if (cl->mode == RS::CANVAS_LIGHT_MODE_MASK) {
-							cl->mask_next_ptr = lights_with_mask;
-							lights_with_mask = cl;
-						}
-					}
-
-					RSG::canvas_render->light_internal_update(cl->light_internal, cl);
-				}
-			}
-
 			canvas_map[Viewport::CanvasKey(E->key(), E->get().layer, E->get().sublayer)] = &E->get();
-		}
-
-		if (lights_with_shadow) {
-			//update shadows if any
-
-			RasterizerCanvas::LightOccluderInstance *occluders = nullptr;
-
-			//make list of occluders
-			for (RBMap<RID, Viewport::CanvasData>::Element *E = p_viewport->canvas_map.front(); E; E = E->next()) {
-				RenderingServerCanvas::Canvas *canvas = static_cast<RenderingServerCanvas::Canvas *>(E->get().canvas);
-				Transform2D xf = _canvas_get_transform(p_viewport, canvas, &E->get(), clip_rect.size);
-
-				for (RBSet<RasterizerCanvas::LightOccluderInstance *>::Element *F = canvas->occluders.front(); F; F = F->next()) {
-					RasterizerCanvas::LightOccluderInstance *occluder = F->get();
-					if (!occluder->enabled) {
-						continue;
-					}
-
-					if (!RSG::canvas->_interpolation_data.interpolation_enabled || !occluder->interpolated) {
-						occluder->xform_cache = xf * occluder->xform_curr;
-					} else {
-						real_t f = Engine::get_singleton()->get_physics_interpolation_fraction();
-						TransformInterpolator::interpolate_transform_2d(occluder->xform_prev, occluder->xform_curr, occluder->xform_cache, f);
-						occluder->xform_cache = xf * occluder->xform_cache;
-					}
-
-					if (shadow_rect.intersects_transformed(occluder->xform_cache, occluder->aabb_cache)) {
-						occluder->next = occluders;
-						occluders = occluder;
-					}
-				}
-			}
-			//update the light shadowmaps with them
-			RasterizerCanvas::Light *light = lights_with_shadow;
-			while (light) {
-				RSG::canvas_render->canvas_light_shadow_buffer_update(light->shadow_buffer, light->xform_cache.affine_inverse(), light->item_shadow_mask, light->radius_cache / 1000.0, light->radius_cache * 1.1, occluders, &light->shadow_matrix_cache);
-				light = light->shadows_next_ptr;
-			}
-
-			//RSG::canvas_render->reset_canvas();
 		}
 
 		RSG::rasterizer->restore_render_target(!scenario_draw_canvas_bg && can_draw_3d);
@@ -213,19 +115,9 @@ void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 
 			Transform2D xform = _canvas_get_transform(p_viewport, canvas, E->get(), clip_rect.size);
 
-			RasterizerCanvas::Light *canvas_lights = nullptr;
-
-			RasterizerCanvas::Light *ptr = lights;
 			int canvas_layer_id = E->get()->layer;
-			while (ptr) {
-				if (canvas_layer_id >= ptr->layer_min && canvas_layer_id <= ptr->layer_max) {
-					ptr->next_ptr = canvas_lights;
-					canvas_lights = ptr;
-				}
-				ptr = ptr->filter_next_ptr;
-			}
 
-			RSG::canvas->render_canvas(canvas, xform, canvas_lights, lights_with_mask, clip_rect, canvas_layer_id);
+			RSG::canvas->render_canvas(canvas, xform, clip_rect, canvas_layer_id);
 
 			if (scenario_draw_canvas_bg && E->key().get_layer() >= scenario_canvas_max_layer) {
 				if (!can_draw_3d) {

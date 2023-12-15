@@ -383,51 +383,6 @@ public:
 	FUNC1(canvas_item_reset_physics_interpolation, RID)
 	FUNC2(canvas_item_transform_physics_interpolation, RID, Transform2D)
 
-	FUNC0R(RID, canvas_light_create)
-	FUNC2(canvas_light_attach_to_canvas, RID, RID)
-	FUNC2(canvas_light_set_enabled, RID, bool)
-	FUNC2(canvas_light_set_scale, RID, float)
-	FUNC2(canvas_light_set_transform, RID, const Transform2D &)
-	FUNC2(canvas_light_set_texture, RID, RID)
-	FUNC2(canvas_light_set_texture_offset, RID, const Vector2 &)
-	FUNC2(canvas_light_set_color, RID, const Color &)
-	FUNC2(canvas_light_set_height, RID, float)
-	FUNC2(canvas_light_set_energy, RID, float)
-	FUNC3(canvas_light_set_z_range, RID, int, int)
-	FUNC3(canvas_light_set_layer_range, RID, int, int)
-	FUNC2(canvas_light_set_item_cull_mask, RID, int)
-	FUNC2(canvas_light_set_item_shadow_cull_mask, RID, int)
-
-	FUNC2(canvas_light_set_mode, RID, CanvasLightMode)
-
-	FUNC2(canvas_light_set_shadow_enabled, RID, bool)
-	FUNC2(canvas_light_set_shadow_buffer_size, RID, int)
-	FUNC2(canvas_light_set_shadow_gradient_length, RID, float)
-	FUNC2(canvas_light_set_shadow_filter, RID, CanvasLightShadowFilter)
-	FUNC2(canvas_light_set_shadow_color, RID, const Color &)
-	FUNC2(canvas_light_set_shadow_smooth, RID, float)
-
-	FUNC2(canvas_light_set_interpolated, RID, bool)
-	FUNC1(canvas_light_reset_physics_interpolation, RID)
-	FUNC2(canvas_light_transform_physics_interpolation, RID, Transform2D)
-
-	FUNCRID(canvas_light_occluder)
-	FUNC2(canvas_light_occluder_attach_to_canvas, RID, RID)
-	FUNC2(canvas_light_occluder_set_enabled, RID, bool)
-	FUNC2(canvas_light_occluder_set_polygon, RID, RID)
-	FUNC2(canvas_light_occluder_set_transform, RID, const Transform2D &)
-	FUNC2(canvas_light_occluder_set_light_mask, RID, int)
-
-	FUNC2(canvas_light_occluder_set_interpolated, RID, bool)
-	FUNC1(canvas_light_occluder_reset_physics_interpolation, RID)
-	FUNC2(canvas_light_occluder_transform_physics_interpolation, RID, Transform2D)
-
-	FUNCRID(canvas_occluder_polygon)
-	FUNC3(canvas_occluder_polygon_set_shape, RID, const PoolVector<Vector2> &, bool)
-	FUNC2(canvas_occluder_polygon_set_shape_as_lines, RID, const PoolVector<Vector2> &)
-
-	FUNC2(canvas_occluder_polygon_set_cull_mode, RID, CanvasOccluderPolygonCullMode)
-
 	/* BLACK BARS */
 
 	FUNC4(black_bars_set_margins, int, int, int, int)

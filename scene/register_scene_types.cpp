@@ -45,8 +45,6 @@
 #include "scene/2d/collision_shape_2d.h"
 #include "scene/2d/cpu_particles_2d.h"
 #include "scene/2d/joints_2d.h"
-#include "scene/2d/light_2d.h"
-#include "scene/2d/light_occluder_2d.h"
 #include "scene/2d/line_2d.h"
 #include "scene/2d/listener_2d.h"
 #include "scene/2d/mesh_instance_2d.h"
@@ -413,9 +411,6 @@ void register_scene_types() {
 	ClassDB::register_class<VisibilityNotifier2D>();
 	ClassDB::register_class<VisibilityEnabler2D>();
 	ClassDB::register_class<Polygon2D>();
-	ClassDB::register_class<Light2D>();
-	ClassDB::register_class<LightOccluder2D>();
-	ClassDB::register_class<OccluderPolygon2D>();
 	ClassDB::register_class<YSort>();
 	ClassDB::register_class<BackBufferCopy>();
 

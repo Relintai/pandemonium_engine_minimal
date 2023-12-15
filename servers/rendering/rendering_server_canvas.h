@@ -92,23 +92,6 @@ public:
 		}
 	};
 
-	struct LightOccluderPolygon : RID_Data {
-		bool active;
-		Rect2 aabb;
-		RS::CanvasOccluderPolygonCullMode cull_mode;
-		RID occluder;
-		RBSet<RasterizerCanvas::LightOccluderInstance *> owners;
-
-		LightOccluderPolygon() {
-			active = false;
-			cull_mode = RS::CANVAS_OCCLUDER_POLYGON_CULL_DISABLED;
-		}
-	};
-
-	RID_Owner<LightOccluderPolygon> canvas_light_occluder_polygon_owner;
-
-	RID_Owner<RasterizerCanvas::LightOccluderInstance> canvas_light_occluder_owner;
-
 	struct Canvas : public RenderingServerViewport::CanvasBase {
 		RBSet<RID> viewports;
 		struct ChildItem {
@@ -118,10 +101,6 @@ public:
 				return item->index < p_item.item->index;
 			}
 		};
-
-		RBSet<RasterizerCanvas::Light *> lights;
-
-		RBSet<RasterizerCanvas::LightOccluderInstance *> occluders;
 
 		bool children_order_dirty;
 		Vector<ChildItem> child_items;
@@ -153,7 +132,6 @@ public:
 
 	mutable RID_Owner<Canvas> canvas_owner;
 	RID_Owner<Item> canvas_item_owner;
-	RID_Owner<RasterizerCanvas::Light> canvas_light_owner;
 
 	bool disable_scale;
 
@@ -164,9 +142,9 @@ private:
 	};
 	CanvasCullMode _canvas_cull_mode;
 
-	void _render_canvas_item_tree(Item *p_canvas_item, const Transform2D &p_transform, const Rect2 &p_clip_rect, const Color &p_modulate, RasterizerCanvas::Light *p_lights);
+	void _render_canvas_item_tree(Item *p_canvas_item, const Transform2D &p_transform, const Rect2 &p_clip_rect, const Color &p_modulate);
 
-	void _light_mask_canvas_items(int p_z, RasterizerCanvas::Item *p_canvas_item, RasterizerCanvas::Light *p_masked_lights, int p_canvas_layer_id);
+	void _light_mask_canvas_items(int p_z, RasterizerCanvas::Item *p_canvas_item, int p_canvas_layer_id);
 
 	RasterizerCanvas::Item **z_list;
 	RasterizerCanvas::Item **z_last_list;
@@ -205,7 +183,7 @@ private:
 	//////////////////////////////////////////////////////////////////////////////
 
 public:
-	void render_canvas(Canvas *p_canvas, const Transform2D &p_transform, RasterizerCanvas::Light *p_lights, RasterizerCanvas::Light *p_masked_lights, const Rect2 &p_clip_rect, int p_canvas_layer_id);
+	void render_canvas(Canvas *p_canvas, const Transform2D &p_transform, const Rect2 &p_clip_rect, int p_canvas_layer_id);
 
 	RID canvas_create();
 	void canvas_set_item_mirroring(RID p_canvas, RID p_item, const Point2 &p_mirroring);
@@ -270,49 +248,6 @@ public:
 	void _canvas_item_invalidate_local_bound(RID p_item);
 	void _canvas_item_remove_references(RID p_item, RID p_rid);
 
-	RID canvas_light_create();
-	void canvas_light_attach_to_canvas(RID p_light, RID p_canvas);
-	void canvas_light_set_enabled(RID p_light, bool p_enabled);
-	void canvas_light_set_scale(RID p_light, float p_scale);
-	void canvas_light_set_transform(RID p_light, const Transform2D &p_transform);
-	void canvas_light_set_texture(RID p_light, RID p_texture);
-	void canvas_light_set_texture_offset(RID p_light, const Vector2 &p_offset);
-	void canvas_light_set_color(RID p_light, const Color &p_color);
-	void canvas_light_set_height(RID p_light, float p_height);
-	void canvas_light_set_energy(RID p_light, float p_energy);
-	void canvas_light_set_z_range(RID p_light, int p_min_z, int p_max_z);
-	void canvas_light_set_layer_range(RID p_light, int p_min_layer, int p_max_layer);
-	void canvas_light_set_item_cull_mask(RID p_light, int p_mask);
-	void canvas_light_set_item_shadow_cull_mask(RID p_light, int p_mask);
-	void canvas_light_set_mode(RID p_light, RS::CanvasLightMode p_mode);
-	void canvas_light_set_shadow_enabled(RID p_light, bool p_enabled);
-	void canvas_light_set_shadow_buffer_size(RID p_light, int p_size);
-	void canvas_light_set_shadow_gradient_length(RID p_light, float p_length);
-	void canvas_light_set_shadow_filter(RID p_light, RS::CanvasLightShadowFilter p_filter);
-	void canvas_light_set_shadow_color(RID p_light, const Color &p_color);
-	void canvas_light_set_shadow_smooth(RID p_light, float p_smooth);
-
-	void canvas_light_set_interpolated(RID p_light, bool p_interpolated);
-	void canvas_light_reset_physics_interpolation(RID p_light);
-	void canvas_light_transform_physics_interpolation(RID p_light, Transform2D p_transform);
-
-	RID canvas_light_occluder_create();
-	void canvas_light_occluder_attach_to_canvas(RID p_occluder, RID p_canvas);
-	void canvas_light_occluder_set_enabled(RID p_occluder, bool p_enabled);
-	void canvas_light_occluder_set_polygon(RID p_occluder, RID p_polygon);
-	void canvas_light_occluder_set_transform(RID p_occluder, const Transform2D &p_xform);
-	void canvas_light_occluder_set_light_mask(RID p_occluder, int p_mask);
-
-	void canvas_light_occluder_set_interpolated(RID p_occluder, bool p_interpolated);
-	void canvas_light_occluder_reset_physics_interpolation(RID p_occluder);
-	void canvas_light_occluder_transform_physics_interpolation(RID p_occluder, Transform2D p_transform);
-
-	RID canvas_occluder_polygon_create();
-	void canvas_occluder_polygon_set_shape(RID p_occluder_polygon, const PoolVector<Vector2> &p_shape, bool p_closed);
-	void canvas_occluder_polygon_set_shape_as_lines(RID p_occluder_polygon, const PoolVector<Vector2> &p_shape);
-
-	void canvas_occluder_polygon_set_cull_mode(RID p_occluder_polygon, RS::CanvasOccluderPolygonCullMode p_mode);
-
 	bool free(RID p_rid);
 
 	// Interpolation
@@ -321,21 +256,9 @@ public:
 	void set_physics_interpolation_enabled(bool p_enabled) { _interpolation_data.interpolation_enabled = p_enabled; }
 
 	struct InterpolationData {
-		void notify_free_canvas_item(RID p_rid, RenderingServerCanvas::Item &r_canvas_item);
-		void notify_free_canvas_light(RID p_rid, RasterizerCanvas::Light &r_canvas_light);
-		void notify_free_canvas_light_occluder(RID p_rid, RasterizerCanvas::LightOccluderInstance &r_canvas_light_occluder);
-
 		LocalVector<RID> canvas_item_transform_update_lists[2];
 		LocalVector<RID> *canvas_item_transform_update_list_curr = &canvas_item_transform_update_lists[0];
 		LocalVector<RID> *canvas_item_transform_update_list_prev = &canvas_item_transform_update_lists[1];
-
-		LocalVector<RID> canvas_light_transform_update_lists[2];
-		LocalVector<RID> *canvas_light_transform_update_list_curr = &canvas_light_transform_update_lists[0];
-		LocalVector<RID> *canvas_light_transform_update_list_prev = &canvas_light_transform_update_lists[1];
-
-		LocalVector<RID> canvas_light_occluder_transform_update_lists[2];
-		LocalVector<RID> *canvas_light_occluder_transform_update_list_curr = &canvas_light_occluder_transform_update_lists[0];
-		LocalVector<RID> *canvas_light_occluder_transform_update_list_prev = &canvas_light_occluder_transform_update_lists[1];
 
 		bool interpolation_enabled = false;
 	} _interpolation_data;

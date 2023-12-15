@@ -470,51 +470,6 @@ public:
 	BIND1(canvas_item_reset_physics_interpolation, RID)
 	BIND2(canvas_item_transform_physics_interpolation, RID, Transform2D)
 
-	BIND0R(RID, canvas_light_create)
-	BIND2(canvas_light_attach_to_canvas, RID, RID)
-	BIND2(canvas_light_set_enabled, RID, bool)
-	BIND2(canvas_light_set_scale, RID, float)
-	BIND2(canvas_light_set_transform, RID, const Transform2D &)
-	BIND2(canvas_light_set_texture, RID, RID)
-	BIND2(canvas_light_set_texture_offset, RID, const Vector2 &)
-	BIND2(canvas_light_set_color, RID, const Color &)
-	BIND2(canvas_light_set_height, RID, float)
-	BIND2(canvas_light_set_energy, RID, float)
-	BIND3(canvas_light_set_z_range, RID, int, int)
-	BIND3(canvas_light_set_layer_range, RID, int, int)
-	BIND2(canvas_light_set_item_cull_mask, RID, int)
-	BIND2(canvas_light_set_item_shadow_cull_mask, RID, int)
-
-	BIND2(canvas_light_set_mode, RID, CanvasLightMode)
-
-	BIND2(canvas_light_set_shadow_enabled, RID, bool)
-	BIND2(canvas_light_set_shadow_buffer_size, RID, int)
-	BIND2(canvas_light_set_shadow_gradient_length, RID, float)
-	BIND2(canvas_light_set_shadow_filter, RID, CanvasLightShadowFilter)
-	BIND2(canvas_light_set_shadow_color, RID, const Color &)
-	BIND2(canvas_light_set_shadow_smooth, RID, float)
-
-	BIND2(canvas_light_set_interpolated, RID, bool)
-	BIND1(canvas_light_reset_physics_interpolation, RID)
-	BIND2(canvas_light_transform_physics_interpolation, RID, Transform2D)
-
-	BIND0R(RID, canvas_light_occluder_create)
-	BIND2(canvas_light_occluder_attach_to_canvas, RID, RID)
-	BIND2(canvas_light_occluder_set_enabled, RID, bool)
-	BIND2(canvas_light_occluder_set_polygon, RID, RID)
-	BIND2(canvas_light_occluder_set_transform, RID, const Transform2D &)
-	BIND2(canvas_light_occluder_set_light_mask, RID, int)
-
-	BIND2(canvas_light_occluder_set_interpolated, RID, bool)
-	BIND1(canvas_light_occluder_reset_physics_interpolation, RID)
-	BIND2(canvas_light_occluder_transform_physics_interpolation, RID, Transform2D)
-
-	BIND0R(RID, canvas_occluder_polygon_create)
-	BIND3(canvas_occluder_polygon_set_shape, RID, const PoolVector<Vector2> &, bool)
-	BIND2(canvas_occluder_polygon_set_shape_as_lines, RID, const PoolVector<Vector2> &)
-
-	BIND2(canvas_occluder_polygon_set_cull_mode, RID, CanvasOccluderPolygonCullMode)
-
 	/* BLACK BARS */
 
 	virtual void black_bars_set_margins(int p_left, int p_top, int p_right, int p_bottom);

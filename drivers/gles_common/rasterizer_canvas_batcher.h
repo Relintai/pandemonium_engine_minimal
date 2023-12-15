@@ -271,11 +271,9 @@ public:
 		void reset() {
 			light_bitfield = 0;
 			shadow_bitfield = 0;
-			too_many_lights = false;
 		}
 		uint64_t light_bitfield;
 		uint64_t shadow_bitfield;
-		bool too_many_lights; // we can only do light region optimization if there are 64 or less lights
 	};
 
 	struct BatchData {
@@ -512,7 +510,6 @@ public:
 			last_blend_mode = -1;
 			canvas_last_material = RID();
 			item_group_z = 0;
-			item_group_light = nullptr;
 			final_modulate = Color(-1.0, -1.0, -1.0, -1.0); // just something unlikely
 
 			joined_item_batch_type_flags_curr = 0;
@@ -543,7 +540,6 @@ public:
 		// 'item group' is data over a single call to canvas_render_items
 		int item_group_z;
 		Color item_group_modulate;
-		RasterizerCanvas::Light *item_group_light;
 		Transform2D item_group_base_transform;
 	} _render_item_state;
 
@@ -566,9 +562,9 @@ protected:
 
 	void batch_canvas_begin();
 	void batch_canvas_end();
-	void batch_canvas_render_items_begin(const Color &p_modulate, RasterizerCanvas::Light *p_light, const Transform2D &p_base_transform);
+	void batch_canvas_render_items_begin(const Color &p_modulate, const Transform2D &p_base_transform);
 	void batch_canvas_render_items_end();
-	void batch_canvas_render_items(RasterizerCanvas::Item *p_item_list, int p_z, const Color &p_modulate, RasterizerCanvas::Light *p_light, const Transform2D &p_base_transform);
+	void batch_canvas_render_items(RasterizerCanvas::Item *p_item_list, int p_z, const Color &p_modulate, const Transform2D &p_base_transform);
 
 	// recording and sorting items from the initial pass
 	void record_items(RasterizerCanvas::Item *p_item_list, int p_z);
@@ -746,7 +742,7 @@ PREAMBLE(void)::batch_canvas_end() {
 #endif
 }
 
-PREAMBLE(void)::batch_canvas_render_items_begin(const Color &p_modulate, RasterizerCanvas::Light *p_light, const Transform2D &p_base_transform) {
+PREAMBLE(void)::batch_canvas_render_items_begin(const Color &p_modulate, const Transform2D &p_base_transform) {
 	// if we are debugging, flash each frame between batching renderer and old version to compare for regressions
 	if (bdata.settings_flash_batching) {
 		if ((Engine::get_singleton()->get_frames_drawn() % 2) == 0) {
@@ -767,7 +763,6 @@ PREAMBLE(void)::batch_canvas_render_items_begin(const Color &p_modulate, Rasteri
 	// set up render item state for all the z_indexes (this is common to all z_indexes)
 	_render_item_state.reset();
 	_render_item_state.item_group_modulate = p_modulate;
-	_render_item_state.item_group_light = p_light;
 	_render_item_state.item_group_base_transform = p_base_transform;
 	_render_item_state.light_region.reset();
 
@@ -778,25 +773,6 @@ PREAMBLE(void)::batch_canvas_render_items_begin(const Color &p_modulate, Rasteri
 	// whether to join across z indices depends on whether there are z ranged lights.
 	// joined z_index items can be wrongly classified with z ranged lights.
 	bdata.join_across_z_indices = true;
-
-	int light_count = 0;
-	while (p_light) {
-		light_count++;
-
-		if ((p_light->z_min != RS::CANVAS_ITEM_Z_MIN) || (p_light->z_max != RS::CANVAS_ITEM_Z_MAX)) {
-			// prevent joining across z indices. This would have caused visual regressions
-			bdata.join_across_z_indices = false;
-		}
-
-		p_light = p_light->next_ptr;
-	}
-
-	// can't use the light region bitfield if there are too many lights
-	// hopefully most games won't blow this limit..
-	// if they do they will work but it won't batch join items just in case
-	if (light_count > 64) {
-		_render_item_state.light_region.too_many_lights = true;
-	}
 }
 
 PREAMBLE(void)::batch_canvas_render_items_end() {
@@ -814,7 +790,6 @@ PREAMBLE(void)::batch_canvas_render_items_end() {
 
 	// batching render is deferred until after going through all the z_indices, joining all the items
 	get_this()->canvas_render_items_implementation(nullptr, 0, _render_item_state.item_group_modulate,
-			_render_item_state.item_group_light,
 			_render_item_state.item_group_base_transform);
 
 	bdata.items_joined.reset();
@@ -822,7 +797,7 @@ PREAMBLE(void)::batch_canvas_render_items_end() {
 	bdata.sort_items.reset();
 }
 
-PREAMBLE(void)::batch_canvas_render_items(RasterizerCanvas::Item *p_item_list, int p_z, const Color &p_modulate, RasterizerCanvas::Light *p_light, const Transform2D &p_base_transform) {
+PREAMBLE(void)::batch_canvas_render_items(RasterizerCanvas::Item *p_item_list, int p_z, const Color &p_modulate, const Transform2D &p_base_transform) {
 	// stage 1 : join similar items, so that their state changes are not repeated,
 	// and commands from joined items can be batched together
 	if (bdata.settings_use_batching) {
@@ -831,7 +806,7 @@ PREAMBLE(void)::batch_canvas_render_items(RasterizerCanvas::Item *p_item_list, i
 	}
 
 	// only legacy renders at this stage, batched renderer doesn't render until canvas_render_items_end()
-	get_this()->canvas_render_items_implementation(p_item_list, p_z, p_modulate, p_light, p_base_transform);
+	get_this()->canvas_render_items_implementation(p_item_list, p_z, p_modulate, p_base_transform);
 }
 
 // Default batches will not occur in software transform only items

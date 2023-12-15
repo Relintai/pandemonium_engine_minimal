@@ -676,72 +676,6 @@ public:
 	virtual void canvas_item_reset_physics_interpolation(RID p_item) = 0;
 	virtual void canvas_item_transform_physics_interpolation(RID p_item, Transform2D p_transform) = 0;
 
-	virtual RID canvas_light_create() = 0;
-	virtual void canvas_light_attach_to_canvas(RID p_light, RID p_canvas) = 0;
-	virtual void canvas_light_set_enabled(RID p_light, bool p_enabled) = 0;
-	virtual void canvas_light_set_scale(RID p_light, float p_scale) = 0;
-	virtual void canvas_light_set_transform(RID p_light, const Transform2D &p_transform) = 0;
-	virtual void canvas_light_set_texture(RID p_light, RID p_texture) = 0;
-	virtual void canvas_light_set_texture_offset(RID p_light, const Vector2 &p_offset) = 0;
-	virtual void canvas_light_set_color(RID p_light, const Color &p_color) = 0;
-	virtual void canvas_light_set_height(RID p_light, float p_height) = 0;
-	virtual void canvas_light_set_energy(RID p_light, float p_energy) = 0;
-	virtual void canvas_light_set_z_range(RID p_light, int p_min_z, int p_max_z) = 0;
-	virtual void canvas_light_set_layer_range(RID p_light, int p_min_layer, int p_max_layer) = 0;
-	virtual void canvas_light_set_item_cull_mask(RID p_light, int p_mask) = 0;
-	virtual void canvas_light_set_item_shadow_cull_mask(RID p_light, int p_mask) = 0;
-
-	virtual void canvas_light_set_interpolated(RID p_light, bool p_interpolated) = 0;
-	virtual void canvas_light_reset_physics_interpolation(RID p_light) = 0;
-	virtual void canvas_light_transform_physics_interpolation(RID p_light, Transform2D p_transform) = 0;
-
-	enum CanvasLightMode {
-		CANVAS_LIGHT_MODE_ADD,
-		CANVAS_LIGHT_MODE_SUB,
-		CANVAS_LIGHT_MODE_MIX,
-		CANVAS_LIGHT_MODE_MASK,
-	};
-
-	virtual void canvas_light_set_mode(RID p_light, CanvasLightMode p_mode) = 0;
-
-	enum CanvasLightShadowFilter {
-		CANVAS_LIGHT_FILTER_NONE,
-		CANVAS_LIGHT_FILTER_PCF3,
-		CANVAS_LIGHT_FILTER_PCF5,
-		CANVAS_LIGHT_FILTER_PCF7,
-		CANVAS_LIGHT_FILTER_PCF9,
-		CANVAS_LIGHT_FILTER_PCF13,
-	};
-
-	virtual void canvas_light_set_shadow_enabled(RID p_light, bool p_enabled) = 0;
-	virtual void canvas_light_set_shadow_buffer_size(RID p_light, int p_size) = 0;
-	virtual void canvas_light_set_shadow_gradient_length(RID p_light, float p_length) = 0;
-	virtual void canvas_light_set_shadow_filter(RID p_light, CanvasLightShadowFilter p_filter) = 0;
-	virtual void canvas_light_set_shadow_color(RID p_light, const Color &p_color) = 0;
-	virtual void canvas_light_set_shadow_smooth(RID p_light, float p_smooth) = 0;
-
-	virtual RID canvas_light_occluder_create() = 0;
-	virtual void canvas_light_occluder_attach_to_canvas(RID p_occluder, RID p_canvas) = 0;
-	virtual void canvas_light_occluder_set_enabled(RID p_occluder, bool p_enabled) = 0;
-	virtual void canvas_light_occluder_set_polygon(RID p_occluder, RID p_polygon) = 0;
-	virtual void canvas_light_occluder_set_transform(RID p_occluder, const Transform2D &p_xform) = 0;
-	virtual void canvas_light_occluder_set_light_mask(RID p_occluder, int p_mask) = 0;
-
-	virtual void canvas_light_occluder_set_interpolated(RID p_occluder, bool p_interpolated) = 0;
-	virtual void canvas_light_occluder_reset_physics_interpolation(RID p_occluder) = 0;
-	virtual void canvas_light_occluder_transform_physics_interpolation(RID p_occluder, Transform2D p_transform) = 0;
-
-	virtual RID canvas_occluder_polygon_create() = 0;
-	virtual void canvas_occluder_polygon_set_shape(RID p_occluder_polygon, const PoolVector<Vector2> &p_shape, bool p_closed) = 0;
-	virtual void canvas_occluder_polygon_set_shape_as_lines(RID p_occluder_polygon, const PoolVector<Vector2> &p_shape) = 0;
-
-	enum CanvasOccluderPolygonCullMode {
-		CANVAS_OCCLUDER_POLYGON_CULL_DISABLED,
-		CANVAS_OCCLUDER_POLYGON_CULL_CLOCKWISE,
-		CANVAS_OCCLUDER_POLYGON_CULL_COUNTER_CLOCKWISE,
-	};
-	virtual void canvas_occluder_polygon_set_cull_mode(RID p_occluder_polygon, CanvasOccluderPolygonCullMode p_mode) = 0;
-
 	/* BLACK BARS */
 
 	virtual void black_bars_set_margins(int p_left, int p_top, int p_right, int p_bottom) = 0;
@@ -854,9 +788,6 @@ VARIANT_ENUM_CAST(RenderingServer::ViewportDebugDraw);
 VARIANT_ENUM_CAST(RenderingServer::ScenarioDebugMode);
 VARIANT_ENUM_CAST(RenderingServer::InstanceType);
 VARIANT_ENUM_CAST(RenderingServer::NinePatchAxisMode);
-VARIANT_ENUM_CAST(RenderingServer::CanvasLightMode);
-VARIANT_ENUM_CAST(RenderingServer::CanvasLightShadowFilter);
-VARIANT_ENUM_CAST(RenderingServer::CanvasOccluderPolygonCullMode);
 VARIANT_ENUM_CAST(RenderingServer::RenderInfo);
 VARIANT_ENUM_CAST(RenderingServer::Features);
 VARIANT_ENUM_CAST(RenderingServer::MultimeshTransformFormat);

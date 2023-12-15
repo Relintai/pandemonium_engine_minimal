@@ -39,9 +39,9 @@ class RasterizerCanvasGLES2 : public RasterizerCanvasBaseGLES2, public Rasterize
 	friend class RasterizerCanvasBatcher<RasterizerCanvasGLES2, RasterizerStorageGLES2>;
 
 public:
-	virtual void canvas_render_items_begin(const Color &p_modulate, Light *p_light, const Transform2D &p_base_transform);
+	virtual void canvas_render_items_begin(const Color &p_modulate, const Transform2D &p_base_transform);
 	virtual void canvas_render_items_end();
-	virtual void canvas_render_items(Item *p_item_list, int p_z, const Color &p_modulate, Light *p_light, const Transform2D &p_base_transform);
+	virtual void canvas_render_items(Item *p_item_list, int p_z, const Color &p_modulate, const Transform2D &p_base_transform);
 	virtual void canvas_begin();
 	virtual void canvas_end();
 
@@ -50,7 +50,7 @@ private:
 	void _legacy_canvas_render_item(Item *p_ci, RenderItemState &r_ris);
 
 	// high level batch funcs
-	void canvas_render_items_implementation(Item *p_item_list, int p_z, const Color &p_modulate, Light *p_light, const Transform2D &p_base_transform);
+	void canvas_render_items_implementation(Item *p_item_list, int p_z, const Color &p_modulate, const Transform2D &p_base_transform);
 	void render_joined_item(const BItemJoined &p_bij, RenderItemState &r_ris);
 	bool try_join_item(Item *p_ci, RenderItemState &r_ris, bool &r_batch_break);
 	void render_batches(Item *p_current_clip, bool &r_reclip, RasterizerStorageGLES2::Material *p_material);

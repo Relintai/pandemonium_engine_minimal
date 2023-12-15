@@ -404,14 +404,7 @@ public:
 	void render_target_set_use_debanding(RID p_render_target, bool p_debanding) {}
 	void render_target_set_sharpen_intensity(RID p_render_target, float p_intensity) {}
 
-	/* CANVAS SHADOW */
-
-	RID canvas_light_shadow_buffer_create(int p_width) { return RID(); }
-
 	/* LIGHT SHADOW MAPPING */
-
-	RID canvas_light_occluder_create() { return RID(); }
-	void canvas_light_occluder_set_polylines(RID p_occluder, const PoolVector<Vector2> &p_lines) {}
 
 	RS::InstanceType get_base_type(RID p_rid) const {
 		if (mesh_owner.owns(p_rid)) {
@@ -461,17 +454,10 @@ public:
 
 class RasterizerCanvasDummy : public RasterizerCanvas {
 public:
-	RID light_internal_create() { return RID(); }
-	void light_internal_update(RID p_rid, Light *p_light) {}
-	void light_internal_free(RID p_rid) {}
-
 	void canvas_begin(){};
 	void canvas_end(){};
 
-	void canvas_render_items(Item *p_item_list, int p_z, const Color &p_modulate, Light *p_light, const Transform2D &p_transform){};
-	void canvas_debug_viewport_shadows(Light *p_lights_with_shadow){};
-
-	void canvas_light_shadow_buffer_update(RID p_buffer, const Transform2D &p_light_xform, int p_light_mask, float p_near, float p_far, LightOccluderInstance *p_occluders, Projection *p_xform_cache) {}
+	void canvas_render_items(Item *p_item_list, int p_z, const Color &p_modulate, const Transform2D &p_transform){};
 
 	void reset_canvas() {}
 

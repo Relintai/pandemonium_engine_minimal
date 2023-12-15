@@ -151,8 +151,6 @@ void RenderingServerWrapMT::finish() {
 	instance_free_cached_ids();
 	canvas_free_cached_ids();
 	canvas_item_free_cached_ids();
-	canvas_light_occluder_free_cached_ids();
-	canvas_occluder_polygon_free_cached_ids();
 }
 
 void RenderingServerWrapMT::set_use_vsync_callback(bool p_enable) {

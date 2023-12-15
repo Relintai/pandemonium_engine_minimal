@@ -40,7 +40,7 @@
 
 static const int z_range = RS::CANVAS_ITEM_Z_MAX - RS::CANVAS_ITEM_Z_MIN + 1;
 
-void RenderingServerCanvas::_render_canvas_item_tree(Item *p_canvas_item, const Transform2D &p_transform, const Rect2 &p_clip_rect, const Color &p_modulate, RasterizerCanvas::Light *p_lights) {
+void RenderingServerCanvas::_render_canvas_item_tree(Item *p_canvas_item, const Transform2D &p_transform, const Rect2 &p_clip_rect, const Color &p_modulate) {
 	memset(z_list, 0, z_range * sizeof(RasterizerCanvas::Item *));
 	memset(z_last_list, 0, z_range * sizeof(RasterizerCanvas::Item *));
 
@@ -53,12 +53,12 @@ void RenderingServerCanvas::_render_canvas_item_tree(Item *p_canvas_item, const 
 		_render_canvas_item_cull_by_item(p_canvas_item, p_transform, p_clip_rect, Color(1, 1, 1, 1), 0, z_list, z_last_list, nullptr, nullptr);
 	}
 
-	RSG::canvas_render->canvas_render_items_begin(p_modulate, p_lights, p_transform);
+	RSG::canvas_render->canvas_render_items_begin(p_modulate, p_transform);
 	for (int i = 0; i < z_range; i++) {
 		if (!z_list[i]) {
 			continue;
 		}
-		RSG::canvas_render->canvas_render_items(z_list[i], RS::CANVAS_ITEM_Z_MIN + i, p_modulate, p_lights, p_transform);
+		RSG::canvas_render->canvas_render_items(z_list[i], RS::CANVAS_ITEM_Z_MIN + i, p_modulate, p_transform);
 	}
 	RSG::canvas_render->canvas_render_items_end();
 }
@@ -697,24 +697,7 @@ void RenderingServerCanvas::_render_canvas_item_cull_by_node(Item *p_canvas_item
 	}
 }
 
-void RenderingServerCanvas::_light_mask_canvas_items(int p_z, RasterizerCanvas::Item *p_canvas_item, RasterizerCanvas::Light *p_masked_lights, int p_canvas_layer_id) {
-	RasterizerCanvas::Item *ci = p_canvas_item;
-
-	while (ci) {
-		RasterizerCanvas::Light *light = p_masked_lights;
-		while (light) {
-			if ((p_canvas_layer_id >= light->layer_min) && (p_canvas_layer_id <= light->layer_max) && (ci->light_mask & light->item_mask) && (p_z >= light->z_min) && (p_z <= light->z_max) && (ci->global_rect_cache.intersects_transformed(light->xform_cache, light->rect_cache))) {
-				ci->light_masked = true;
-			}
-
-			light = light->mask_next_ptr;
-		}
-
-		ci = ci->next;
-	}
-}
-
-void RenderingServerCanvas::render_canvas(Canvas *p_canvas, const Transform2D &p_transform, RasterizerCanvas::Light *p_lights, RasterizerCanvas::Light *p_masked_lights, const Rect2 &p_clip_rect, int p_canvas_layer_id) {
+void RenderingServerCanvas::render_canvas(Canvas *p_canvas, const Transform2D &p_transform, const Rect2 &p_clip_rect, int p_canvas_layer_id) {
 	RSG::canvas_render->canvas_begin();
 
 	if (p_canvas->children_order_dirty) {
@@ -785,36 +768,32 @@ void RenderingServerCanvas::render_canvas(Canvas *p_canvas, const Transform2D &p
 			}
 		} // if not measure
 
-		RSG::canvas_render->canvas_render_items_begin(p_canvas->modulate, p_lights, p_transform);
+		RSG::canvas_render->canvas_render_items_begin(p_canvas->modulate, p_transform);
 		for (int i = 0; i < z_range; i++) {
 			if (!z_list[i]) {
 				continue;
 			}
 
-			if (p_masked_lights) {
-				_light_mask_canvas_items(RS::CANVAS_ITEM_Z_MIN + i, z_list[i], p_masked_lights, p_canvas_layer_id);
-			}
-
-			RSG::canvas_render->canvas_render_items(z_list[i], RS::CANVAS_ITEM_Z_MIN + i, p_canvas->modulate, p_lights, p_transform);
+			RSG::canvas_render->canvas_render_items(z_list[i], RS::CANVAS_ITEM_Z_MIN + i, p_canvas->modulate, p_transform);
 		}
 		RSG::canvas_render->canvas_render_items_end();
 	} else {
 		for (int i = 0; i < l; i++) {
 			const Canvas::ChildItem &ci2 = p_canvas->child_items[i];
-			_render_canvas_item_tree(ci2.item, p_transform, p_clip_rect, p_canvas->modulate, p_lights);
+			_render_canvas_item_tree(ci2.item, p_transform, p_clip_rect, p_canvas->modulate);
 
 			//mirroring (useful for scrolling backgrounds)
 			if (ci2.mirror.x != 0) {
 				Transform2D xform2 = p_transform * Transform2D(0, Vector2(ci2.mirror.x, 0));
-				_render_canvas_item_tree(ci2.item, xform2, p_clip_rect, p_canvas->modulate, p_lights);
+				_render_canvas_item_tree(ci2.item, xform2, p_clip_rect, p_canvas->modulate);
 			}
 			if (ci2.mirror.y != 0) {
 				Transform2D xform2 = p_transform * Transform2D(0, Vector2(0, ci2.mirror.y));
-				_render_canvas_item_tree(ci2.item, xform2, p_clip_rect, p_canvas->modulate, p_lights);
+				_render_canvas_item_tree(ci2.item, xform2, p_clip_rect, p_canvas->modulate);
 			}
 			if (ci2.mirror.y != 0 && ci2.mirror.x != 0) {
 				Transform2D xform2 = p_transform * Transform2D(0, ci2.mirror);
-				_render_canvas_item_tree(ci2.item, xform2, p_clip_rect, p_canvas->modulate, p_lights);
+				_render_canvas_item_tree(ci2.item, xform2, p_clip_rect, p_canvas->modulate);
 			}
 		}
 	}
@@ -1606,44 +1585,6 @@ void RenderingServerCanvas::canvas_item_set_interpolated(RID p_item, bool p_inte
 	canvas_item->interpolated = p_interpolated;
 }
 
-void RenderingServerCanvas::canvas_light_set_interpolated(RID p_light, bool p_interpolated) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-	clight->interpolated = p_interpolated;
-}
-
-void RenderingServerCanvas::canvas_light_reset_physics_interpolation(RID p_light) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-	clight->xform_prev = clight->xform_curr;
-}
-
-void RenderingServerCanvas::canvas_light_transform_physics_interpolation(RID p_light, Transform2D p_transform) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-	clight->xform_prev = p_transform * clight->xform_prev;
-	clight->xform_curr = p_transform * clight->xform_curr;
-}
-
-void RenderingServerCanvas::canvas_light_occluder_set_interpolated(RID p_occluder, bool p_interpolated) {
-	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_occluder);
-	ERR_FAIL_COND(!occluder);
-	occluder->interpolated = p_interpolated;
-}
-
-void RenderingServerCanvas::canvas_light_occluder_reset_physics_interpolation(RID p_occluder) {
-	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_occluder);
-	ERR_FAIL_COND(!occluder);
-	occluder->xform_prev = occluder->xform_curr;
-}
-
-void RenderingServerCanvas::canvas_light_occluder_transform_physics_interpolation(RID p_occluder, Transform2D p_transform) {
-	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_occluder);
-	ERR_FAIL_COND(!occluder);
-	occluder->xform_prev = p_transform * occluder->xform_prev;
-	occluder->xform_curr = p_transform * occluder->xform_curr;
-}
-
 void RenderingServerCanvas::canvas_item_attach_skeleton(RID p_item, RID p_skeleton) {
 }
 
@@ -1725,328 +1666,6 @@ void RenderingServerCanvas::canvas_item_set_use_parent_material(RID p_item, bool
 	_make_bound_dirty(canvas_item);
 }
 
-RID RenderingServerCanvas::canvas_light_create() {
-	RasterizerCanvas::Light *clight = memnew(RasterizerCanvas::Light);
-	clight->light_internal = RSG::canvas_render->light_internal_create();
-	return canvas_light_owner.make_rid(clight);
-}
-void RenderingServerCanvas::canvas_light_attach_to_canvas(RID p_light, RID p_canvas) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	if (clight->canvas.is_valid()) {
-		Canvas *canvas = canvas_owner.getornull(clight->canvas);
-		canvas->lights.erase(clight);
-	}
-
-	if (!canvas_owner.owns(p_canvas)) {
-		p_canvas = RID();
-	}
-
-	clight->canvas = p_canvas;
-
-	if (clight->canvas.is_valid()) {
-		Canvas *canvas = canvas_owner.get(clight->canvas);
-		canvas->lights.insert(clight);
-	}
-}
-
-void RenderingServerCanvas::canvas_light_set_enabled(RID p_light, bool p_enabled) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->enabled = p_enabled;
-}
-void RenderingServerCanvas::canvas_light_set_scale(RID p_light, float p_scale) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->scale = p_scale;
-}
-void RenderingServerCanvas::canvas_light_set_transform(RID p_light, const Transform2D &p_transform) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	if (_interpolation_data.interpolation_enabled && clight->interpolated) {
-		if (!clight->on_interpolate_transform_list) {
-			_interpolation_data.canvas_light_transform_update_list_curr->push_back(p_light);
-			clight->on_interpolate_transform_list = true;
-		} else {
-			DEV_ASSERT(_interpolation_data.canvas_light_transform_update_list_curr->size());
-		}
-	}
-
-	clight->xform_curr = p_transform;
-}
-void RenderingServerCanvas::canvas_light_set_texture(RID p_light, RID p_texture) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->texture = p_texture;
-}
-void RenderingServerCanvas::canvas_light_set_texture_offset(RID p_light, const Vector2 &p_offset) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->texture_offset = p_offset;
-}
-void RenderingServerCanvas::canvas_light_set_color(RID p_light, const Color &p_color) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->color = p_color;
-}
-void RenderingServerCanvas::canvas_light_set_height(RID p_light, float p_height) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->height = p_height;
-}
-void RenderingServerCanvas::canvas_light_set_energy(RID p_light, float p_energy) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->energy = p_energy;
-}
-void RenderingServerCanvas::canvas_light_set_z_range(RID p_light, int p_min_z, int p_max_z) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->z_min = p_min_z;
-	clight->z_max = p_max_z;
-}
-void RenderingServerCanvas::canvas_light_set_layer_range(RID p_light, int p_min_layer, int p_max_layer) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->layer_max = p_max_layer;
-	clight->layer_min = p_min_layer;
-}
-void RenderingServerCanvas::canvas_light_set_item_cull_mask(RID p_light, int p_mask) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->item_mask = p_mask;
-}
-void RenderingServerCanvas::canvas_light_set_item_shadow_cull_mask(RID p_light, int p_mask) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->item_shadow_mask = p_mask;
-}
-void RenderingServerCanvas::canvas_light_set_mode(RID p_light, RS::CanvasLightMode p_mode) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->mode = p_mode;
-}
-
-void RenderingServerCanvas::canvas_light_set_shadow_enabled(RID p_light, bool p_enabled) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	if (clight->shadow_buffer.is_valid() == p_enabled) {
-		return;
-	}
-	if (p_enabled) {
-		clight->shadow_buffer = RSG::storage->canvas_light_shadow_buffer_create(clight->shadow_buffer_size);
-	} else {
-		RSG::storage->free(clight->shadow_buffer);
-		clight->shadow_buffer = RID();
-	}
-}
-void RenderingServerCanvas::canvas_light_set_shadow_buffer_size(RID p_light, int p_size) {
-	ERR_FAIL_COND(p_size < 32 || p_size > 16384);
-
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	int new_size = next_power_of_2(p_size);
-	if (new_size == clight->shadow_buffer_size) {
-		return;
-	}
-
-	clight->shadow_buffer_size = next_power_of_2(p_size);
-
-	if (clight->shadow_buffer.is_valid()) {
-		RSG::storage->free(clight->shadow_buffer);
-		clight->shadow_buffer = RSG::storage->canvas_light_shadow_buffer_create(clight->shadow_buffer_size);
-	}
-}
-
-void RenderingServerCanvas::canvas_light_set_shadow_gradient_length(RID p_light, float p_length) {
-	ERR_FAIL_COND(p_length < 0);
-
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->shadow_gradient_length = p_length;
-}
-void RenderingServerCanvas::canvas_light_set_shadow_filter(RID p_light, RS::CanvasLightShadowFilter p_filter) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->shadow_filter = p_filter;
-}
-void RenderingServerCanvas::canvas_light_set_shadow_color(RID p_light, const Color &p_color) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-
-	clight->shadow_color = p_color;
-}
-
-void RenderingServerCanvas::canvas_light_set_shadow_smooth(RID p_light, float p_smooth) {
-	RasterizerCanvas::Light *clight = canvas_light_owner.get(p_light);
-	ERR_FAIL_COND(!clight);
-	clight->shadow_smooth = p_smooth;
-}
-
-RID RenderingServerCanvas::canvas_light_occluder_create() {
-	RasterizerCanvas::LightOccluderInstance *occluder = memnew(RasterizerCanvas::LightOccluderInstance);
-
-	return canvas_light_occluder_owner.make_rid(occluder);
-}
-void RenderingServerCanvas::canvas_light_occluder_attach_to_canvas(RID p_occluder, RID p_canvas) {
-	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_occluder);
-	ERR_FAIL_COND(!occluder);
-
-	if (occluder->canvas.is_valid()) {
-		Canvas *canvas = canvas_owner.get(occluder->canvas);
-		canvas->occluders.erase(occluder);
-	}
-
-	if (!canvas_owner.owns(p_canvas)) {
-		p_canvas = RID();
-	}
-
-	occluder->canvas = p_canvas;
-
-	if (occluder->canvas.is_valid()) {
-		Canvas *canvas = canvas_owner.get(occluder->canvas);
-		canvas->occluders.insert(occluder);
-	}
-}
-void RenderingServerCanvas::canvas_light_occluder_set_enabled(RID p_occluder, bool p_enabled) {
-	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_occluder);
-	ERR_FAIL_COND(!occluder);
-
-	occluder->enabled = p_enabled;
-}
-void RenderingServerCanvas::canvas_light_occluder_set_polygon(RID p_occluder, RID p_polygon) {
-	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_occluder);
-	ERR_FAIL_COND(!occluder);
-
-	if (occluder->polygon.is_valid()) {
-		LightOccluderPolygon *occluder_poly = canvas_light_occluder_polygon_owner.get(occluder->polygon);
-		if (occluder_poly) {
-			occluder_poly->owners.erase(occluder);
-		}
-	}
-
-	occluder->polygon = p_polygon;
-	occluder->polygon_buffer = RID();
-
-	if (occluder->polygon.is_valid()) {
-		LightOccluderPolygon *occluder_poly = canvas_light_occluder_polygon_owner.get(p_polygon);
-		if (!occluder_poly) {
-			occluder->polygon = RID();
-			ERR_FAIL_COND(!occluder_poly);
-		} else {
-			occluder_poly->owners.insert(occluder);
-			occluder->polygon_buffer = occluder_poly->occluder;
-			occluder->aabb_cache = occluder_poly->aabb;
-			occluder->cull_cache = occluder_poly->cull_mode;
-		}
-	}
-}
-void RenderingServerCanvas::canvas_light_occluder_set_transform(RID p_occluder, const Transform2D &p_xform) {
-	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_occluder);
-	ERR_FAIL_COND(!occluder);
-
-	if (_interpolation_data.interpolation_enabled && occluder->interpolated) {
-		if (!occluder->on_interpolate_transform_list) {
-			_interpolation_data.canvas_light_occluder_transform_update_list_curr->push_back(p_occluder);
-			occluder->on_interpolate_transform_list = true;
-		} else {
-			DEV_ASSERT(_interpolation_data.canvas_light_occluder_transform_update_list_curr->size());
-		}
-	}
-
-	occluder->xform_curr = p_xform;
-}
-void RenderingServerCanvas::canvas_light_occluder_set_light_mask(RID p_occluder, int p_mask) {
-	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_occluder);
-	ERR_FAIL_COND(!occluder);
-
-	occluder->light_mask = p_mask;
-}
-
-RID RenderingServerCanvas::canvas_occluder_polygon_create() {
-	LightOccluderPolygon *occluder_poly = memnew(LightOccluderPolygon);
-	occluder_poly->occluder = RSG::storage->canvas_light_occluder_create();
-	return canvas_light_occluder_polygon_owner.make_rid(occluder_poly);
-}
-void RenderingServerCanvas::canvas_occluder_polygon_set_shape(RID p_occluder_polygon, const PoolVector<Vector2> &p_shape, bool p_closed) {
-	if (p_shape.size() < 3) {
-		canvas_occluder_polygon_set_shape_as_lines(p_occluder_polygon, p_shape);
-		return;
-	}
-
-	PoolVector<Vector2> lines;
-	int lc = p_shape.size() * 2;
-
-	lines.resize(lc - (p_closed ? 0 : 2));
-	{
-		PoolVector<Vector2>::Write w = lines.write();
-		PoolVector<Vector2>::Read r = p_shape.read();
-
-		int max = lc / 2;
-		if (!p_closed) {
-			max--;
-		}
-		for (int i = 0; i < max; i++) {
-			Vector2 a = r[i];
-			Vector2 b = r[(i + 1) % (lc / 2)];
-			w[i * 2 + 0] = a;
-			w[i * 2 + 1] = b;
-		}
-	}
-
-	canvas_occluder_polygon_set_shape_as_lines(p_occluder_polygon, lines);
-}
-void RenderingServerCanvas::canvas_occluder_polygon_set_shape_as_lines(RID p_occluder_polygon, const PoolVector<Vector2> &p_shape) {
-	LightOccluderPolygon *occluder_poly = canvas_light_occluder_polygon_owner.get(p_occluder_polygon);
-	ERR_FAIL_COND(!occluder_poly);
-	ERR_FAIL_COND(p_shape.size() & 1);
-
-	int lc = p_shape.size();
-	occluder_poly->aabb = Rect2();
-	{
-		PoolVector<Vector2>::Read r = p_shape.read();
-		for (int i = 0; i < lc; i++) {
-			if (i == 0) {
-				occluder_poly->aabb.position = r[i];
-			} else {
-				occluder_poly->aabb.expand_to(r[i]);
-			}
-		}
-	}
-
-	RSG::storage->canvas_light_occluder_set_polylines(occluder_poly->occluder, p_shape);
-	for (RBSet<RasterizerCanvas::LightOccluderInstance *>::Element *E = occluder_poly->owners.front(); E; E = E->next()) {
-		E->get()->aabb_cache = occluder_poly->aabb;
-	}
-}
-
-void RenderingServerCanvas::canvas_occluder_polygon_set_cull_mode(RID p_occluder_polygon, RS::CanvasOccluderPolygonCullMode p_mode) {
-	LightOccluderPolygon *occluder_poly = canvas_light_occluder_polygon_owner.get(p_occluder_polygon);
-	ERR_FAIL_COND(!occluder_poly);
-	occluder_poly->cull_mode = p_mode;
-	for (RBSet<RasterizerCanvas::LightOccluderInstance *>::Element *E = occluder_poly->owners.front(); E; E = E->next()) {
-		E->get()->cull_cache = p_mode;
-	}
-}
-
 bool RenderingServerCanvas::free(RID p_rid) {
 	if (canvas_owner.owns(p_rid)) {
 		Canvas *canvas = canvas_owner.get(p_rid);
@@ -2067,14 +1686,6 @@ bool RenderingServerCanvas::free(RID p_rid) {
 			canvas->child_items[i].item->parent = RID();
 		}
 
-		for (RBSet<RasterizerCanvas::Light *>::Element *E = canvas->lights.front(); E; E = E->next()) {
-			E->get()->canvas = RID();
-		}
-
-		for (RBSet<RasterizerCanvas::LightOccluderInstance *>::Element *E = canvas->occluders.front(); E; E = E->next()) {
-			E->get()->canvas = RID();
-		}
-
 		canvas_owner.free(p_rid);
 
 		memdelete(canvas);
@@ -2083,7 +1694,6 @@ bool RenderingServerCanvas::free(RID p_rid) {
 		Item *canvas_item = canvas_item_owner.get(p_rid);
 		ERR_FAIL_COND_V(!canvas_item, true);
 		_make_bound_dirty(canvas_item);
-		_interpolation_data.notify_free_canvas_item(p_rid, *canvas_item);
 
 		if (canvas_item->parent.is_valid()) {
 			if (canvas_owner.owns(canvas_item->parent)) {
@@ -2114,59 +1724,6 @@ bool RenderingServerCanvas::free(RID p_rid) {
 
 		memdelete(canvas_item);
 
-	} else if (canvas_light_owner.owns(p_rid)) {
-		RasterizerCanvas::Light *canvas_light = canvas_light_owner.get(p_rid);
-		ERR_FAIL_COND_V(!canvas_light, true);
-		_interpolation_data.notify_free_canvas_light(p_rid, *canvas_light);
-
-		if (canvas_light->canvas.is_valid()) {
-			Canvas *canvas = canvas_owner.get(canvas_light->canvas);
-			if (canvas) {
-				canvas->lights.erase(canvas_light);
-			}
-		}
-
-		if (canvas_light->shadow_buffer.is_valid()) {
-			RSG::storage->free(canvas_light->shadow_buffer);
-		}
-
-		RSG::canvas_render->light_internal_free(canvas_light->light_internal);
-
-		canvas_light_owner.free(p_rid);
-		memdelete(canvas_light);
-
-	} else if (canvas_light_occluder_owner.owns(p_rid)) {
-		RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.get(p_rid);
-		ERR_FAIL_COND_V(!occluder, true);
-		_interpolation_data.notify_free_canvas_light_occluder(p_rid, *occluder);
-
-		if (occluder->polygon.is_valid()) {
-			LightOccluderPolygon *occluder_poly = canvas_light_occluder_polygon_owner.get(occluder->polygon);
-			if (occluder_poly) {
-				occluder_poly->owners.erase(occluder);
-			}
-		}
-
-		if (occluder->canvas.is_valid() && canvas_owner.owns(occluder->canvas)) {
-			Canvas *canvas = canvas_owner.get(occluder->canvas);
-			canvas->occluders.erase(occluder);
-		}
-
-		canvas_light_occluder_owner.free(p_rid);
-		memdelete(occluder);
-
-	} else if (canvas_light_occluder_polygon_owner.owns(p_rid)) {
-		LightOccluderPolygon *occluder_poly = canvas_light_occluder_polygon_owner.get(p_rid);
-		ERR_FAIL_COND_V(!occluder_poly, true);
-		RSG::storage->free(occluder_poly->occluder);
-
-		while (occluder_poly->owners.size()) {
-			occluder_poly->owners.front()->get()->polygon = RID();
-			occluder_poly->owners.erase(occluder_poly->owners.front());
-		}
-
-		canvas_light_occluder_polygon_owner.free(p_rid);
-		memdelete(occluder_poly);
 	} else {
 		return false;
 	}
@@ -2304,46 +1861,8 @@ void RenderingServerCanvas::update_interpolation_tick(bool p_process) {
 	_interpolation_data.LIST_CURR->clear();
 
 	PANDEMONIUM_UPDATE_INTERPOLATION_TICK(canvas_item_transform_update_list_prev, canvas_item_transform_update_list_curr, Item, canvas_item_owner);
-	PANDEMONIUM_UPDATE_INTERPOLATION_TICK(canvas_light_transform_update_list_prev, canvas_light_transform_update_list_curr, RasterizerCanvas::Light, canvas_light_owner);
-	PANDEMONIUM_UPDATE_INTERPOLATION_TICK(canvas_light_occluder_transform_update_list_prev, canvas_light_occluder_transform_update_list_curr, RasterizerCanvas::LightOccluderInstance, canvas_light_occluder_owner);
 
 #undef PANDEMONIUM_UPDATE_INTERPOLATION_TICK
-}
-
-void RenderingServerCanvas::InterpolationData::notify_free_canvas_item(RID p_rid, RenderingServerCanvas::Item &r_canvas_item) {
-	r_canvas_item.on_interpolate_transform_list = false;
-
-	if (!interpolation_enabled) {
-		return;
-	}
-
-	// If the instance was on any of the lists, remove.
-	canvas_item_transform_update_list_curr->erase_multiple_unordered(p_rid);
-	canvas_item_transform_update_list_prev->erase_multiple_unordered(p_rid);
-}
-
-void RenderingServerCanvas::InterpolationData::notify_free_canvas_light(RID p_rid, RasterizerCanvas::Light &r_canvas_light) {
-	r_canvas_light.on_interpolate_transform_list = false;
-
-	if (!interpolation_enabled) {
-		return;
-	}
-
-	// If the instance was on any of the lists, remove.
-	canvas_light_transform_update_list_curr->erase_multiple_unordered(p_rid);
-	canvas_light_transform_update_list_prev->erase_multiple_unordered(p_rid);
-}
-
-void RenderingServerCanvas::InterpolationData::notify_free_canvas_light_occluder(RID p_rid, RasterizerCanvas::LightOccluderInstance &r_canvas_light_occluder) {
-	r_canvas_light_occluder.on_interpolate_transform_list = false;
-
-	if (!interpolation_enabled) {
-		return;
-	}
-
-	// If the instance was on any of the lists, remove.
-	canvas_light_occluder_transform_update_list_curr->erase_multiple_unordered(p_rid);
-	canvas_light_occluder_transform_update_list_prev->erase_multiple_unordered(p_rid);
 }
 
 RenderingServerCanvas::RenderingServerCanvas() {

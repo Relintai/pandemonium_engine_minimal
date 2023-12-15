@@ -78,7 +78,6 @@ public:
 
 		bool using_texture_rect;
 
-		bool using_light_angle;
 		bool using_modulate;
 		bool using_large_vertex;
 
@@ -89,8 +88,6 @@ public:
 		RasterizerStorageGLES2::Texture *current_tex_ptr;
 
 		Transform vp;
-		Light *using_light;
-		bool using_shadow;
 		bool using_transparent_rt;
 
 	} state;
@@ -105,10 +102,6 @@ public:
 	GLenum _buffer_upload_usage_flag;
 
 	void _set_uniforms();
-
-	virtual RID light_internal_create();
-	virtual void light_internal_update(RID p_rid, Light *p_light);
-	virtual void light_internal_free(RID p_rid);
 
 	virtual void canvas_begin();
 	virtual void canvas_end();
@@ -127,8 +120,6 @@ public:
 	void draw_lens_distortion_rect(const Rect2 &p_rect, float p_k1, float p_k2, const Vector2 &p_eye_center, float p_oversample);
 
 	virtual void reset_canvas();
-	virtual void canvas_light_shadow_buffer_update(RID p_buffer, const Transform2D &p_light_xform, int p_light_mask, float p_near, float p_far, LightOccluderInstance *p_occluders, Projection *p_xform_cache);
-	virtual void canvas_debug_viewport_shadows(Light *p_lights_with_shadow);
 
 	RasterizerStorageGLES2::Texture *_bind_canvas_texture(const RID &p_texture, const RID &p_normal_map);
 	void _set_texture_rect_mode(bool p_texture_rect, bool p_light_angle = false, bool p_modulate = false, bool p_large_vertex = false);
