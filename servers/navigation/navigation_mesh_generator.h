@@ -72,19 +72,6 @@ public:
 
 	virtual bool is_navigation_polygon_baking(Ref<NavigationPolygon> p_navigation_polygon) const = 0;
 
-	// 3D //////////////////////////////
-#ifndef _3D_DISABLED
-	virtual void register_geometry_parser_3d(Ref<NavigationGeometryParser3D> p_geometry_parser) = 0;
-	virtual void unregister_geometry_parser_3d(Ref<NavigationGeometryParser3D> p_geometry_parser) = 0;
-
-	virtual Ref<NavigationMeshSourceGeometryData3D> parse_3d_source_geometry_data(Ref<NavigationMesh> p_navigation_mesh, Node *p_root_node, Ref<FuncRef> p_callback = Ref<FuncRef>()) = 0;
-	virtual void bake_3d_from_source_geometry_data(Ref<NavigationMesh> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Ref<FuncRef> p_callback = Ref<FuncRef>()) = 0;
-
-	virtual void parse_and_bake_3d(Ref<NavigationMesh> p_navigation_mesh, Node *p_root_node, Ref<FuncRef> p_callback = Ref<FuncRef>()) = 0;
-
-	virtual bool is_navigation_mesh_baking(Ref<NavigationMesh> p_navigation_mesh) const = 0;
-#endif // _3D_DISABLED
-
 	virtual void init();
 	virtual void finish();
 

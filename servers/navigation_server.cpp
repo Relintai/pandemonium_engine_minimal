@@ -33,7 +33,6 @@
 #include "core/config/project_settings.h"
 #include "navigation/navigation_path_query_parameters_3d.h"
 #include "navigation/navigation_path_query_result_3d.h"
-#include "scene/3d/navigation_mesh_instance.h"
 #include "scene/resources/navigation/navigation_mesh.h"
 
 #ifdef DEBUG_ENABLED

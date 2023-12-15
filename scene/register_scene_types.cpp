@@ -157,7 +157,6 @@
 #include "scene/resources/mesh/multimesh.h"
 #include "scene/resources/navigation/navigation_mesh.h"
 #include "scene/resources/navigation_2d/navigation_mesh_source_geometry_data_2d.h"
-#include "scene/resources/navigation/navigation_mesh_source_geometry_data_3d.h"
 #include "scene/resources/navigation_2d/navigation_polygon.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/material/particles_material.h"
@@ -189,11 +188,6 @@
 #include "scene/3d/listener.h"
 #include "scene/3d/mesh_instance.h"
 #include "scene/3d/multimesh_instance.h"
-#include "scene/3d/navigation.h"
-#include "scene/3d/navigation_agent.h"
-#include "scene/3d/navigation_geometry_parser_3d.h"
-#include "scene/3d/navigation_link_3d.h"
-#include "scene/3d/navigation_mesh_instance.h"
 #include "scene/3d/occluder.h"
 #include "scene/3d/path.h"
 #include "scene/3d/portal.h"
@@ -434,9 +428,7 @@ void register_scene_types() {
 	ClassDB::register_class<ReflectionProbe>();
 	ClassDB::register_class<CPUParticles>();
 	ClassDB::register_class<Position3D>();
-	ClassDB::register_class<NavigationMeshInstance>();
 	ClassDB::register_class<NavigationMesh>();
-	ClassDB::register_class<Navigation>();
 	ClassDB::register_class<Room>();
 	ClassDB::register_class<RoomGroup>();
 	ClassDB::register_class<RoomManager>();
@@ -458,12 +450,6 @@ void register_scene_types() {
 	ClassDB::register_class<VisibilityEnabler>();
 	ClassDB::register_class<WorldEnvironment3D>();
 	ClassDB::register_class<RemoteTransform>();
-
-
-	ClassDB::register_class<Navigation>();
-	ClassDB::register_class<NavigationMeshInstance>();
-	ClassDB::register_class<NavigationAgent>();
-	ClassDB::register_class<NavigationLink3D>();
 
 	OS::get_singleton()->yield(); //may take time to init
 
@@ -642,11 +628,6 @@ void register_scene_types() {
 
 	ClassDB::register_class<NavigationMeshSourceGeometryData2D>();
 	ClassDB::register_class<NavigationGeometryParser2D>();
-
-#ifndef _3D_DISABLED
-	ClassDB::register_class<NavigationGeometryParser3D>();
-	ClassDB::register_class<NavigationMeshSourceGeometryData3D>();
-#endif
 
 	OS::get_singleton()->yield(); //may take time to init
 

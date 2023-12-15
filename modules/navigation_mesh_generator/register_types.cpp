@@ -35,11 +35,6 @@
 
 #include "pandemonium_navigation_mesh_generator.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/navigation_mesh_editor_plugin.h"
-#include "editor/navigation_polygon_editor_plugin.h"
-#endif // TOOLS_ENABLED
-
 NavigationMeshGenerator *new_navigation_mesh_generator_server() {
 	return memnew(PandemoniumNavigationMeshGenerator);
 }
@@ -49,13 +44,6 @@ void register_navigation_mesh_generator_types(ModuleRegistrationLevel p_level) {
 		NavigationMeshGeneratorManager::get_singleton()->register_server("PandemoniumNavigationMeshGenerator", new_navigation_mesh_generator_server);
 		NavigationMeshGeneratorManager::get_singleton()->set_default_server("PandemoniumNavigationMeshGenerator");
 	}
-
-#ifdef TOOLS_ENABLED
-	if (p_level == MODULE_REGISTRATION_LEVEL_EDITOR) {
-		EditorPlugins::add_by_type<NavigationMeshEditorPlugin>();
-		EditorPlugins::add_by_type<NavigationPolygonEditorPlugin>();
-	}
-#endif // TOOLS_ENABLED
 }
 
 void unregister_navigation_mesh_generator_types(ModuleRegistrationLevel p_level) {

@@ -79,37 +79,6 @@ public:
 		static void _bind_methods();
 	};
 
-#ifndef _3D_DISABLED
-	class NavigationGeneratorTask3D : public ThreadPoolJob {
-		GDCLASS(NavigationGeneratorTask3D, ThreadPoolJob);
-
-	public:
-		enum TaskStatus {
-			PARSING_REQUIRED,
-			PARSING_STARTED,
-			PARSING_FINISHED,
-			PARSING_FAILED,
-			BAKING_STARTED,
-			BAKING_FINISHED,
-			BAKING_FAILED
-		};
-
-		Ref<NavigationMesh> navigation_mesh;
-		ObjectID parse_root_object_id;
-		Ref<NavigationMeshSourceGeometryData3D> source_geometry_data;
-		Ref<FuncRef> callback;
-		NavigationGeneratorTask3D::TaskStatus status = NavigationGeneratorTask3D::TaskStatus::PARSING_REQUIRED;
-		LocalVector<Ref<NavigationGeometryParser3D>> geometry_parsers;
-
-		void call_callback();
-
-		void _execute();
-
-	protected:
-		static void _bind_methods();
-	};
-#endif // _3D_DISABLED
-
 	// =======   TASKS END  =======
 
 public:
@@ -131,22 +100,6 @@ public:
 
 	virtual bool is_navigation_polygon_baking(Ref<NavigationPolygon> p_navigation_polygon) const;
 
-#ifndef _3D_DISABLED
-	virtual void register_geometry_parser_3d(Ref<NavigationGeometryParser3D> p_geometry_parser);
-	virtual void unregister_geometry_parser_3d(Ref<NavigationGeometryParser3D> p_geometry_parser);
-
-	virtual Ref<NavigationMeshSourceGeometryData3D> parse_3d_source_geometry_data(Ref<NavigationMesh> p_navigation_mesh, Node *p_root_node, Ref<FuncRef> p_callback = Ref<FuncRef>());
-	virtual void bake_3d_from_source_geometry_data(Ref<NavigationMesh> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Ref<FuncRef> p_callback = Ref<FuncRef>());
-
-	virtual void parse_and_bake_3d(Ref<NavigationMesh> p_navigation_mesh, Node *p_root_node, Ref<FuncRef> p_callback = Ref<FuncRef>());
-
-	static void _static_parse_3d_geometry_node(Ref<NavigationMesh> p_navigation_mesh, Node *p_node, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, bool p_recurse_children, LocalVector<Ref<NavigationGeometryParser3D>> &p_geometry_3d_parsers);
-	static void _static_parse_3d_source_geometry_data(Ref<NavigationMesh> p_navigation_mesh, Node *p_root_node, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, LocalVector<Ref<NavigationGeometryParser3D>> &p_geometry_3d_parsers);
-	static void _static_bake_3d_from_source_geometry_data(Ref<NavigationMesh> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data);
-
-	virtual bool is_navigation_mesh_baking(Ref<NavigationMesh> p_navigation_mesh) const;
-#endif // _3D_DISABLED
-
 	PandemoniumNavigationMeshGenerator();
 	~PandemoniumNavigationMeshGenerator();
 
@@ -154,12 +107,6 @@ private:
 	void _process_2d_tasks();
 	void _process_2d_parse_tasks();
 	void _process_2d_bake_cleanup_tasks();
-
-#ifndef _3D_DISABLED
-	void _process_3d_tasks();
-	void _process_3d_parse_tasks();
-	void _process_3d_bake_cleanup_tasks();
-#endif // _3D_DISABLED
 
 private:
 	Mutex _generator_mutex;
@@ -173,14 +120,6 @@ private:
 	LocalVector<Ref<NavigationPolygon>> _baking_navigation_polygons;
 	LocalVector<Ref<NavigationGeneratorTask2D>> _2d_parse_jobs;
 	LocalVector<Ref<NavigationGeneratorTask2D>> _2d_running_jobs;
-
-#ifndef _3D_DISABLED
-	LocalVector<Ref<NavigationGeometryParser3D>> _geometry_3d_parsers;
-
-	LocalVector<Ref<NavigationMesh>> _baking_navigation_meshes;
-	LocalVector<Ref<NavigationGeneratorTask3D>> _3d_parse_jobs;
-	LocalVector<Ref<NavigationGeneratorTask3D>> _3d_running_jobs;
-#endif // _3D_DISABLED
 };
 
 #endif // GODOT_NAVIGATION_MESH_GENERATOR_H

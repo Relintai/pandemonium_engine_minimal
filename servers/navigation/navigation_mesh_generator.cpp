@@ -33,15 +33,9 @@
 #include "core/config/project_settings.h"
 
 #include "scene/2d/navigation_geometry_parser_2d.h"
-#ifndef _3D_DISABLED
-#include "scene/3d/navigation_geometry_parser_3d.h"
-#endif // _3D_DISABLED
 #include "scene/main/node.h"
 #include "scene/resources/navigation/navigation_mesh.h"
 #include "scene/resources/navigation_2d/navigation_mesh_source_geometry_data_2d.h"
-#ifndef _3D_DISABLED
-#include "scene/resources/navigation/navigation_mesh_source_geometry_data_3d.h"
-#endif // _3D_DISABLED
 
 NavigationMeshGenerator *NavigationMeshGenerator::singleton = nullptr;
 
@@ -54,17 +48,6 @@ void NavigationMeshGenerator::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("parse_and_bake_2d", "navigation_polygon", "root_node", "callback"), &NavigationMeshGenerator::parse_and_bake_2d, DEFVAL(Ref<FuncRef>()));
 
 	ClassDB::bind_method(D_METHOD("is_navigation_polygon_baking", "navigation_polygon"), &NavigationMeshGenerator::is_navigation_polygon_baking);
-
-#ifndef _3D_DISABLED
-	ClassDB::bind_method(D_METHOD("register_geometry_parser_3d", "geometry_parser"), &NavigationMeshGenerator::register_geometry_parser_3d);
-	ClassDB::bind_method(D_METHOD("unregister_geometry_parser_3d", "geometry_parser"), &NavigationMeshGenerator::unregister_geometry_parser_3d);
-
-	ClassDB::bind_method(D_METHOD("parse_3d_source_geometry_data", "navigation_mesh", "root_node", "callback"), &NavigationMeshGenerator::parse_3d_source_geometry_data, DEFVAL(Ref<FuncRef>()));
-	ClassDB::bind_method(D_METHOD("bake_3d_from_source_geometry_data", "navigation_mesh", "source_geometry_data", "callback"), &NavigationMeshGenerator::bake_3d_from_source_geometry_data, DEFVAL(Ref<FuncRef>()));
-	ClassDB::bind_method(D_METHOD("parse_and_bake_3d", "navigation_mesh", "root_node", "callback"), &NavigationMeshGenerator::parse_and_bake_3d, DEFVAL(Ref<FuncRef>()));
-
-	ClassDB::bind_method(D_METHOD("is_navigation_mesh_baking", "navigation_mesh"), &NavigationMeshGenerator::is_navigation_mesh_baking);
-#endif // _3D_DISABLED
 }
 
 NavigationMeshGenerator *NavigationMeshGenerator::get_singleton() {
