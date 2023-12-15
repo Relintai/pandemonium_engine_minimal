@@ -273,8 +273,7 @@ public:
 		List<Instance *> directional_lights;
 		RID environment;
 		RID fallback_environment;
-		RID reflection_probe_shadow_atlas;
-		RID reflection_atlas;
+		RID shadow_atlas;
 
 		SelfList<Instance>::List instances;
 
@@ -420,12 +419,8 @@ public:
 		bool can_cast_shadows;
 		bool material_is_animated;
 
-		List<Instance *> reflection_probes;
-		bool reflection_dirty;
-
 		InstanceGeometryData() {
 			lighting_dirty = true;
-			reflection_dirty = true;
 			can_cast_shadows = true;
 			material_is_animated = true;
 		}
@@ -441,7 +436,6 @@ public:
 		List<PairInfo> geometries;
 
 		RID instance;
-		bool reflection_dirty;
 		SelfList<InstanceReflectionProbeData> update_list;
 
 		int render_step;
@@ -449,13 +443,10 @@ public:
 
 		InstanceReflectionProbeData() :
 				update_list(this) {
-			reflection_dirty = true;
 			render_step = -1;
 			previous_room_id_hint = -1;
 		}
 	};
-
-	SelfList<InstanceReflectionProbeData>::List reflection_probe_render_list;
 
 	struct InstanceLightData : public InstanceBaseData {
 		struct PairInfo {
@@ -488,8 +479,6 @@ public:
 	RID light_instance_cull_result[MAX_LIGHTS_CULLED];
 	int light_cull_count;
 	int directional_light_count;
-	RID reflection_probe_instance_cull_result[MAX_REFLECTION_PROBES_CULLED];
-	int reflection_probe_cull_count;
 
 	RID_Owner<Instance> instance_owner;
 
@@ -540,7 +529,7 @@ public:
 	_FORCE_INLINE_ bool _light_instance_update_shadow(Instance *p_instance, const Transform p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, RID p_shadow_atlas, Scenario *p_scenario, uint32_t p_visible_layers = 0xFFFFFF);
 
 	void _prepare_scene(const Transform p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, RID p_force_environment, uint32_t p_visible_layers, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, int32_t &r_previous_room_id_hint);
-	void _render_scene(const Transform p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_orthogonal, RID p_force_environment, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, int p_reflection_probe_pass);
+	void _render_scene(const Transform p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_orthogonal, RID p_force_environment, RID p_scenario, RID p_shadow_atlas);
 	void render_empty_scene(RID p_scenario, RID p_shadow_atlas);
 
 	void render_camera(RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas);

@@ -202,7 +202,6 @@ public:
 		int spot_light_count;
 		int omni_light_count;
 		int directional_light_count;
-		int reflection_probe_count;
 
 		bool used_sss;
 		bool using_contact_shadows;
@@ -301,54 +300,6 @@ public:
 
 	virtual int get_directional_light_shadow_size(RID p_light_intance);
 	virtual void set_directional_shadow_count(int p_count);
-
-	/* REFLECTION PROBE ATLAS API */
-
-	virtual RID reflection_atlas_create();
-	virtual void reflection_atlas_set_size(RID p_ref_atlas, int p_size);
-	virtual void reflection_atlas_set_subdivision(RID p_ref_atlas, int p_subdiv);
-
-	/* REFLECTION CUBEMAPS */
-
-	/* REFLECTION PROBE INSTANCE */
-
-	struct ReflectionProbeInstance : public RID_Data {
-		RasterizerStorageGLES2::ReflectionProbe *probe_ptr;
-		RID probe;
-		RID self;
-		RID atlas;
-
-		int reflection_atlas_index;
-
-		int render_step;
-		int reflection_index;
-
-		GLuint fbo[6];
-		GLuint color[6];
-		GLuint depth;
-		GLuint cubemap;
-
-		int current_resolution;
-		mutable bool dirty;
-
-		uint64_t last_pass;
-		uint32_t index;
-
-		Transform transform;
-	};
-
-	mutable RID_Owner<ReflectionProbeInstance> reflection_probe_instance_owner;
-
-	ReflectionProbeInstance **reflection_probe_instances;
-	int reflection_probe_count;
-
-	virtual RID reflection_probe_instance_create(RID p_probe);
-	virtual void reflection_probe_instance_set_transform(RID p_instance, const Transform &p_transform);
-	virtual void reflection_probe_release_atlas_index(RID p_instance);
-	virtual bool reflection_probe_instance_needs_redraw(RID p_instance);
-	virtual bool reflection_probe_instance_has_reflection(RID p_instance);
-	virtual bool reflection_probe_instance_begin_render(RID p_instance, RID p_reflection_atlas);
-	virtual bool reflection_probe_instance_postprocess_step(RID p_instance);
 
 	/* LIGHT INSTANCE */
 
@@ -595,12 +546,11 @@ public:
 	_FORCE_INLINE_ void _setup_geometry(RenderList::Element *p_element);
 	_FORCE_INLINE_ void _setup_light_type(LightInstance *p_light, ShadowAtlas *shadow_atlas);
 	_FORCE_INLINE_ void _setup_light(LightInstance *p_light, ShadowAtlas *shadow_atlas, const Transform &p_view_transform, bool accum_pass);
-	_FORCE_INLINE_ void _setup_refprobes(ReflectionProbeInstance *p_refprobe1, ReflectionProbeInstance *p_refprobe2, const Transform &p_view_transform);
 	_FORCE_INLINE_ void _render_geometry(RenderList::Element *p_element);
 
 	void _post_process(const Projection &p_cam_projection);
 
-	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, RID p_environment, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass);
+	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_shadow_atlas);
 	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count);
 	virtual bool free(RID p_rid);
 

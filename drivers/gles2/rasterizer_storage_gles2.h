@@ -881,53 +881,6 @@ public:
 	virtual AABB light_get_aabb(RID p_light) const;
 	virtual uint64_t light_get_version(RID p_light) const;
 
-	/* PROBE API */
-
-	struct ReflectionProbe : Instantiable {
-		RS::ReflectionProbeUpdateMode update_mode;
-		float intensity;
-		Color interior_ambient;
-		float interior_ambient_energy;
-		float interior_ambient_probe_contrib;
-		float max_distance;
-		Vector3 extents;
-		Vector3 origin_offset;
-		bool interior;
-		bool box_projection;
-		bool enable_shadows;
-		uint32_t cull_mask;
-		int resolution;
-	};
-
-	mutable RID_Owner<ReflectionProbe> reflection_probe_owner;
-
-	virtual RID reflection_probe_create();
-
-	virtual void reflection_probe_set_update_mode(RID p_probe, RS::ReflectionProbeUpdateMode p_mode);
-	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity);
-	virtual void reflection_probe_set_interior_ambient(RID p_probe, const Color &p_ambient);
-	virtual void reflection_probe_set_interior_ambient_energy(RID p_probe, float p_energy);
-	virtual void reflection_probe_set_interior_ambient_probe_contribution(RID p_probe, float p_contrib);
-	virtual void reflection_probe_set_max_distance(RID p_probe, float p_distance);
-	virtual void reflection_probe_set_extents(RID p_probe, const Vector3 &p_extents);
-	virtual void reflection_probe_set_origin_offset(RID p_probe, const Vector3 &p_offset);
-	virtual void reflection_probe_set_as_interior(RID p_probe, bool p_enable);
-	virtual void reflection_probe_set_enable_box_projection(RID p_probe, bool p_enable);
-	virtual void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable);
-	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers);
-	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution);
-
-	virtual AABB reflection_probe_get_aabb(RID p_probe) const;
-	virtual RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const;
-	virtual uint32_t reflection_probe_get_cull_mask(RID p_probe) const;
-
-	virtual int reflection_probe_get_resolution(RID p_probe) const;
-
-	virtual Vector3 reflection_probe_get_extents(RID p_probe) const;
-	virtual Vector3 reflection_probe_get_origin_offset(RID p_probe) const;
-	virtual float reflection_probe_get_origin_max_distance(RID p_probe) const;
-	virtual bool reflection_probe_renders_shadows(RID p_probe) const;
-
 	/* INSTANCE */
 
 	virtual void instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance);

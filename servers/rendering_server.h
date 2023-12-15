@@ -464,29 +464,6 @@ public:
 
 	virtual void light_directional_set_shadow_depth_range_mode(RID p_light, LightDirectionalShadowDepthRangeMode p_range_mode) = 0;
 
-	/* PROBE API */
-
-	virtual RID reflection_probe_create() = 0;
-
-	enum ReflectionProbeUpdateMode {
-		REFLECTION_PROBE_UPDATE_ONCE,
-		REFLECTION_PROBE_UPDATE_ALWAYS,
-	};
-
-	virtual void reflection_probe_set_update_mode(RID p_probe, ReflectionProbeUpdateMode p_mode) = 0;
-	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) = 0;
-	virtual void reflection_probe_set_interior_ambient(RID p_probe, const Color &p_color) = 0;
-	virtual void reflection_probe_set_interior_ambient_energy(RID p_probe, float p_energy) = 0;
-	virtual void reflection_probe_set_interior_ambient_probe_contribution(RID p_probe, float p_contrib) = 0;
-	virtual void reflection_probe_set_max_distance(RID p_probe, float p_distance) = 0;
-	virtual void reflection_probe_set_extents(RID p_probe, const Vector3 &p_extents) = 0;
-	virtual void reflection_probe_set_origin_offset(RID p_probe, const Vector3 &p_offset) = 0;
-	virtual void reflection_probe_set_as_interior(RID p_probe, bool p_enable) = 0;
-	virtual void reflection_probe_set_enable_box_projection(RID p_probe, bool p_enable) = 0;
-	virtual void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) = 0;
-	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) = 0;
-	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) = 0;
-
 	/* CAMERA API */
 
 	virtual RID camera_create() = 0;
@@ -640,7 +617,6 @@ public:
 		INSTANCE_MESH,
 		INSTANCE_MULTIMESH,
 		INSTANCE_LIGHT,
-		INSTANCE_REFLECTION_PROBE,
 		INSTANCE_MAX,
 
 		INSTANCE_GEOMETRY_MASK = (1 << INSTANCE_MESH) | (1 << INSTANCE_MULTIMESH)
@@ -971,7 +947,6 @@ VARIANT_ENUM_CAST(RenderingServer::LightOmniShadowMode);
 VARIANT_ENUM_CAST(RenderingServer::LightOmniShadowDetail);
 VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowMode);
 VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowDepthRangeMode);
-VARIANT_ENUM_CAST(RenderingServer::ReflectionProbeUpdateMode);
 VARIANT_ENUM_CAST(RenderingServer::InstanceFlags);
 VARIANT_ENUM_CAST(RenderingServer::ShadowCastingSetting);
 VARIANT_ENUM_CAST(RenderingServer::TextureType);

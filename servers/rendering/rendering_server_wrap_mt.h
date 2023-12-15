@@ -231,24 +231,6 @@ public:
 	FUNC2(light_directional_set_blend_splits, RID, bool)
 	FUNC2(light_directional_set_shadow_depth_range_mode, RID, LightDirectionalShadowDepthRangeMode)
 
-	/* PROBE API */
-
-	FUNCRID(reflection_probe)
-
-	FUNC2(reflection_probe_set_update_mode, RID, ReflectionProbeUpdateMode)
-	FUNC2(reflection_probe_set_intensity, RID, float)
-	FUNC2(reflection_probe_set_interior_ambient, RID, const Color &)
-	FUNC2(reflection_probe_set_interior_ambient_energy, RID, float)
-	FUNC2(reflection_probe_set_interior_ambient_probe_contribution, RID, float)
-	FUNC2(reflection_probe_set_max_distance, RID, float)
-	FUNC2(reflection_probe_set_extents, RID, const Vector3 &)
-	FUNC2(reflection_probe_set_origin_offset, RID, const Vector3 &)
-	FUNC2(reflection_probe_set_as_interior, RID, bool)
-	FUNC2(reflection_probe_set_enable_box_projection, RID, bool)
-	FUNC2(reflection_probe_set_enable_shadows, RID, bool)
-	FUNC2(reflection_probe_set_cull_mask, RID, uint32_t)
-	FUNC2(reflection_probe_set_resolution, RID, int)
-
 	/* CAMERA API */
 
 	FUNCRID(camera)

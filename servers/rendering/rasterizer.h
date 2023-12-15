@@ -73,7 +73,6 @@ public:
 
 		Vector<RID> materials;
 		Vector<RID> light_instances;
-		Vector<RID> reflection_probe_instances;
 
 		PoolVector<float> blend_values;
 
@@ -125,19 +124,7 @@ public:
 	virtual void light_instance_mark_visible(RID p_light_instance) = 0;
 	virtual bool light_instances_can_render_shadow_cube() const { return true; }
 
-	virtual RID reflection_atlas_create() = 0;
-	virtual void reflection_atlas_set_size(RID p_ref_atlas, int p_size) = 0;
-	virtual void reflection_atlas_set_subdivision(RID p_ref_atlas, int p_subdiv) = 0;
-
-	virtual RID reflection_probe_instance_create(RID p_probe) = 0;
-	virtual void reflection_probe_instance_set_transform(RID p_instance, const Transform &p_transform) = 0;
-	virtual void reflection_probe_release_atlas_index(RID p_instance) = 0;
-	virtual bool reflection_probe_instance_needs_redraw(RID p_instance) = 0;
-	virtual bool reflection_probe_instance_has_reflection(RID p_instance) = 0;
-	virtual bool reflection_probe_instance_begin_render(RID p_instance, RID p_reflection_atlas) = 0;
-	virtual bool reflection_probe_instance_postprocess_step(RID p_instance) = 0;
-
-	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, RID p_environment, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass) = 0;
+	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_shadow_atlas) = 0;
 	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) = 0;
 
 	virtual void set_scene_pass(uint64_t p_pass) = 0;
@@ -401,32 +388,6 @@ public:
 	virtual float light_get_param(RID p_light, RS::LightParam p_param) = 0;
 	virtual Color light_get_color(RID p_light) = 0;
 	virtual uint64_t light_get_version(RID p_light) const = 0;
-
-	/* PROBE API */
-
-	virtual RID reflection_probe_create() = 0;
-
-	virtual void reflection_probe_set_update_mode(RID p_probe, RS::ReflectionProbeUpdateMode p_mode) = 0;
-	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) = 0;
-	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) = 0;
-	virtual void reflection_probe_set_interior_ambient(RID p_probe, const Color &p_ambient) = 0;
-	virtual void reflection_probe_set_interior_ambient_energy(RID p_probe, float p_energy) = 0;
-	virtual void reflection_probe_set_interior_ambient_probe_contribution(RID p_probe, float p_contrib) = 0;
-	virtual void reflection_probe_set_max_distance(RID p_probe, float p_distance) = 0;
-	virtual void reflection_probe_set_extents(RID p_probe, const Vector3 &p_extents) = 0;
-	virtual void reflection_probe_set_origin_offset(RID p_probe, const Vector3 &p_offset) = 0;
-	virtual void reflection_probe_set_as_interior(RID p_probe, bool p_enable) = 0;
-	virtual void reflection_probe_set_enable_box_projection(RID p_probe, bool p_enable) = 0;
-	virtual void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) = 0;
-	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) = 0;
-
-	virtual AABB reflection_probe_get_aabb(RID p_probe) const = 0;
-	virtual RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const = 0;
-	virtual uint32_t reflection_probe_get_cull_mask(RID p_probe) const = 0;
-	virtual Vector3 reflection_probe_get_extents(RID p_probe) const = 0;
-	virtual Vector3 reflection_probe_get_origin_offset(RID p_probe) const = 0;
-	virtual float reflection_probe_get_origin_max_distance(RID p_probe) const = 0;
-	virtual bool reflection_probe_renders_shadows(RID p_probe) const = 0;
 
 	virtual void instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) = 0;
 	virtual void instance_remove_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) = 0;

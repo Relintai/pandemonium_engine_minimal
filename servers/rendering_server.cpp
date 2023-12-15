@@ -1941,20 +1941,6 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("light_directional_set_blend_splits", "light", "enable"), &RenderingServer::light_directional_set_blend_splits);
 	ClassDB::bind_method(D_METHOD("light_directional_set_shadow_depth_range_mode", "light", "range_mode"), &RenderingServer::light_directional_set_shadow_depth_range_mode);
 
-	ClassDB::bind_method(D_METHOD("reflection_probe_create"), &RenderingServer::reflection_probe_create);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_update_mode", "probe", "mode"), &RenderingServer::reflection_probe_set_update_mode);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_intensity", "probe", "intensity"), &RenderingServer::reflection_probe_set_intensity);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_interior_ambient", "probe", "color"), &RenderingServer::reflection_probe_set_interior_ambient);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_interior_ambient_energy", "probe", "energy"), &RenderingServer::reflection_probe_set_interior_ambient_energy);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_interior_ambient_probe_contribution", "probe", "contrib"), &RenderingServer::reflection_probe_set_interior_ambient_probe_contribution);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_max_distance", "probe", "distance"), &RenderingServer::reflection_probe_set_max_distance);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_extents", "probe", "extents"), &RenderingServer::reflection_probe_set_extents);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_origin_offset", "probe", "offset"), &RenderingServer::reflection_probe_set_origin_offset);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_as_interior", "probe", "enable"), &RenderingServer::reflection_probe_set_as_interior);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_enable_box_projection", "probe", "enable"), &RenderingServer::reflection_probe_set_enable_box_projection);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_enable_shadows", "probe", "enable"), &RenderingServer::reflection_probe_set_enable_shadows);
-	ClassDB::bind_method(D_METHOD("reflection_probe_set_cull_mask", "probe", "layers"), &RenderingServer::reflection_probe_set_cull_mask);
-
 #endif
 
 	ClassDB::bind_method(D_METHOD("camera_create"), &RenderingServer::camera_create);
@@ -2313,7 +2299,6 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(INSTANCE_MESH);
 	BIND_ENUM_CONSTANT(INSTANCE_MULTIMESH);
 	BIND_ENUM_CONSTANT(INSTANCE_LIGHT);
-	BIND_ENUM_CONSTANT(INSTANCE_REFLECTION_PROBE);
 	BIND_ENUM_CONSTANT(INSTANCE_MAX);
 	BIND_ENUM_CONSTANT(INSTANCE_GEOMETRY_MASK);
 
@@ -2372,9 +2357,6 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(MULTIMESH_CUSTOM_DATA_FLOAT);
 	BIND_ENUM_CONSTANT(MULTIMESH_INTERP_QUALITY_FAST);
 	BIND_ENUM_CONSTANT(MULTIMESH_INTERP_QUALITY_HIGH);
-
-	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_ONCE);
-	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_ALWAYS);
 
 	BIND_ENUM_CONSTANT(CHANGED_PRIORITY_ANY);
 	BIND_ENUM_CONSTANT(CHANGED_PRIORITY_LOW);

@@ -320,19 +320,6 @@ void *RenderingServerScene::_instance_pair(void *p_self, SpatialPartitionID, Ins
 		geom->lighting_dirty = true;
 
 		return E; //this element should make freeing faster
-	} else if (B->base_type == RS::INSTANCE_REFLECTION_PROBE && ((1 << A->base_type) & RS::INSTANCE_GEOMETRY_MASK)) {
-		InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(B->base_data);
-		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(A->base_data);
-
-		InstanceReflectionProbeData::PairInfo pinfo;
-		pinfo.geometry = A;
-		pinfo.L = geom->reflection_probes.push_back(B);
-
-		List<InstanceReflectionProbeData::PairInfo>::Element *E = reflection_probe->geometries.push_back(pinfo);
-
-		geom->reflection_dirty = true;
-
-		return E; //this element should make freeing faster
 	}
 
 	return nullptr;
@@ -362,16 +349,6 @@ void RenderingServerScene::_instance_unpair(void *p_self, SpatialPartitionID, In
 		}
 		geom->lighting_dirty = true;
 
-	} else if (B->base_type == RS::INSTANCE_REFLECTION_PROBE && ((1 << A->base_type) & RS::INSTANCE_GEOMETRY_MASK)) {
-		InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(B->base_data);
-		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(A->base_data);
-
-		List<InstanceReflectionProbeData::PairInfo>::Element *E = reinterpret_cast<List<InstanceReflectionProbeData::PairInfo>::Element *>(udata);
-
-		geom->reflection_probes.erase(E->get().L);
-		reflection_probe->geometries.erase(E);
-
-		geom->reflection_dirty = true;
 	}
 }
 
@@ -385,13 +362,12 @@ RID RenderingServerScene::scenario_create() {
 	scenario->sps->set_pair_callback(_instance_pair, this);
 	scenario->sps->set_unpair_callback(_instance_unpair, this);
 
-	scenario->reflection_probe_shadow_atlas = RSG::scene_render->shadow_atlas_create();
-	RSG::scene_render->shadow_atlas_set_size(scenario->reflection_probe_shadow_atlas, 1024); //make enough shadows for close distance, don't bother with rest
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->reflection_probe_shadow_atlas, 0, 4);
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->reflection_probe_shadow_atlas, 1, 4);
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->reflection_probe_shadow_atlas, 2, 4);
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->reflection_probe_shadow_atlas, 3, 8);
-	scenario->reflection_atlas = RSG::scene_render->reflection_atlas_create();
+	scenario->shadow_atlas = RSG::scene_render->shadow_atlas_create();
+	RSG::scene_render->shadow_atlas_set_size(scenario->shadow_atlas, 1024); //make enough shadows for close distance, don't bother with rest
+	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->shadow_atlas, 0, 4);
+	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->shadow_atlas, 1, 4);
+	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->shadow_atlas, 2, 4);
+	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->shadow_atlas, 3, 8);
 
 	return scenario_rid;
 }
@@ -434,10 +410,6 @@ void RenderingServerScene::scenario_set_fallback_environment(RID p_scenario, RID
 }
 
 void RenderingServerScene::scenario_set_reflection_atlas_size(RID p_scenario, int p_size, int p_subdiv) {
-	Scenario *scenario = scenario_owner.get(p_scenario);
-	ERR_FAIL_COND(!scenario);
-	RSG::scene_render->reflection_atlas_set_size(scenario->reflection_atlas, p_size);
-	RSG::scene_render->reflection_atlas_set_subdivision(scenario->reflection_atlas, p_subdiv);
 }
 
 /* INSTANCING API */
@@ -493,13 +465,6 @@ void RenderingServerScene::instance_set_base(RID p_instance, RID p_base) {
 				}
 				RSG::scene_render->free(light->instance);
 			} break;
-			case RS::INSTANCE_REFLECTION_PROBE: {
-				InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(instance->base_data);
-				RSG::scene_render->free(reflection_probe->instance);
-				if (reflection_probe->update_list.in_list()) {
-					reflection_probe_render_list.remove(&reflection_probe->update_list);
-				}
-			} break;
 			default: {
 			}
 		}
@@ -546,13 +511,6 @@ void RenderingServerScene::instance_set_base(RID p_instance, RID p_base) {
 					instance->blend_values.resize(RSG::storage->mesh_get_blend_shape_count(p_base));
 				}
 			} break;
-			case RS::INSTANCE_REFLECTION_PROBE: {
-				InstanceReflectionProbeData *reflection_probe = memnew(InstanceReflectionProbeData);
-				reflection_probe->owner = instance;
-				instance->base_data = reflection_probe;
-
-				reflection_probe->instance = RSG::scene_render->reflection_probe_instance_create(p_base);
-			} break;
 
 			default: {
 			}
@@ -590,10 +548,6 @@ void RenderingServerScene::instance_set_scenario(RID p_instance, RID p_scenario)
 					instance->scenario->directional_lights.erase(light->D);
 					light->D = nullptr;
 				}
-			} break;
-			case RS::INSTANCE_REFLECTION_PROBE: {
-				InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(instance->base_data);
-				RSG::scene_render->reflection_probe_release_atlas_index(reflection_probe->instance);
 			} break;
 			default: {
 			}
@@ -1022,12 +976,6 @@ void RenderingServerScene::instance_set_visible(RID p_instance, bool p_visible) 
 			}
 
 		} break;
-		case RS::INSTANCE_REFLECTION_PROBE: {
-			if (instance->spatial_partition_id && instance->scenario) {
-				instance->scenario->sps->set_pairable(instance, p_visible, 1 << RS::INSTANCE_REFLECTION_PROBE, p_visible ? RS::INSTANCE_GEOMETRY_MASK : 0);
-			}
-
-		} break;
 		default: {
 			// if we haven't called set_pairable, we STILL need to do a collision check
 			// for activated items because we deferred it earlier in the call to activate.
@@ -1247,13 +1195,6 @@ void RenderingServerScene::_update_instance(Instance *p_instance) {
 		light->shadow_dirty = true;
 	}
 
-	if (p_instance->base_type == RS::INSTANCE_REFLECTION_PROBE) {
-		InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(p_instance->base_data);
-
-		RSG::scene_render->reflection_probe_instance_set_transform(reflection_probe->instance, *instance_xform);
-		reflection_probe->reflection_dirty = true;
-	}
-
 	if (p_instance->aabb.has_no_surface()) {
 		return;
 	}
@@ -1287,7 +1228,7 @@ void RenderingServerScene::_update_instance(Instance *p_instance) {
 		uint32_t pairable_mask = 0;
 		bool pairable = false;
 
-		if (p_instance->base_type == RS::INSTANCE_LIGHT || p_instance->base_type == RS::INSTANCE_REFLECTION_PROBE) {
+		if (p_instance->base_type == RS::INSTANCE_LIGHT) {
 			pairable_mask = p_instance->visible ? RS::INSTANCE_GEOMETRY_MASK : 0;
 			pairable = true;
 		}
@@ -1334,10 +1275,6 @@ void RenderingServerScene::_update_instance_aabb(Instance *p_instance) {
 		} break;
 		case RenderingServer::INSTANCE_LIGHT: {
 			new_aabb = RSG::storage->light_get_aabb(p_instance->base);
-
-		} break;
-		case RenderingServer::INSTANCE_REFLECTION_PROBE: {
-			new_aabb = RSG::storage->reflection_probe_get_aabb(p_instance->base);
 
 		} break;
 		default: {
@@ -1889,7 +1826,7 @@ void RenderingServerScene::render_camera(RID p_camera, RID p_scenario, Size2 p_v
 	Transform camera_transform = _interpolation_data.interpolation_enabled ? camera->get_transform_interpolated() : camera->transform;
 
 	_prepare_scene(camera_transform, camera_matrix, ortho, camera->env, camera->visible_layers, p_scenario, p_shadow_atlas, RID(), camera->previous_room_id_hint);
-	_render_scene(camera_transform, camera_matrix, 0, ortho, camera->env, p_scenario, p_shadow_atlas, RID(), -1);
+	_render_scene(camera_transform, camera_matrix, 0, ortho, camera->env, p_scenario, p_shadow_atlas);
 #endif
 }
 
@@ -1915,8 +1852,6 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 	/* STEP 2 - CULL */
 	instance_cull_count = 0;
 	light_cull_count = 0;
-
-	reflection_probe_cull_count = 0;
 
 	//light_samplers_culled=0;
 
@@ -1954,33 +1889,6 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 					light_cull_count++;
 				}
 			}
-		} else if (ins->base_type == RS::INSTANCE_REFLECTION_PROBE && ins->visible) {
-			if (reflection_probe_cull_count < MAX_REFLECTION_PROBES_CULLED) {
-				InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(ins->base_data);
-
-				if (p_reflection_probe != reflection_probe->instance) {
-					//avoid entering The Matrix
-
-					if (!reflection_probe->geometries.empty()) {
-						//do not add this light if no geometry is affected by it..
-
-						if (reflection_probe->reflection_dirty || RSG::scene_render->reflection_probe_instance_needs_redraw(reflection_probe->instance)) {
-							if (!reflection_probe->update_list.in_list()) {
-								reflection_probe->render_step = 0;
-								reflection_probe_render_list.add_last(&reflection_probe->update_list);
-							}
-
-							reflection_probe->reflection_dirty = false;
-						}
-
-						if (RSG::scene_render->reflection_probe_instance_has_reflection(reflection_probe->instance)) {
-							reflection_probe_instance_cull_result[reflection_probe_cull_count] = reflection_probe->instance;
-							reflection_probe_cull_count++;
-						}
-					}
-				}
-			}
-
 		} else if (((1 << ins->base_type) & RS::INSTANCE_GEOMETRY_MASK) && ins->visible && ins->cast_shadows != RS::SHADOW_CASTING_SETTING_SHADOWS_ONLY) {
 			keep = true;
 
@@ -2004,19 +1912,6 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 				geom->lighting_dirty = false;
 			}
 
-			if (geom->reflection_dirty) {
-				int l = 0;
-				//only called when reflection probe AABB enter/exit this geometry
-				ins->reflection_probe_instances.resize(geom->reflection_probes.size());
-
-				for (List<Instance *>::Element *E = geom->reflection_probes.front(); E; E = E->next()) {
-					InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(E->get()->base_data);
-
-					ins->reflection_probe_instances.write[l++] = reflection_probe->instance;
-				}
-
-				geom->reflection_dirty = false;
-			}
 		}
 
 		if (!keep) {
@@ -2185,7 +2080,7 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 	}
 }
 
-void RenderingServerScene::_render_scene(const Transform p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_orthogonal, RID p_force_environment, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, int p_reflection_probe_pass) {
+void RenderingServerScene::_render_scene(const Transform p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_orthogonal, RID p_force_environment, RID p_scenario, RID p_shadow_atlas) {
 	Scenario *scenario = scenario_owner.getornull(p_scenario);
 
 	/* ENVIRONMENT */
@@ -2201,7 +2096,7 @@ void RenderingServerScene::_render_scene(const Transform p_cam_transform, const 
 
 	/* PROCESS GEOMETRY AND DRAW SCENE */
 
-	RSG::scene_render->render_scene(p_cam_transform, p_cam_projection, p_eye, p_cam_orthogonal, (RasterizerScene::InstanceBase **)instance_cull_result, instance_cull_count, light_instance_cull_result, light_cull_count + directional_light_count, reflection_probe_instance_cull_result, reflection_probe_cull_count, environment, p_shadow_atlas, scenario->reflection_atlas, p_reflection_probe, p_reflection_probe_pass);
+	RSG::scene_render->render_scene(p_cam_transform, p_cam_projection, p_eye, p_cam_orthogonal, (RasterizerScene::InstanceBase **)instance_cull_result, instance_cull_count, light_instance_cull_result, light_cull_count + directional_light_count, p_shadow_atlas);
 }
 
 void RenderingServerScene::render_empty_scene(RID p_scenario, RID p_shadow_atlas) {
@@ -2215,7 +2110,7 @@ void RenderingServerScene::render_empty_scene(RID p_scenario, RID p_shadow_atlas
 	} else {
 		environment = scenario->fallback_environment;
 	}
-	RSG::scene_render->render_scene(Transform(), Projection(), 0, true, nullptr, 0, nullptr, 0, nullptr, 0, environment, p_shadow_atlas, scenario->reflection_atlas, RID(), 0);
+	RSG::scene_render->render_scene(Transform(), Projection(), 0, true, nullptr, 0, nullptr, 0, p_shadow_atlas);
 #endif
 }
 
@@ -2251,8 +2146,7 @@ bool RenderingServerScene::free(RID p_rid) {
 		while (scenario->instances.first()) {
 			instance_set_scenario(scenario->instances.first()->self()->self, RID());
 		}
-		RSG::scene_render->free(scenario->reflection_probe_shadow_atlas);
-		RSG::scene_render->free(scenario->reflection_atlas);
+		RSG::scene_render->free(scenario->shadow_atlas);
 		scenario_owner.free(p_rid);
 		memdelete(scenario);
 

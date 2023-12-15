@@ -53,19 +53,7 @@ public:
 	void light_instance_set_shadow_transform(RID p_light_instance, const Projection &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_bias_scale = 1.0) {}
 	void light_instance_mark_visible(RID p_light_instance) {}
 
-	RID reflection_atlas_create() { return RID(); }
-	void reflection_atlas_set_size(RID p_ref_atlas, int p_size) {}
-	void reflection_atlas_set_subdivision(RID p_ref_atlas, int p_subdiv) {}
-
-	RID reflection_probe_instance_create(RID p_probe) { return RID(); }
-	void reflection_probe_instance_set_transform(RID p_instance, const Transform &p_transform) {}
-	void reflection_probe_release_atlas_index(RID p_instance) {}
-	bool reflection_probe_instance_needs_redraw(RID p_instance) { return false; }
-	bool reflection_probe_instance_has_reflection(RID p_instance) { return false; }
-	bool reflection_probe_instance_begin_render(RID p_instance, RID p_reflection_atlas) { return false; }
-	bool reflection_probe_instance_postprocess_step(RID p_instance) { return true; }
-
-	void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, RID p_environment, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass) {}
+	void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_environment, RID p_shadow_atlas) {}
 	void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) {}
 
 	void set_scene_pass(uint64_t p_pass) {}
@@ -441,38 +429,6 @@ public:
 	float light_get_param(RID p_light, RS::LightParam p_param) { return 0.0; }
 	Color light_get_color(RID p_light) { return Color(); }
 	uint64_t light_get_version(RID p_light) const { return 0; }
-
-	/* PROBE API */
-
-	RID reflection_probe_create() { return RID(); }
-
-	void reflection_probe_set_update_mode(RID p_probe, RS::ReflectionProbeUpdateMode p_mode) {}
-	void reflection_probe_set_intensity(RID p_probe, float p_intensity) {}
-	void reflection_probe_set_interior_ambient(RID p_probe, const Color &p_ambient) {}
-	void reflection_probe_set_interior_ambient_energy(RID p_probe, float p_energy) {}
-	void reflection_probe_set_interior_ambient_probe_contribution(RID p_probe, float p_contrib) {}
-	void reflection_probe_set_max_distance(RID p_probe, float p_distance) {}
-	void reflection_probe_set_extents(RID p_probe, const Vector3 &p_extents) {}
-	void reflection_probe_set_origin_offset(RID p_probe, const Vector3 &p_offset) {}
-	void reflection_probe_set_as_interior(RID p_probe, bool p_enable) {}
-	void reflection_probe_set_enable_box_projection(RID p_probe, bool p_enable) {}
-	void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) {}
-	void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) {}
-	void reflection_probe_set_resolution(RID p_probe, int p_resolution) {}
-
-	AABB reflection_probe_get_aabb(RID p_probe) const { return AABB(); }
-	RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const { return RenderingServer::REFLECTION_PROBE_UPDATE_ONCE; }
-	uint32_t reflection_probe_get_cull_mask(RID p_probe) const { return 0; }
-	Vector3 reflection_probe_get_extents(RID p_probe) const { return Vector3(); }
-	Vector3 reflection_probe_get_origin_offset(RID p_probe) const { return Vector3(); }
-	float reflection_probe_get_origin_max_distance(RID p_probe) const { return 0.0; }
-	bool reflection_probe_renders_shadows(RID p_probe) const { return false; }
-
-	void instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) {}
-	void instance_remove_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) {}
-
-	void instance_add_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance) {}
-	void instance_remove_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance) {}
 
 	/* RENDER TARGET */
 

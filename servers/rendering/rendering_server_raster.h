@@ -305,24 +305,6 @@ public:
 	BIND2(light_directional_set_blend_splits, RID, bool)
 	BIND2(light_directional_set_shadow_depth_range_mode, RID, LightDirectionalShadowDepthRangeMode)
 
-	/* PROBE API */
-
-	BIND0R(RID, reflection_probe_create)
-
-	BIND2(reflection_probe_set_update_mode, RID, ReflectionProbeUpdateMode)
-	BIND2(reflection_probe_set_intensity, RID, float)
-	BIND2(reflection_probe_set_interior_ambient, RID, const Color &)
-	BIND2(reflection_probe_set_interior_ambient_energy, RID, float)
-	BIND2(reflection_probe_set_interior_ambient_probe_contribution, RID, float)
-	BIND2(reflection_probe_set_max_distance, RID, float)
-	BIND2(reflection_probe_set_extents, RID, const Vector3 &)
-	BIND2(reflection_probe_set_origin_offset, RID, const Vector3 &)
-	BIND2(reflection_probe_set_as_interior, RID, bool)
-	BIND2(reflection_probe_set_enable_box_projection, RID, bool)
-	BIND2(reflection_probe_set_enable_shadows, RID, bool)
-	BIND2(reflection_probe_set_cull_mask, RID, uint32_t)
-	BIND2(reflection_probe_set_resolution, RID, int)
-
 #undef BINDBASE
 //from now on, calls forwarded to this singleton
 #define BINDBASE RSG::scene
