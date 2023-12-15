@@ -571,10 +571,6 @@ public:
 	virtual Rect2 _debug_canvas_item_get_rect(RID p_item) = 0;
 	virtual Rect2 _debug_canvas_item_get_local_bound(RID p_item) = 0;
 
-	virtual void canvas_item_set_interpolated(RID p_item, bool p_interpolated) = 0;
-	virtual void canvas_item_reset_physics_interpolation(RID p_item) = 0;
-	virtual void canvas_item_transform_physics_interpolation(RID p_item, Transform2D p_transform) = 0;
-
 	/* BLACK BARS */
 
 	virtual void black_bars_set_margins(int p_left, int p_top, int p_right, int p_bottom) = 0;

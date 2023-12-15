@@ -32,8 +32,8 @@
 
 #include "core/config/engine.h"
 #include "core/math/math_funcs.h"
-#include "scene/main/viewport.h"
 #include "scene/main/scene_string_names.h"
+#include "scene/main/viewport.h"
 #include "servers/rendering_server.h"
 
 void Camera2D::_update_scroll() {
@@ -52,12 +52,7 @@ void Camera2D::_update_scroll() {
 	if (is_current()) {
 		ERR_FAIL_COND(custom_viewport && !ObjectDB::get_instance(custom_viewport_id));
 
-		Transform2D xform;
-		if (is_physics_interpolated_and_enabled()) {
-			xform = _interpolation_data.xform_prev.interpolate_with(_interpolation_data.xform_curr, Engine::get_singleton()->get_physics_interpolation_fraction());
-		} else {
-			xform = get_camera_transform();
-		}
+		Transform2D xform = get_camera_transform();
 		viewport->set_canvas_transform(xform);
 
 		Size2 screen_size = viewport->get_visible_rect().size;
@@ -68,24 +63,13 @@ void Camera2D::_update_scroll() {
 }
 
 void Camera2D::_update_process_mode() {
-	if (is_physics_interpolated_and_enabled()) {
-		set_process_internal(is_current());
-		set_physics_process_internal(is_current());
-
-#ifdef TOOLS_ENABLED
-		if (process_mode == CAMERA2D_PROCESS_IDLE) {
-			WARN_PRINT_ONCE("Camera2D overridden to physics process mode due to use of physics interpolation.");
-		}
-#endif
+	// Smoothing can be enabled in the editor but will never be active.
+	if (process_mode == CAMERA2D_PROCESS_IDLE) {
+		set_process_internal(smoothing_active);
+		set_physics_process_internal(false);
 	} else {
-		// Smoothing can be enabled in the editor but will never be active.
-		if (process_mode == CAMERA2D_PROCESS_IDLE) {
-			set_process_internal(smoothing_active);
-			set_physics_process_internal(false);
-		} else {
-			set_process_internal(false);
-			set_physics_process_internal(smoothing_active);
-		}
+		set_process_internal(false);
+		set_physics_process_internal(smoothing_active);
 	}
 }
 
@@ -200,7 +184,7 @@ Transform2D Camera2D::get_camera_transform() {
 		if (smoothing_active) {
 			// Note that if we are using physics interpolation,
 			// processing will always be physics based (it ignores the process mode set in the UI).
-			bool physics_process = (process_mode == CAMERA2D_PROCESS_PHYSICS) || is_physics_interpolated_and_enabled();
+			bool physics_process = process_mode == CAMERA2D_PROCESS_PHYSICS;
 			float delta = physics_process ? get_physics_process_delta_time() : get_process_delta_time();
 			float c = smoothing * delta;
 			smoothed_camera_pos = ((camera_pos - smoothed_camera_pos) * c) + smoothed_camera_pos;
@@ -257,23 +241,6 @@ Transform2D Camera2D::get_camera_transform() {
 	return (xform).affine_inverse();
 }
 
-void Camera2D::_ensure_update_interpolation_data() {
-	// The curr -> previous update can either occur
-	// on the INTERNAL_PHYSICS_PROCESS OR
-	// on NOTIFICATION_TRANSFORM_CHANGED,
-	// if NOTIFICATION_TRANSFORM_CHANGED takes place
-	// earlier than INTERNAL_PHYSICS_PROCESS on a tick.
-	// This is to ensure that the data keeps flowing, but the new data
-	// doesn't overwrite before prev has been set.
-
-	// Keep the data flowing.
-	uint64_t tick = Engine::get_singleton()->get_physics_frames();
-	if (_interpolation_data.last_update_physics_tick != tick) {
-		_interpolation_data.xform_prev = _interpolation_data.xform_curr;
-		_interpolation_data.last_update_physics_tick = tick;
-	}
-}
-
 void Camera2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_INTERNAL_PROCESS: {
@@ -281,28 +248,11 @@ void Camera2D::_notification(int p_what) {
 
 		} break;
 		case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
-			if (is_physics_interpolated_and_enabled()) {
-				_ensure_update_interpolation_data();
-				_interpolation_data.xform_curr = get_camera_transform();
-			} else {
-				_update_scroll();
-			}
-		} break;
-		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
-			// Force the limits etc to update.
-			_interpolation_data.xform_curr = get_camera_transform();
-			_interpolation_data.xform_prev = _interpolation_data.xform_curr;
+			_update_scroll();
 		} break;
 		case NOTIFICATION_TRANSFORM_CHANGED: {
-			if (!smoothing_active && !is_physics_interpolated_and_enabled()) {
+			if (!smoothing_active) {
 				_update_scroll();
-			}
-
-			if (is_physics_interpolated_and_enabled()) {
-				_ensure_update_interpolation_data();
-				if (Engine::get_singleton()->is_in_physics_frame()) {
-					_interpolation_data.xform_curr = get_camera_transform();
-				}
 			}
 		} break;
 		case NOTIFICATION_ENTER_TREE: {
@@ -314,15 +264,6 @@ void Camera2D::_notification(int p_what) {
 
 			if (!Engine::get_singleton()->is_editor_hint() && enabled && !viewport->get_camera_2d()) {
 				make_current();
-			}
-
-			// Note that NOTIFICATION_RESET_PHYSICS_INTERPOLATION
-			// is automatically called before this because Camera2D is inherited
-			// from CanvasItem. However, the camera transform is not up to date
-			// until this point, so we do an extra manual reset.
-			if (is_physics_interpolated_and_enabled()) {
-				_interpolation_data.xform_curr = get_camera_transform();
-				_interpolation_data.xform_prev = _interpolation_data.xform_curr;
 			}
 
 			first = true;

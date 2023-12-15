@@ -583,10 +583,6 @@ void CanvasItem::_exit_canvas() {
 	}
 }
 
-void CanvasItem::_physics_interpolated_changed() {
-	RenderingServer::get_singleton()->canvas_item_set_interpolated(canvas_item, is_physics_interpolated());
-}
-
 void CanvasItem::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
@@ -603,19 +599,6 @@ void CanvasItem::_notification(int p_what) {
 			_enter_canvas();
 			if (!block_transform_notify && !xform_change.in_list()) {
 				get_tree()->xform_change_list.add(&xform_change);
-			}
-
-			// If using physics interpolation, reset for this node only,
-			// as a helper, as in most cases, users will want items reset when
-			// adding to the tree.
-			// In cases where they move immediately after adding,
-			// there will be little cost in having two resets as these are cheap,
-			// and it is worth it for convenience.
-			// Do not propagate to children, as each child of an added branch
-			// receives its own NOTIFICATION_ENTER_TREE, and this would
-			// cause unnecessary duplicate resets.
-			if (is_physics_interpolated_and_enabled()) {
-				notification(NOTIFICATION_RESET_PHYSICS_INTERPOLATION);
 			}
 
 			if (get_viewport()) {
@@ -635,11 +618,6 @@ void CanvasItem::_notification(int p_what) {
 
 			if (get_viewport()) {
 				get_parent()->disconnect(SceneStringNames::get_singleton()->child_order_changed, get_viewport(), SceneStringNames::get_singleton()->canvas_parent_mark_dirty);
-			}
-		} break;
-		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
-			if (is_visible_in_tree() && is_physics_interpolated()) {
-				RenderingServer::get_singleton()->canvas_item_reset_physics_interpolation(canvas_item);
 			}
 		} break;
 		case NOTIFICATION_DRAW:

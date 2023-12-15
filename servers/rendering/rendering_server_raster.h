@@ -387,10 +387,6 @@ public:
 	BIND1R(Rect2, _debug_canvas_item_get_rect, RID)
 	BIND1R(Rect2, _debug_canvas_item_get_local_bound, RID)
 
-	BIND2(canvas_item_set_interpolated, RID, bool)
-	BIND1(canvas_item_reset_physics_interpolation, RID)
-	BIND2(canvas_item_transform_physics_interpolation, RID, Transform2D)
-
 	/* BLACK BARS */
 
 	virtual void black_bars_set_margins(int p_left, int p_top, int p_right, int p_bottom);

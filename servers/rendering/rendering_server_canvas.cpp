@@ -1565,26 +1565,6 @@ void RenderingServerCanvas::canvas_item_set_skeleton_relative_xform(RID p_item, 
 	}
 }
 
-// Useful especially for origin shifting.
-void RenderingServerCanvas::canvas_item_transform_physics_interpolation(RID p_item, Transform2D p_transform) {
-	Item *canvas_item = canvas_item_owner.getornull(p_item);
-	ERR_FAIL_COND(!canvas_item);
-	canvas_item->xform_prev = p_transform * canvas_item->xform_prev;
-	canvas_item->xform_curr = p_transform * canvas_item->xform_curr;
-}
-
-void RenderingServerCanvas::canvas_item_reset_physics_interpolation(RID p_item) {
-	Item *canvas_item = canvas_item_owner.getornull(p_item);
-	ERR_FAIL_COND(!canvas_item);
-	canvas_item->xform_prev = canvas_item->xform_curr;
-}
-
-void RenderingServerCanvas::canvas_item_set_interpolated(RID p_item, bool p_interpolated) {
-	Item *canvas_item = canvas_item_owner.getornull(p_item);
-	ERR_FAIL_COND(!canvas_item);
-	canvas_item->interpolated = p_interpolated;
-}
-
 void RenderingServerCanvas::canvas_item_attach_skeleton(RID p_item, RID p_skeleton) {
 }
 

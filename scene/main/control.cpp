@@ -3077,8 +3077,6 @@ Control::Control() {
 	data.modal_prev_focus_owner = ObjectID();
 	data.shortcut_context = ObjectID();
 	data.shortcut_context_path_cache = ObjectID();
-
-	set_physics_interpolation_mode(Node::PHYSICS_INTERPOLATION_MODE_OFF);
 }
 
 Control::~Control() {

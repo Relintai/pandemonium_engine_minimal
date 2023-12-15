@@ -1092,14 +1092,15 @@ void CPUParticles2D::_refresh_interpolation_state() {
 	if (!is_inside_tree()) {
 		return;
 	}
-	bool interpolated = is_physics_interpolated_and_enabled();
+
+	bool interpolated = false;
 
 	// The logic for whether to do an interpolated follow.
 	// This is rather complex, but basically:
 	// If project setting interpolation is ON but this particle system is switched OFF,
 	// and in global mode, we will follow the INTERPOLATED position rather than the actual position.
 	// This is so that particles aren't generated AHEAD of the interpolated parent.
-	bool follow = !interpolated && !local_coords && get_tree()->is_physics_interpolation_enabled();
+	bool follow = !interpolated && !local_coords;
 
 	if ((_interpolated == interpolated) && (follow == _interpolation_data.interpolated_follow)) {
 		return;
@@ -1179,13 +1180,6 @@ void CPUParticles2D::_notification(int p_what) {
 		// If we don't do this, it may be an entire tick before the first update happens.
 		if (_interpolated) {
 			_update_internal(true);
-		}
-
-		// If we are interpolated following, then reset physics interpolation
-		// when first appearing. This won't be called by canvas item, as in
-		// following mode, is_interpolated() is actually FALSE.
-		if (_interpolation_data.interpolated_follow) {
-			notification(NOTIFICATION_RESET_PHYSICS_INTERPOLATION);
 		}
 	}
 
@@ -1270,11 +1264,6 @@ void CPUParticles2D::_notification(int p_what) {
 				_interpolation_data.global_xform_curr = get_global_transform();
 			}
 		}
-	}
-	if (p_what == NOTIFICATION_RESET_PHYSICS_INTERPOLATION) {
-		// Make sure current is up to date with any pending global transform changes.
-		_interpolation_data.global_xform_curr = get_global_transform_const();
-		_interpolation_data.global_xform_prev = _interpolation_data.global_xform_curr;
 	}
 #endif
 }
@@ -1546,12 +1535,6 @@ CPUParticles2D::CPUParticles2D() {
 	set_color(Color(1, 1, 1, 1));
 
 	_update_mesh_texture();
-
-	// CPUParticles2D defaults to interpolation off.
-	// This is because the result often looks better when the particles are updated every frame.
-	// Note that children will need to explicitly turn back on interpolation if they want to use it,
-	// rather than relying on inherit mode.
-	set_physics_interpolation_mode(Node::PHYSICS_INTERPOLATION_MODE_OFF);
 }
 
 CPUParticles2D::~CPUParticles2D() {

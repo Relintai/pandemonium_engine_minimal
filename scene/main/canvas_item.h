@@ -214,7 +214,6 @@ private:
 	void _exit_canvas();
 
 	void _notify_transform(CanvasItem *p_node);
-	virtual void _physics_interpolated_changed();
 
 	static CanvasItem *current_item_drawn;
 

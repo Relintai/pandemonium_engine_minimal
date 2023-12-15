@@ -41,23 +41,22 @@
 #include "core/string/print_string.h"
 #include "core/variant/variant_parser.h"
 #include "main/input_default.h"
+#include "modules/modules_enabled.gen.h" // For freetype.
 #include "node.h"
 #include "scene/animation/scene_tree_tween.h"
 #include "scene/debugger/script_debugger_remote.h"
 #include "scene/main/control.h"
+#include "scene/main/scene_string_names.h"
 #include "scene/resources/font/dynamic_font.h"
 #include "scene/resources/material/material.h"
 #include "scene/resources/material/shader_material.h"
 #include "scene/resources/mesh/mesh.h"
 #include "scene/resources/packed_scene.h"
-#include "scene/main/scene_string_names.h"
+#include "scene/resources/world_2d.h"
 #include "servers/audio_server.h"
 #include "servers/navigation_server.h"
 #include "servers/physics_2d_server.h"
 #include "viewport.h"
-#include "modules/modules_enabled.gen.h" // For freetype.
-#include "scene/resources/mesh/mesh.h"
-#include "scene/resources/world_2d.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -549,39 +548,7 @@ void SceneTree::init() {
 	MainLoop::init();
 }
 
-void SceneTree::set_physics_interpolation_enabled(bool p_enabled) {
-	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "set_physics_interpolation_enabled can only be set from the main thread.");
-
-	// disallow interpolation in editor
-	if (Engine::get_singleton()->is_editor_hint()) {
-		p_enabled = false;
-	}
-
-	if (p_enabled == _physics_interpolation_enabled) {
-		return;
-	}
-
-	_physics_interpolation_enabled = p_enabled;
-
-	RenderingServer::get_singleton()->set_physics_interpolation_enabled(p_enabled);
-}
-
-bool SceneTree::is_physics_interpolation_enabled() const {
-	return _physics_interpolation_enabled;
-}
-
 void SceneTree::iteration_prepare() {
-	if (_physics_interpolation_enabled) {
-		RenderingServer::get_singleton()->tick();
-	}
-}
-
-void SceneTree::iteration_end() {
-	// When physics interpolation is active, we want all pending transforms
-	// to be flushed to the RenderingServer before finishing a physics tick.
-	if (_physics_interpolation_enabled) {
-		flush_transform_notifications();
-	}
 }
 
 bool SceneTree::iteration(float p_time) {
@@ -621,6 +588,9 @@ bool SceneTree::iteration(float p_time) {
 	_call_idle_callbacks();
 
 	return _quit;
+}
+
+void SceneTree::iteration_end() {
 }
 
 void SceneTree::_update_font_oversampling(float p_ratio) {
@@ -750,10 +720,6 @@ bool SceneTree::idle(float p_time) {
 	}
 
 #endif
-
-	if (_physics_interpolation_enabled) {
-		RenderingServer::get_singleton()->pre_draw(true);
-	}
 
 	return _quit;
 }
@@ -1800,9 +1766,6 @@ void SceneTree::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_screen_stretch", "mode", "aspect", "minsize", "scale"), &SceneTree::set_screen_stretch, DEFVAL(1));
 
-	ClassDB::bind_method(D_METHOD("set_physics_interpolation_enabled", "enabled"), &SceneTree::set_physics_interpolation_enabled);
-	ClassDB::bind_method(D_METHOD("is_physics_interpolation_enabled"), &SceneTree::is_physics_interpolation_enabled);
-
 	ClassDB::bind_method(D_METHOD("queue_delete", "obj"), &SceneTree::queue_delete);
 
 	MethodInfo mi;
@@ -2013,21 +1976,12 @@ SceneTree::SceneTree() {
 	call_lock = 0;
 	root_lock = 0;
 	node_count = 0;
-	_physics_interpolation_enabled = false;
 
 	//create with mainloop
 
 	root = memnew(Viewport);
 	root->set_name("root");
 	root->set_handle_input_locally(false);
-
-	set_physics_interpolation_enabled(GLOBAL_DEF("physics/common/physics_interpolation", false));
-	// Always disable jitter fix if physics interpolation is enabled -
-	// Jitter fix will interfere with interpolation, and is not necessary
-	// when interpolation is active.
-	if (is_physics_interpolation_enabled()) {
-		Engine::get_singleton()->set_physics_jitter_fix(0);
-	}
 
 	// Initialize network state
 	multiplayer_poll = true;

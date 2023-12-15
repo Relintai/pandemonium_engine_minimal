@@ -241,10 +241,6 @@ public:
 	Rect2 _debug_canvas_item_get_rect(RID p_item);
 	Rect2 _debug_canvas_item_get_local_bound(RID p_item);
 
-	void canvas_item_set_interpolated(RID p_item, bool p_interpolated);
-	void canvas_item_reset_physics_interpolation(RID p_item);
-	void canvas_item_transform_physics_interpolation(RID p_item, Transform2D p_transform);
-
 	void _canvas_item_invalidate_local_bound(RID p_item);
 	void _canvas_item_remove_references(RID p_item, RID p_rid);
 

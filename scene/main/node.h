@@ -142,7 +142,6 @@ private:
 
 		// Keep bitpacked values together to get better packing
 		PauseMode pause_mode : 2;
-		PhysicsInterpolationMode physics_interpolation_mode : 2;
 
 		// variables used to properly sort the node when processing, ignored otherwise
 		//should move all the stuff below to bits
@@ -162,21 +161,6 @@ private:
 
 		bool process_group_physics_process_internal : 1;
 		bool process_group_idle_process_internal : 1;
-
-		// Physics interpolation can be turned on and off on a per node basis.
-		// This only takes effect when the SceneTree (or project setting) physics interpolation
-		// is switched on.
-		bool physics_interpolated : 1;
-
-		// We can auto-reset physics interpolation when e.g. adding a node for the first time
-		bool physics_interpolation_reset_requested : 1;
-
-		// Most nodes need not be interpolated in the scene tree, physics interpolation
-		// is normally only needed in the RenderingServer. However if we need to read the
-		// interpolated transform of a node in the SceneTree, it is necessary to duplicate
-		// the interpolation logic client side, in order to prevent stalling the RenderingServer
-		// by reading back.
-		bool physics_interpolated_client_side : 1;
 
 		// For certain nodes (e.g. CPU Particles in global mode)
 		// It can be useful to not send the instance transform to the
@@ -216,7 +200,6 @@ private:
 	void _propagate_ready();
 	void _propagate_exit_tree();
 	void _propagate_after_exit_branch(bool p_exiting_tree);
-	void _propagate_physics_interpolated(bool p_interpolated);
 	void _propagate_physics_interpolation_reset_requested();
 	void _print_stray_nodes();
 	void _propagate_pause_owner(Node *p_owner);
@@ -269,8 +252,6 @@ protected:
 	virtual void _name_changed_notify();
 #endif
 
-	virtual void _physics_interpolated_changed();
-
 	void _propagate_replace_owner(Node *p_owner, Node *p_by_owner);
 
 	static void _bind_methods();
@@ -281,21 +262,6 @@ protected:
 	void _add_child_nocheck(Node *p_child, const StringName &p_name);
 	void _set_owner_nocheck(Node *p_owner);
 	void _set_name_nocheck(const StringName &p_name);
-
-	void set_physics_interpolation_mode(PhysicsInterpolationMode p_mode);
-	PhysicsInterpolationMode get_physics_interpolation_mode() const {
-		return data.physics_interpolation_mode;
-	}
-
-	void _set_physics_interpolated_client_side(bool p_enable);
-	bool _is_physics_interpolated_client_side() const {
-		return data.physics_interpolated_client_side;
-	}
-
-	void _set_physics_interpolation_reset_requested(bool p_enable);
-	bool _is_physics_interpolation_reset_requested() const {
-		return data.physics_interpolation_reset_requested;
-	}
 
 	void _set_use_identity_transform(bool p_enable);
 	bool _is_using_identity_transform() const {
@@ -324,7 +290,6 @@ public:
 		NOTIFICATION_INTERNAL_PROCESS = 25,
 		NOTIFICATION_INTERNAL_PHYSICS_PROCESS = 26,
 		NOTIFICATION_POST_ENTER_TREE = 27,
-		NOTIFICATION_RESET_PHYSICS_INTERPOLATION = 28,
 		//keep these linked to node
 		NOTIFICATION_WM_MOUSE_ENTER = MainLoop::NOTIFICATION_WM_MOUSE_ENTER,
 		NOTIFICATION_WM_MOUSE_EXIT = MainLoop::NOTIFICATION_WM_MOUSE_EXIT,
@@ -535,15 +500,6 @@ public:
 	PauseMode get_pause_mode() const;
 	bool can_process() const;
 	bool can_process_notification(int p_what) const;
-
-	void set_physics_interpolated(bool p_interpolated);
-	_FORCE_INLINE_ bool is_physics_interpolated() const {
-		return data.physics_interpolated;
-	}
-	_FORCE_INLINE_ bool is_physics_interpolated_and_enabled() const {
-		return is_inside_tree() && get_tree()->is_physics_interpolation_enabled() && is_physics_interpolated();
-	}
-	void reset_physics_interpolation();
 
 	void request_ready();
 

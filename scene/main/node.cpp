@@ -102,14 +102,6 @@ void Node::_notification(int p_notification) {
 				data.pause_owner = this;
 			}
 
-			if (data.physics_interpolation_mode == PHYSICS_INTERPOLATION_MODE_INHERIT) {
-				bool interpolate = true; // Root node default is for interpolation to be on
-				if (data.parent) {
-					interpolate = data.parent->is_physics_interpolated();
-				}
-				_propagate_physics_interpolated(interpolate);
-			}
-
 			if (get_process_group()) {
 				if (data.process_group_physics_process) {
 					get_process_group()->register_node_physics_process(this);
@@ -285,48 +277,6 @@ void Node::_propagate_ready() {
 		notification(NOTIFICATION_READY);
 		emit_signal(SceneStringNames::get_singleton()->ready);
 	}
-}
-
-void Node::_propagate_physics_interpolated(bool p_interpolated) {
-	switch (data.physics_interpolation_mode) {
-		case PHYSICS_INTERPOLATION_MODE_INHERIT:
-			// keep the parent p_interpolated
-			break;
-		case PHYSICS_INTERPOLATION_MODE_OFF: {
-			p_interpolated = false;
-		} break;
-		case PHYSICS_INTERPOLATION_MODE_ON: {
-			p_interpolated = true;
-		} break;
-	}
-
-	// no change? no need to propagate further
-	if (data.physics_interpolated == p_interpolated) {
-		return;
-	}
-
-	data.physics_interpolated = p_interpolated;
-
-	// allow a call to the RenderingServer etc in derived classes
-	_physics_interpolated_changed();
-
-	data.blocked++;
-	for (HashMap<StringName, Node *>::Element *E = data.children.front(); E; E = E->next) {
-		E->value()->_propagate_physics_interpolated(p_interpolated);
-	}
-	data.blocked--;
-}
-
-void Node::_propagate_physics_interpolation_reset_requested() {
-	if (is_physics_interpolated()) {
-		data.physics_interpolation_reset_requested = true;
-	}
-
-	data.blocked++;
-	for (HashMap<StringName, Node *>::Element *E = data.children.front(); E; E = E->next) {
-		E->value()->_propagate_physics_interpolation_reset_requested();
-	}
-	data.blocked--;
 }
 
 void Node::_propagate_enter_tree() {
@@ -539,8 +489,6 @@ void Node::move_child_notify(Node *p_child) {
 
 void Node::owner_changed_notify() {
 }
-
-void Node::_physics_interpolated_changed() {}
 
 void Node::set_physics_process(bool p_process) {
 	if (data.physics_process == p_process) {
@@ -1128,42 +1076,6 @@ bool Node::can_process() const {
 	return true;
 }
 
-void Node::set_physics_interpolation_mode(PhysicsInterpolationMode p_mode) {
-	if (data.physics_interpolation_mode == p_mode) {
-		return;
-	}
-
-	data.physics_interpolation_mode = p_mode;
-
-	bool interpolate = true; // default for root node
-
-	switch (p_mode) {
-		case PHYSICS_INTERPOLATION_MODE_INHERIT: {
-			if (is_inside_tree() && data.parent) {
-				interpolate = data.parent->is_physics_interpolated();
-			}
-		} break;
-		case PHYSICS_INTERPOLATION_MODE_OFF: {
-			interpolate = false;
-		} break;
-		case PHYSICS_INTERPOLATION_MODE_ON: {
-			interpolate = true;
-		} break;
-	}
-
-	// if swapping from interpolated to non-interpolated, use this as
-	// an extra means to cause a reset
-	if (is_physics_interpolated() && !interpolate) {
-		reset_physics_interpolation();
-	}
-
-	_propagate_physics_interpolated(interpolate);
-}
-
-void Node::reset_physics_interpolation() {
-	propagate_notification(NOTIFICATION_RESET_PHYSICS_INTERPOLATION);
-}
-
 float Node::get_physics_process_delta_time() const {
 	if (data.tree) {
 		return data.tree->get_physics_process_time();
@@ -1443,14 +1355,6 @@ bool Node::is_processing_unhandled_key_input() const {
 	return data.unhandled_key_input;
 }
 
-void Node::_set_physics_interpolated_client_side(bool p_enable) {
-	data.physics_interpolated_client_side = p_enable;
-}
-
-void Node::_set_physics_interpolation_reset_requested(bool p_enable) {
-	data.physics_interpolation_reset_requested = p_enable;
-}
-
 void Node::_set_use_identity_transform(bool p_enable) {
 	data.use_identity_transform = p_enable;
 }
@@ -1703,12 +1607,6 @@ void Node::_add_child_nocheck(Node *p_child, const StringName &p_name) {
 	add_child_notify(p_child);
 	notification(NOTIFICATION_CHILD_ORDER_CHANGED);
 	emit_signal(SceneStringNames::get_singleton()->child_order_changed);
-
-	// Allow physics interpolated nodes to automatically reset when added to the tree
-	// (this is to save the user doing this manually each time)
-	if (is_inside_tree() && get_tree()->is_physics_interpolation_enabled()) {
-		p_child->_propagate_physics_interpolation_reset_requested();
-	}
 }
 
 void Node::add_child(Node *p_child, bool p_force_readable_name) {
@@ -3523,12 +3421,6 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_physics_process_internal", "enable"), &Node::set_physics_process_internal);
 	ClassDB::bind_method(D_METHOD("is_physics_processing_internal"), &Node::is_physics_processing_internal);
 
-	ClassDB::bind_method(D_METHOD("set_physics_interpolation_mode", "mode"), &Node::set_physics_interpolation_mode);
-	ClassDB::bind_method(D_METHOD("get_physics_interpolation_mode"), &Node::get_physics_interpolation_mode);
-	ClassDB::bind_method(D_METHOD("is_physics_interpolated"), &Node::is_physics_interpolated);
-	ClassDB::bind_method(D_METHOD("is_physics_interpolated_and_enabled"), &Node::is_physics_interpolated_and_enabled);
-	ClassDB::bind_method(D_METHOD("reset_physics_interpolation"), &Node::reset_physics_interpolation);
-
 	ClassDB::bind_method(D_METHOD("get_tree"), &Node::get_tree);
 	ClassDB::bind_method(D_METHOD("create_tween"), &Node::create_tween);
 
@@ -3630,7 +3522,6 @@ void Node::_bind_methods() {
 	BIND_CONSTANT(NOTIFICATION_INTERNAL_PROCESS);
 	BIND_CONSTANT(NOTIFICATION_INTERNAL_PHYSICS_PROCESS);
 	BIND_CONSTANT(NOTIFICATION_POST_ENTER_TREE);
-	BIND_CONSTANT(NOTIFICATION_RESET_PHYSICS_INTERPOLATION);
 
 	BIND_CONSTANT(NOTIFICATION_EDITOR_PRE_SAVE);
 	BIND_CONSTANT(NOTIFICATION_EDITOR_POST_SAVE);
@@ -3673,8 +3564,6 @@ void Node::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("child_order_changed"));
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "pause_mode", PROPERTY_HINT_ENUM, "Inherit,Stop,Process"), "set_pause_mode", "get_pause_mode");
-
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "physics_interpolation_mode", PROPERTY_HINT_ENUM, "Inherit,Off,On"), "set_physics_interpolation_mode", "get_physics_interpolation_mode");
 
 #ifdef ENABLE_DEPRECATED
 	//no longer exists, but remains for compatibility (keep previous scenes folded
@@ -3734,9 +3623,6 @@ Node::Node() {
 	data.process_group_idle_process_internal = false;
 	data.inside_tree = false;
 	data.ready_notified = false;
-	data.physics_interpolated = true;
-	data.physics_interpolation_reset_requested = false;
-	data.physics_interpolated_client_side = false;
 	data.use_identity_transform = false;
 
 	data.owner = nullptr;
@@ -3746,7 +3632,6 @@ Node::Node() {
 	data.unhandled_input = false;
 	data.unhandled_key_input = false;
 	data.pause_mode = PAUSE_MODE_INHERIT;
-	data.physics_interpolation_mode = PHYSICS_INTERPOLATION_MODE_INHERIT;
 	data.pause_owner = nullptr;
 	data.network_master = 1; //server by default
 	data.path_cache = nullptr;
