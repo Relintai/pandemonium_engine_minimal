@@ -338,7 +338,7 @@ def configure(env):
 
     if os.system("pkg-config --exists alsa") == 0:  # 0 means found
         env["alsa"] = True
-        env.Append(CPPDEFINES=["ALSA_ENABLED", "ALSAMIDI_ENABLED"])
+        env.Append(CPPDEFINES=["ALSA_ENABLED"])
         env.ParseConfig("pkg-config alsa --cflags")  # Only cflags, we dlopen the library.
     else:
         print("Warning: ALSA libraries not found. Disabling the ALSA audio driver.")

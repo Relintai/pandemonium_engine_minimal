@@ -821,9 +821,6 @@ void OS_X11::finalize() {
 		memdelete(debugger_connection_console);
 	}
 	*/
-#ifdef ALSAMIDI_ENABLED
-	driver_alsamidi.close();
-#endif
 
 #ifdef JOYDEV_ENABLED
 	memdelete(joypad);
