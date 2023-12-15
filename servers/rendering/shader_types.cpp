@@ -120,29 +120,5 @@ ShaderTypes::ShaderTypes() {
 	shader_modes[RS::SHADER_CANVAS_ITEM].modes.push_back("unshaded");
 	shader_modes[RS::SHADER_CANVAS_ITEM].modes.push_back("light_only");
 
-	/************ PARTICLES **************************/
-
-	shader_modes[RS::SHADER_PARTICLES].functions["global"].built_ins["TIME"] = constt(ShaderLanguage::TYPE_FLOAT);
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["COLOR"] = ShaderLanguage::TYPE_VEC4;
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["VELOCITY"] = ShaderLanguage::TYPE_VEC3;
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["MASS"] = ShaderLanguage::TYPE_FLOAT;
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["ACTIVE"] = ShaderLanguage::TYPE_BOOL;
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["RESTART"] = constt(ShaderLanguage::TYPE_BOOL);
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["CUSTOM"] = ShaderLanguage::TYPE_VEC4;
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["TRANSFORM"] = ShaderLanguage::TYPE_MAT4;
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["LIFETIME"] = constt(ShaderLanguage::TYPE_FLOAT);
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["DELTA"] = constt(ShaderLanguage::TYPE_FLOAT);
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["NUMBER"] = constt(ShaderLanguage::TYPE_UINT);
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["INDEX"] = constt(ShaderLanguage::TYPE_INT);
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["EMISSION_TRANSFORM"] = constt(ShaderLanguage::TYPE_MAT4);
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].built_ins["RANDOM_SEED"] = constt(ShaderLanguage::TYPE_UINT);
-	shader_modes[RS::SHADER_PARTICLES].functions["vertex"].main_function = true;
-
-	shader_modes[RS::SHADER_PARTICLES].modes.push_back("disable_force");
-	shader_modes[RS::SHADER_PARTICLES].modes.push_back("disable_velocity");
-	shader_modes[RS::SHADER_PARTICLES].modes.push_back("keep_data");
-
-	shader_types.insert("spatial");
 	shader_types.insert("canvas_item");
-	shader_types.insert("particles");
 }

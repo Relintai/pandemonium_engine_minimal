@@ -180,7 +180,6 @@ public:
 
 	enum ShaderMode {
 		SHADER_CANVAS_ITEM,
-		SHADER_PARTICLES,
 		SHADER_MAX
 	};
 

@@ -1180,11 +1180,7 @@ void RasterizerStorageGLES2::shader_set_code(RID p_shader, const String &p_code)
 	String mode_string = ShaderLanguage::get_shader_type(p_code);
 	RS::ShaderMode mode;
 
-	if (mode_string == "particles") {
-		mode = RS::SHADER_PARTICLES;
-	} else {
-		mode = RS::SHADER_CANVAS_ITEM;
-	}
+	mode = RS::SHADER_CANVAS_ITEM;
 
 	if (shader->custom_code_id && mode != shader->mode) {
 		shader->shader->free_custom_shader(shader->custom_code_id);
