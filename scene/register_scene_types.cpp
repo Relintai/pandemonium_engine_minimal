@@ -190,14 +190,10 @@
 #include "scene/3d/multimesh_instance.h"
 #include "scene/3d/occluder.h"
 #include "scene/3d/path.h"
-#include "scene/3d/portal.h"
 #include "scene/3d/position_3d.h"
 #include "scene/3d/proximity_group.h"
 #include "scene/3d/reflection_probe.h"
 #include "scene/3d/remote_transform.h"
-#include "scene/3d/room.h"
-#include "scene/3d/room_group.h"
-#include "scene/3d/room_manager.h"
 #include "scene/3d/spatial_velocity_tracker.h"
 #include "scene/3d/sprite_3d.h"
 #include "scene/3d/visibility_notifier.h"
@@ -429,11 +425,7 @@ void register_scene_types() {
 	ClassDB::register_class<CPUParticles>();
 	ClassDB::register_class<Position3D>();
 	ClassDB::register_class<NavigationMesh>();
-	ClassDB::register_class<Room>();
-	ClassDB::register_class<RoomGroup>();
-	ClassDB::register_class<RoomManager>();
 	ClassDB::register_class<Occluder>();
-	ClassDB::register_class<Portal>();
 
 	ClassDB::register_class<RootMotionView>();
 	ClassDB::set_class_enabled("RootMotionView", false); //disabled by default, enabled by editor
