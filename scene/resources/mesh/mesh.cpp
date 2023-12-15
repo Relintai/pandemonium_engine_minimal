@@ -38,8 +38,6 @@
 
 #include <stdlib.h>
 
-Mesh::ConvexDecompositionFunc Mesh::convex_decomposition_function = nullptr;
-
 Ref<TriangleMesh> Mesh::generate_triangle_mesh() const {
 	if (triangle_mesh.is_valid()) {
 		return triangle_mesh;
