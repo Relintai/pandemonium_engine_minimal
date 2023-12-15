@@ -49,7 +49,6 @@
 #include "core/string/translation.h"
 #include "core/version.h"
 #include "drivers/register_driver_types.h"
-#include "main/app_icon.gen.h"
 #include "main/input_default.h"
 #include "main/main_timer_sync.h"
 #include "main/performance.h"
@@ -2038,12 +2037,7 @@ bool Main::start() {
 		}
 #endif
 	}
-
-	if (!hasicon && OS::get_singleton()->get_bundle_icon_path().empty()) {
-		Ref<Image> icon = memnew(Image(app_icon_png));
-		OS::get_singleton()->set_icon(icon);
-	}
-
+	
 	OS::get_singleton()->set_main_loop(main_loop);
 
 	if (minimum_time_msec) {
