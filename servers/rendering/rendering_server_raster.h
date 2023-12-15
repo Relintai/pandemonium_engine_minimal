@@ -33,7 +33,6 @@
 #include "core/math/octree.h"
 #include "rendering_server_canvas.h"
 #include "rendering_server_globals.h"
-#include "rendering_server_scene.h"
 #include "rendering_server_viewport.h"
 #include "servers/rendering/rasterizer.h"
 #include "servers/rendering_server.h"
@@ -284,23 +283,6 @@ public:
 
 #undef BINDBASE
 //from now on, calls forwarded to this singleton
-#define BINDBASE RSG::scene
-
-	/* CAMERA API */
-
-	BIND0R(RID, camera_create)
-	BIND4(camera_set_perspective, RID, float, float, float)
-	BIND4(camera_set_orthogonal, RID, float, float, float)
-	BIND5(camera_set_frustum, RID, float, Vector2, float, float)
-	BIND2(camera_set_transform, RID, const Transform &)
-	BIND2(camera_set_interpolated, RID, bool)
-	BIND1(camera_reset_physics_interpolation, RID)
-	BIND2(camera_set_cull_mask, RID, uint32_t)
-	BIND2(camera_set_environment, RID, RID)
-	BIND2(camera_set_use_vertical_aspect, RID, bool)
-
-#undef BINDBASE
-//from now on, calls forwarded to this singleton
 #define BINDBASE RSG::viewport
 
 	/* VIEWPORT TARGET API */
@@ -323,14 +305,11 @@ public:
 
 	BIND1RC(RID, viewport_get_texture, RID)
 
-	BIND2(viewport_set_hide_scenario, RID, bool)
 	BIND2(viewport_set_hide_canvas, RID, bool)
 	BIND2(viewport_set_disable_environment, RID, bool)
 	BIND2(viewport_set_disable_3d, RID, bool)
 	BIND2(viewport_set_keep_3d_linear, RID, bool)
 
-	BIND2(viewport_attach_camera, RID, RID)
-	BIND2(viewport_set_scenario, RID, RID)
 	BIND2(viewport_attach_canvas, RID, RID)
 
 	BIND2(viewport_remove_canvas, RID, RID)
@@ -349,20 +328,6 @@ public:
 
 	BIND2R(int, viewport_get_render_info, RID, ViewportRenderInfo)
 	BIND2(viewport_set_debug_draw, RID, ViewportDebugDraw)
-
-	/* ENVIRONMENT API */
-
-#undef BINDBASE
-#define BINDBASE RSG::scene
-
-	/* SCENARIO API */
-
-	BIND0R(RID, scenario_create)
-
-	BIND2(scenario_set_debug, RID, ScenarioDebugMode)
-
-	// Callbacks
-	BIND1(callbacks_register, RenderingServerCallbacks *)
 
 #undef BINDBASE
 //from now on, calls forwarded to this singleton

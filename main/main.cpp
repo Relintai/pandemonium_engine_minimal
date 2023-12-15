@@ -67,7 +67,6 @@
 #include "servers/navigation_server.h"
 #include "servers/physics_2d_server.h"
 #include "servers/register_server_types.h"
-#include "servers/rendering_server_callbacks.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/doc/doc_data.h"
@@ -111,7 +110,6 @@ static MessageQueue *message_queue = nullptr;
 // Initialized in setup2()
 static AudioServer *audio_server = nullptr;
 static Physics2DServer *physics_2d_server = nullptr;
-static RenderingServerCallbacks *rendering_server_callbacks = nullptr;
 static NavigationMeshGeneratorManager *navigation_mesh_generator_manager = nullptr;
 static NavigationMeshGenerator *navigation_mesh_generator = nullptr;
 static NavigationServer *navigation_server = nullptr;
@@ -1573,9 +1571,6 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 		script_debugger->profiling_start();
 	}
 
-	rendering_server_callbacks = memnew(RenderingServerCallbacks);
-	RenderingServer::get_singleton()->callbacks_register(rendering_server_callbacks);
-
 	_start_success = true;
 
 	ClassDB::set_current_api(ClassDB::API_NONE); //no more api is registered at this point
@@ -2308,7 +2303,7 @@ bool Main::iteration() {
 	if (OS::get_singleton()->get_main_loop()->idle(step * time_scale)) {
 		exit = true;
 	}
-	rendering_server_callbacks->flush();
+
 	message_queue->flush();
 
 	NavigationMeshGenerator::get_singleton()->process();
@@ -2537,10 +2532,6 @@ void Main::cleanup(bool p_force) {
 	// Now should be safe to delete MessageQueue (famous last words).
 	message_queue->flush();
 	memdelete(message_queue);
-
-	if (rendering_server_callbacks) {
-		memdelete(rendering_server_callbacks);
-	}
 
 	unregister_core_driver_types();
 	unregister_core_types();

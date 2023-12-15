@@ -34,7 +34,6 @@
 
 class RenderingServerCanvas;
 class RenderingServerViewport;
-class RenderingServerScene;
 
 class RenderingServerGlobals {
 public:
@@ -45,7 +44,6 @@ public:
 
 	static RenderingServerCanvas *canvas;
 	static RenderingServerViewport *viewport;
-	static RenderingServerScene *scene;
 };
 
 #define RSG RenderingServerGlobals

@@ -145,9 +145,7 @@ void RenderingServerWrapMT::finish() {
 	material_free_cached_ids();
 	mesh_free_cached_ids();
 	multimesh_free_cached_ids();
-	camera_free_cached_ids();
 	viewport_free_cached_ids();
-	scenario_free_cached_ids();
 	canvas_free_cached_ids();
 	canvas_item_free_cached_ids();
 }

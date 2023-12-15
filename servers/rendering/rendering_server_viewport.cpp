@@ -31,9 +31,9 @@
 #include "rendering_server_viewport.h"
 
 #include "core/config/project_settings.h"
+#include "core/config/engine.h"
 #include "rendering_server_canvas.h"
 #include "rendering_server_globals.h"
-#include "rendering_server_scene.h"
 
 static Transform2D _canvas_get_transform(RenderingServerViewport::Viewport *p_viewport, RenderingServerCanvas::Canvas *p_canvas, RenderingServerViewport::Viewport::CanvasData *p_canvas_data, const Vector2 &p_vp_size) {
 	Transform2D xf = p_viewport->global_transform;
@@ -64,27 +64,14 @@ static Transform2D _canvas_get_transform(RenderingServerViewport::Viewport *p_vi
 	return xf;
 }
 
-void RenderingServerViewport::_draw_3d(Viewport *p_viewport) {
-	RSG::scene->render_camera(p_viewport->camera, p_viewport->scenario, p_viewport->size);
-}
-
 void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 	/* Camera should always be BEFORE any other 3D */
-
-	bool scenario_draw_canvas_bg = false; //draw canvas, or some layer of it, as BG for 3D instead of in front
-	int scenario_canvas_max_layer = 0;
-
-	bool can_draw_3d = !p_viewport->disable_3d && !p_viewport->disable_3d_by_usage && RSG::scene->camera_owner.owns(p_viewport->camera);
 
 	if (p_viewport->clear_mode != RS::VIEWPORT_CLEAR_NEVER) {
 		RSG::rasterizer->clear_render_target(p_viewport->transparent_bg ? Color(0, 0, 0, 0) : clear_color);
 		if (p_viewport->clear_mode == RS::VIEWPORT_CLEAR_ONLY_NEXT_FRAME) {
 			p_viewport->clear_mode = RS::VIEWPORT_CLEAR_NEVER;
 		}
-	}
-
-	if (!scenario_draw_canvas_bg && can_draw_3d) {
-		_draw_3d(p_viewport);
 	}
 
 	if (!p_viewport->hide_canvas) {
@@ -94,21 +81,10 @@ void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 		Rect2 shadow_rect;
 
 		for (RBMap<RID, Viewport::CanvasData>::Element *E = p_viewport->canvas_map.front(); E; E = E->next()) {
-			RenderingServerCanvas::Canvas *canvas = static_cast<RenderingServerCanvas::Canvas *>(E->get().canvas);
-
 			canvas_map[Viewport::CanvasKey(E->key(), E->get().layer, E->get().sublayer)] = &E->get();
 		}
 
-		RSG::rasterizer->restore_render_target(!scenario_draw_canvas_bg && can_draw_3d);
-
-		if (scenario_draw_canvas_bg && canvas_map.front() && canvas_map.front()->key().get_layer() > scenario_canvas_max_layer) {
-			if (!can_draw_3d) {
-				RSG::scene->render_empty_scene(p_viewport->scenario);
-			} else {
-				_draw_3d(p_viewport);
-			}
-			scenario_draw_canvas_bg = false;
-		}
+		RSG::rasterizer->restore_render_target(false);
 
 		for (RBMap<Viewport::CanvasKey, Viewport::CanvasData *>::Element *E = canvas_map.front(); E; E = E->next()) {
 			RenderingServerCanvas::Canvas *canvas = static_cast<RenderingServerCanvas::Canvas *>(E->get()->canvas);
@@ -118,27 +94,7 @@ void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 			int canvas_layer_id = E->get()->layer;
 
 			RSG::canvas->render_canvas(canvas, xform, clip_rect, canvas_layer_id);
-
-			if (scenario_draw_canvas_bg && E->key().get_layer() >= scenario_canvas_max_layer) {
-				if (!can_draw_3d) {
-					RSG::scene->render_empty_scene(p_viewport->scenario);
-				} else {
-					_draw_3d(p_viewport);
-				}
-
-				scenario_draw_canvas_bg = false;
-			}
 		}
-
-		if (scenario_draw_canvas_bg) {
-			if (!can_draw_3d) {
-				RSG::scene->render_empty_scene(p_viewport->scenario);
-			} else {
-				_draw_3d(p_viewport);
-			}
-		}
-
-		//RSG::canvas_render->canvas_debug_viewport_shadows(lights_with_shadow);
 	}
 }
 
@@ -361,18 +317,6 @@ void RenderingServerViewport::viewport_set_keep_3d_linear(RID p_viewport, bool p
 	RSG::storage->render_target_set_flag(viewport->render_target, RasterizerStorage::RENDER_TARGET_KEEP_3D_LINEAR, p_keep_3d_linear);
 }
 
-void RenderingServerViewport::viewport_attach_camera(RID p_viewport, RID p_camera) {
-	Viewport *viewport = viewport_owner.getornull(p_viewport);
-	ERR_FAIL_COND(!viewport);
-
-	viewport->camera = p_camera;
-}
-void RenderingServerViewport::viewport_set_scenario(RID p_viewport, RID p_scenario) {
-	Viewport *viewport = viewport_owner.getornull(p_viewport);
-	ERR_FAIL_COND(!viewport);
-
-	viewport->scenario = p_scenario;
-}
 void RenderingServerViewport::viewport_attach_canvas(RID p_viewport, RID p_canvas) {
 	Viewport *viewport = viewport_owner.getornull(p_viewport);
 	ERR_FAIL_COND(!viewport);
@@ -532,7 +476,6 @@ bool RenderingServerViewport::free(RID p_rid) {
 			viewport_remove_canvas(p_rid, viewport->canvas_map.front()->key());
 		}
 
-		viewport_set_scenario(p_rid, RID());
 		active_viewports.erase(viewport);
 
 		viewport_owner.free(p_rid);

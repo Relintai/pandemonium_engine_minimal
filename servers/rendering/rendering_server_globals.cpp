@@ -37,4 +37,3 @@ Rasterizer *RenderingServerGlobals::rasterizer = nullptr;
 
 RenderingServerCanvas *RenderingServerGlobals::canvas = nullptr;
 RenderingServerViewport *RenderingServerGlobals::viewport = nullptr;
-RenderingServerScene *RenderingServerGlobals::scene = nullptr;

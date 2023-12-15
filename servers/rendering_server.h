@@ -51,7 +51,6 @@ class RenderingServer : public Object {
 	bool force_shader_fallbacks = false;
 #endif
 
-	void _camera_set_orthogonal(RID p_camera, float p_size, float p_z_near, float p_z_far);
 	void _canvas_item_add_style_box(RID p_item, const Rect2 &p_rect, const Rect2 &p_source, RID p_texture, const Vector<float> &p_margins, const Color &p_modulate = Color(1, 1, 1));
 	Array _get_array_from_surface(uint32_t p_format, PoolVector<uint8_t> p_vertex_data, int p_vertex_len, PoolVector<uint8_t> p_index_data, int p_index_len) const;
 
@@ -387,28 +386,6 @@ public:
 	virtual void multimesh_set_visible_instances(RID p_multimesh, int p_visible) = 0;
 	virtual int multimesh_get_visible_instances(RID p_multimesh) const = 0;
 
-	/* CAMERA API */
-
-	virtual RID camera_create() = 0;
-	virtual void camera_set_perspective(RID p_camera, float p_fovy_degrees, float p_z_near, float p_z_far) = 0;
-	virtual void camera_set_orthogonal(RID p_camera, float p_size, float p_z_near, float p_z_far) = 0;
-	virtual void camera_set_frustum(RID p_camera, float p_size, Vector2 p_offset, float p_z_near, float p_z_far) = 0;
-	virtual void camera_set_transform(RID p_camera, const Transform &p_transform) = 0;
-	virtual void camera_set_interpolated(RID p_camera, bool p_interpolated) = 0;
-	virtual void camera_reset_physics_interpolation(RID p_camera) = 0;
-	virtual void camera_set_cull_mask(RID p_camera, uint32_t p_layers) = 0;
-	virtual void camera_set_environment(RID p_camera, RID p_env) = 0;
-	virtual void camera_set_use_vertical_aspect(RID p_camera, bool p_enable) = 0;
-
-	/*
-	enum ParticlesCollisionMode {
-		PARTICLES_COLLISION_NONE,
-		PARTICLES_COLLISION_TEXTURE,
-		PARTICLES_COLLISION_CUBEMAP,
-	};
-
-	virtual void particles_set_collision(RID p_particles,ParticlesCollisionMode p_mode,const Transform&, p_xform,const RID p_depth_tex,const RID p_normal_tex)=0;
-*/
 	/* VIEWPORT TARGET API */
 
 	virtual RID viewport_create() = 0;
@@ -442,14 +419,11 @@ public:
 
 	virtual RID viewport_get_texture(RID p_viewport) const = 0;
 
-	virtual void viewport_set_hide_scenario(RID p_viewport, bool p_hide) = 0;
 	virtual void viewport_set_hide_canvas(RID p_viewport, bool p_hide) = 0;
 	virtual void viewport_set_disable_environment(RID p_viewport, bool p_disable) = 0;
 	virtual void viewport_set_disable_3d(RID p_viewport, bool p_disable) = 0;
 	virtual void viewport_set_keep_3d_linear(RID p_viewport, bool p_disable) = 0;
 
-	virtual void viewport_attach_camera(RID p_viewport, RID p_camera) = 0;
-	virtual void viewport_set_scenario(RID p_viewport, RID p_scenario) = 0;
 	virtual void viewport_attach_canvas(RID p_viewport, RID p_canvas) = 0;
 	virtual void viewport_remove_canvas(RID p_viewport, RID p_canvas) = 0;
 	virtual void viewport_set_canvas_transform(RID p_viewport, RID p_canvas, const Transform2D &p_offset) = 0;
@@ -512,20 +486,6 @@ public:
 
 	virtual void set_physics_interpolation_enabled(bool p_enabled) = 0;
 
-	/* SCENARIO API */
-
-	virtual RID scenario_create() = 0;
-
-	enum ScenarioDebugMode {
-		SCENARIO_DEBUG_DISABLED,
-		SCENARIO_DEBUG_WIREFRAME,
-		SCENARIO_DEBUG_OVERDRAW,
-		SCENARIO_DEBUG_SHADELESS,
-
-	};
-
-	virtual void scenario_set_debug(RID p_scenario, ScenarioDebugMode p_debug_mode) = 0;
-
 	/* INSTANCING API */
 
 	enum InstanceType {
@@ -537,9 +497,6 @@ public:
 
 		INSTANCE_GEOMETRY_MASK = (1 << INSTANCE_MESH) | (1 << INSTANCE_MULTIMESH)
 	};
-
-	// callbacks are used to send messages back from the visual server to scene tree in thread friendly manner
-	virtual void callbacks_register(RenderingServerCallbacks *p_callbacks) = 0;
 
 	enum InstanceFlags {
 		INSTANCE_FLAG_DRAW_NEXT_FRAME_IF_VISIBLE,
@@ -732,7 +689,6 @@ VARIANT_ENUM_CAST(RenderingServer::ViewportMSAA);
 VARIANT_ENUM_CAST(RenderingServer::ViewportUsage);
 VARIANT_ENUM_CAST(RenderingServer::ViewportRenderInfo);
 VARIANT_ENUM_CAST(RenderingServer::ViewportDebugDraw);
-VARIANT_ENUM_CAST(RenderingServer::ScenarioDebugMode);
 VARIANT_ENUM_CAST(RenderingServer::InstanceType);
 VARIANT_ENUM_CAST(RenderingServer::NinePatchAxisMode);
 VARIANT_ENUM_CAST(RenderingServer::RenderInfo);

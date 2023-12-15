@@ -255,7 +255,6 @@ void Viewport::_notification(int p_what) {
 				world_2d->_remove_world(this);
 			}
 
-			RenderingServer::get_singleton()->viewport_set_scenario(viewport, RID());
 			//			SpatialSoundServer::get_singleton()->listener_set_space(internal_listener, RID());
 			RenderingServer::get_singleton()->viewport_remove_canvas(viewport, current_canvas);
 			if (contact_2d_debug.is_valid()) {
@@ -604,7 +603,6 @@ void Viewport::_on_before_world_override_changed() {
 	World *w = get_override_world_or_this();
 
 	if (w) {
-		RenderingServer::get_singleton()->viewport_set_scenario(viewport, RID());
 		RenderingServer::get_singleton()->viewport_remove_canvas(viewport, current_canvas);
 		w->find_world_2d()->_remove_world(this);
 	}

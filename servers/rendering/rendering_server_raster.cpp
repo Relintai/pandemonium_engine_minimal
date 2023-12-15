@@ -36,7 +36,6 @@
 #include "core/os/os.h"
 #include "rendering_server_canvas.h"
 #include "rendering_server_globals.h"
-#include "rendering_server_scene.h"
 
 // careful, these may run in different threads than the visual server
 
@@ -79,9 +78,6 @@ void RenderingServerRaster::free(RID p_rid) {
 	if (RSG::viewport->free(p_rid)) {
 		return;
 	}
-	if (RSG::scene->free(p_rid)) {
-		return;
-	}
 	if (RSG::scene_render->free(p_rid)) {
 		return;
 	}
@@ -110,8 +106,6 @@ void RenderingServerRaster::draw(bool p_swap_buffers, double frame_step) {
 
 	RSG::rasterizer->begin_frame(frame_step);
 
-	RSG::scene->update_dirty_instances(); //update scene stuff
-
 	RSG::viewport->draw_viewports();
 	_draw_margins();
 	RSG::rasterizer->end_frame(p_swap_buffers);
@@ -136,17 +130,14 @@ void RenderingServerRaster::sync() {
 }
 
 void RenderingServerRaster::set_physics_interpolation_enabled(bool p_enabled) {
-	RSG::scene->set_physics_interpolation_enabled(p_enabled);
 	RSG::canvas->set_physics_interpolation_enabled(p_enabled);
 }
 
 void RenderingServerRaster::tick() {
-	RSG::scene->tick();
 	RSG::canvas->tick();
 }
 
 void RenderingServerRaster::pre_draw(bool p_will_draw) {
-	RSG::scene->pre_draw(p_will_draw);
 }
 
 bool RenderingServerRaster::has_changed(ChangedPriority p_priority) const {
@@ -230,7 +221,6 @@ bool RenderingServerRaster::is_low_end() const {
 RenderingServerRaster::RenderingServerRaster() {
 	RSG::canvas = memnew(RenderingServerCanvas);
 	RSG::viewport = memnew(RenderingServerViewport);
-	RSG::scene = memnew(RenderingServerScene);
 	RSG::rasterizer = Rasterizer::create();
 	RSG::storage = RSG::rasterizer->get_storage();
 	RSG::canvas_render = RSG::rasterizer->get_canvas();
@@ -246,5 +236,4 @@ RenderingServerRaster::~RenderingServerRaster() {
 	memdelete(RSG::canvas);
 	memdelete(RSG::viewport);
 	memdelete(RSG::rasterizer);
-	memdelete(RSG::scene);
 }

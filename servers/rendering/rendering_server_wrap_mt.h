@@ -209,19 +209,6 @@ public:
 	FUNC2(multimesh_set_visible_instances, RID, int)
 	FUNC1RC(int, multimesh_get_visible_instances, RID)
 
-	/* CAMERA API */
-
-	FUNCRID(camera)
-	FUNC4(camera_set_perspective, RID, float, float, float)
-	FUNC4(camera_set_orthogonal, RID, float, float, float)
-	FUNC5(camera_set_frustum, RID, float, Vector2, float, float)
-	FUNC2(camera_set_transform, RID, const Transform &)
-	FUNC2(camera_set_interpolated, RID, bool)
-	FUNC1(camera_reset_physics_interpolation, RID)
-	FUNC2(camera_set_cull_mask, RID, uint32_t)
-	FUNC2(camera_set_environment, RID, RID)
-	FUNC2(camera_set_use_vertical_aspect, RID, bool)
-
 	/* VIEWPORT TARGET API */
 
 	FUNCRID(viewport)
@@ -242,14 +229,11 @@ public:
 
 	FUNC1RC(RID, viewport_get_texture, RID)
 
-	FUNC2(viewport_set_hide_scenario, RID, bool)
 	FUNC2(viewport_set_hide_canvas, RID, bool)
 	FUNC2(viewport_set_disable_environment, RID, bool)
 	FUNC2(viewport_set_disable_3d, RID, bool)
 	FUNC2(viewport_set_keep_3d_linear, RID, bool)
 
-	FUNC2(viewport_attach_camera, RID, RID)
-	FUNC2(viewport_set_scenario, RID, RID)
 	FUNC2(viewport_attach_canvas, RID, RID)
 
 	FUNC2(viewport_remove_canvas, RID, RID)
@@ -272,15 +256,6 @@ public:
 	}
 
 	FUNC2(viewport_set_debug_draw, RID, ViewportDebugDraw)
-
-	/* SCENARIO API */
-
-	FUNCRID(scenario)
-
-	FUNC2(scenario_set_debug, RID, ScenarioDebugMode)
-
-	// Callbacks
-	FUNC1(callbacks_register, RenderingServerCallbacks *)
 
 	/* CANVAS (2D) */
 
