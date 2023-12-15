@@ -304,10 +304,6 @@ Ref<Environment3D> World3D::get_fallback_environment() const {
 	return fallback_environment;
 }
 
-PhysicsDirectSpaceState *World3D::get_direct_space_state() {
-	return PhysicsServer::get_singleton()->space_get_direct_state(space);
-}
-
 void World3D::get_camera_list(List<Camera *> *r_cameras) {
 	for (RBMap<Camera *, SpatialIndexer::CameraData>::Element *E = indexer->cameras.front(); E; E = E->next()) {
 		r_cameras->push_back(E->key());
@@ -336,7 +332,7 @@ void World3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_environment"), &World3D::get_environment);
 	ClassDB::bind_method(D_METHOD("set_fallback_environment", "env"), &World3D::set_fallback_environment);
 	ClassDB::bind_method(D_METHOD("get_fallback_environment"), &World3D::get_fallback_environment);
-	ClassDB::bind_method(D_METHOD("get_direct_space_state"), &World3D::get_direct_space_state);
+	
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "environment", PROPERTY_HINT_RESOURCE_TYPE, "Environment3D"), "set_environment", "get_environment");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "fallback_environment", PROPERTY_HINT_RESOURCE_TYPE, "Environment3D"), "set_fallback_environment", "get_fallback_environment");
 	ADD_PROPERTY(PropertyInfo(Variant::RID, "space", PROPERTY_HINT_NONE, "", 0), "", "get_space");
@@ -346,16 +342,7 @@ void World3D::_bind_methods() {
 }
 
 World3D::World3D() {
-	space = RID_PRIME(PhysicsServer::get_singleton()->space_create());
 	scenario = RID_PRIME(RenderingServer::get_singleton()->scenario_create());
-
-	PhysicsServer::get_singleton()->space_set_active(space, true);
-	PhysicsServer::get_singleton()->area_set_param(space, PhysicsServer::AREA_PARAM_GRAVITY, GLOBAL_DEF("physics/3d/default_gravity", 9.8));
-	PhysicsServer::get_singleton()->area_set_param(space, PhysicsServer::AREA_PARAM_GRAVITY_VECTOR, GLOBAL_DEF("physics/3d/default_gravity_vector", Vector3(0, -1, 0)));
-	PhysicsServer::get_singleton()->area_set_param(space, PhysicsServer::AREA_PARAM_LINEAR_DAMP, GLOBAL_DEF("physics/3d/default_linear_damp", 0.1));
-	ProjectSettings::get_singleton()->set_custom_property_info("physics/3d/default_linear_damp", PropertyInfo(Variant::REAL, "physics/3d/default_linear_damp", PROPERTY_HINT_RANGE, "-1,100,0.001,or_greater"));
-	PhysicsServer::get_singleton()->area_set_param(space, PhysicsServer::AREA_PARAM_ANGULAR_DAMP, GLOBAL_DEF("physics/3d/default_angular_damp", 0.1));
-	ProjectSettings::get_singleton()->set_custom_property_info("physics/3d/default_angular_damp", PropertyInfo(Variant::REAL, "physics/3d/default_angular_damp", PROPERTY_HINT_RANGE, "-1,100,0.001,or_greater"));
 
 	// Create default navigation map
 	navigation_map = NavigationServer::get_singleton()->map_create();
@@ -375,7 +362,6 @@ World3D::World3D() {
 }
 
 World3D::~World3D() {
-	PhysicsServer::get_singleton()->free(space);
 	RenderingServer::get_singleton()->free(scenario);
 	NavigationServer::get_singleton()->free(navigation_map);
 

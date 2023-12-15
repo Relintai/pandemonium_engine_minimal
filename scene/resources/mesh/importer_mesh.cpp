@@ -422,27 +422,6 @@ Vector<Face3> ImporterMesh::get_faces() const {
 	return faces;
 }
 
-Ref<Shape> ImporterMesh::create_trimesh_shape() const {
-	Vector<Face3> faces = get_faces();
-	if (faces.size() == 0) {
-		return Ref<Shape>();
-	}
-
-	PoolVector<Vector3> face_points;
-	face_points.resize(faces.size() * 3);
-
-	for (int i = 0; i < face_points.size(); i += 3) {
-		Face3 f = faces.get(i / 3);
-		face_points.set(i, f.vertex[0]);
-		face_points.set(i + 1, f.vertex[1]);
-		face_points.set(i + 2, f.vertex[2]);
-	}
-
-	Ref<ConcavePolygonShape> shape = memnew(ConcavePolygonShape);
-	shape->set_faces(face_points);
-	return shape;
-}
-
 Ref<NavigationMesh> ImporterMesh::create_navigation_mesh() {
 	Vector<Face3> faces = get_faces();
 	if (faces.size() == 0) {

@@ -66,7 +66,6 @@
 #include "servers/navigation_2d_server.h"
 #include "servers/navigation_server.h"
 #include "servers/physics_2d_server.h"
-#include "servers/physics_server.h"
 #include "servers/register_server_types.h"
 #include "servers/rendering_server_callbacks.h"
 
@@ -111,7 +110,6 @@ static MessageQueue *message_queue = nullptr;
 
 // Initialized in setup2()
 static AudioServer *audio_server = nullptr;
-static PhysicsServer *physics_server = nullptr;
 static Physics2DServer *physics_2d_server = nullptr;
 static RenderingServerCallbacks *rendering_server_callbacks = nullptr;
 static NavigationMeshGeneratorManager *navigation_mesh_generator_manager = nullptr;
@@ -197,15 +195,6 @@ void initialize_physics() {
 	GLOBAL_DEF("physics/3d/pandemonium_physics/bvh_collision_margin", 0.1);
 	ProjectSettings::get_singleton()->set_custom_property_info("physics/3d/pandemonium_physics/bvh_collision_margin", PropertyInfo(Variant::REAL, "physics/3d/pandemonium_physics/bvh_collision_margin", PROPERTY_HINT_RANGE, "0.0,2.0,0.01"));
 
-	/// 3D Physics Server
-	physics_server = PhysicsServerManager::new_server(ProjectSettings::get_singleton()->get(PhysicsServerManager::setting_property_name));
-	if (!physics_server) {
-		// Physics server not found, Use the default physics
-		physics_server = PhysicsServerManager::new_default_server();
-	}
-	ERR_FAIL_COND(!physics_server);
-	physics_server->init();
-
 	/// 2D Physics server
 	physics_2d_server = Physics2DServerManager::new_server(ProjectSettings::get_singleton()->get(Physics2DServerManager::setting_property_name));
 	if (!physics_2d_server) {
@@ -217,9 +206,6 @@ void initialize_physics() {
 }
 
 void finalize_physics() {
-	physics_server->finish();
-	memdelete(physics_server);
-
 	physics_2d_server->finish();
 	memdelete(physics_2d_server);
 }
@@ -2286,8 +2272,6 @@ bool Main::iteration() {
 
 		uint64_t physics_begin = OS::get_singleton()->get_ticks_usec();
 
-		PhysicsServer::get_singleton()->flush_queries();
-
 		// Prepare the fixed timestep interpolated nodes
 		// BEFORE they are updated by the physics 2D,
 		// otherwise the current and previous transforms
@@ -2311,8 +2295,6 @@ bool Main::iteration() {
 		navigation_process_max = MAX(OS::get_singleton()->get_ticks_usec() - navigation_begin, navigation_process_max);
 
 		message_queue->flush();
-
-		PhysicsServer::get_singleton()->step(frame_slice * time_scale);
 
 		Physics2DServer::get_singleton()->end_sync();
 		Physics2DServer::get_singleton()->step(frame_slice * time_scale);

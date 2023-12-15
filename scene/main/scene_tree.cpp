@@ -56,9 +56,7 @@
 #include "servers/audio_server.h"
 #include "servers/navigation_server.h"
 #include "servers/physics_2d_server.h"
-#include "servers/physics_server.h"
 #include "viewport.h"
-
 #include "modules/modules_enabled.gen.h" // For freetype.
 #include "scene/resources/mesh/mesh.h"
 #include "scene/resources/world_2d.h"
@@ -1133,7 +1131,6 @@ void SceneTree::set_pause(bool p_enabled) {
 	}
 	pause = p_enabled;
 
-	PhysicsServer::get_singleton()->set_active(!p_enabled);
 	Physics2DServer::get_singleton()->set_active(!p_enabled);
 
 	if (get_root()) {

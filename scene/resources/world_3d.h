@@ -33,7 +33,6 @@
 
 #include "core/object/resource.h"
 #include "scene/resources/environment_3d.h"
-#include "servers/physics_server.h"
 #include "servers/rendering_server.h"
 
 class Camera;
@@ -81,8 +80,6 @@ public:
 	Ref<Environment3D> get_fallback_environment() const;
 
 	void get_camera_list(List<Camera *> *r_cameras);
-
-	PhysicsDirectSpaceState *get_direct_space_state();
 
 	void move_cameras_into(Ref<World3D> target);
 

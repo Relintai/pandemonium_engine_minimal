@@ -59,13 +59,11 @@
 #include "navigation/navigation_path_query_result_3d.h"
 #include "navigation_2d_server.h"
 #include "navigation_server.h"
-#include "physics/physics_server_sw.h"
 #include "physics_2d/physics_2d_server_sw.h"
 #include "physics_2d/physics_2d_server_wrap_mt.h"
 #include "rendering/shader_types.h"
 #include "scene/debugger/script_debugger_remote.h"
 #include "servers/physics_2d_server.h"
-#include "servers/physics_server.h"
 #include "servers/rendering_server.h"
 
 static void _debugger_get_resource_usage(List<ScriptDebuggerRemote::ResourceUsage> *r_usage) {
@@ -89,10 +87,6 @@ static void _debugger_get_resource_usage(List<ScriptDebuggerRemote::ResourceUsag
 
 ShaderTypes *shader_types = nullptr;
 
-PhysicsServer *_createPandemoniumPhysicsCallback() {
-	return memnew(PhysicsServerSW);
-}
-
 Physics2DServer *_createPandemoniumPhysics2DCallback() {
 	return Physics2DServerWrapMT::init_server<Physics2DServerSW>();
 }
@@ -114,7 +108,6 @@ void register_server_types() {
 	
 	ClassDB::register_class<AudioServer>();
 
-	ClassDB::register_virtual_class<PhysicsServer>();
 	ClassDB::register_virtual_class<Physics2DServer>();
 
 	ClassDB::register_virtual_class<NavigationServer>();
@@ -185,11 +178,6 @@ void register_server_types() {
 	ClassDB::register_class<Physics2DTestMotionResult>();
 	ClassDB::register_class<Physics2DShapeQueryParameters>();
 
-	ClassDB::register_class<PhysicsShapeQueryParameters>();
-	ClassDB::register_virtual_class<PhysicsDirectBodyState>();
-	ClassDB::register_virtual_class<PhysicsDirectSpaceState>();
-	ClassDB::register_class<PhysicsTestMotionResult>();
-
 	ScriptDebuggerRemote::resource_usage_func = _debugger_get_resource_usage;
 
 	// Physics 2D
@@ -198,13 +186,6 @@ void register_server_types() {
 
 	Physics2DServerManager::register_server("PandemoniumPhysics", &_createPandemoniumPhysics2DCallback);
 	Physics2DServerManager::set_default_server("PandemoniumPhysics");
-
-	// Physics 3D
-	GLOBAL_DEF(PhysicsServerManager::setting_property_name, "DEFAULT");
-	ProjectSettings::get_singleton()->set_custom_property_info(PhysicsServerManager::setting_property_name, PropertyInfo(Variant::STRING, PhysicsServerManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"));
-
-	PhysicsServerManager::register_server("PandemoniumPhysics", &_createPandemoniumPhysicsCallback);
-	PhysicsServerManager::set_default_server("PandemoniumPhysics");
 
 	// Navigation
 	GLOBAL_DEF(NavigationMeshGeneratorManager::setting_property_name, "DEFAULT");
@@ -225,7 +206,6 @@ void unregister_server_types() {
 
 void register_server_singletons() {
 	Engine::get_singleton()->add_singleton(Engine::Singleton("RenderingServer", RenderingServer::get_singleton()));
-	Engine::get_singleton()->add_singleton(Engine::Singleton("PhysicsServer", PhysicsServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("Physics2DServer", Physics2DServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("AudioServer", AudioServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("NavigationServer", NavigationServer::get_singleton()));

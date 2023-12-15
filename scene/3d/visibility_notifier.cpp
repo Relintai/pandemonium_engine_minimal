@@ -32,10 +32,8 @@
 
 #include "core/config/engine.h"
 #include "scene/3d/camera.h"
-#include "scene/3d/physics_body.h"
 #include "scene/animation/animation_player.h"
 #include "scene/animation/animation_tree.h"
-#include "scene/resources/shapes/shape.h"
 #include "scene/resources/world_3d.h"
 #include "scene/main/scene_string_names.h"
 
@@ -269,14 +267,6 @@ void VisibilityEnabler::_find_nodes(Node *p_node) {
 	bool add = false;
 	Variant meta;
 
-	{
-		RigidBody *rb = Object::cast_to<RigidBody>(p_node);
-		if (rb && ((rb->get_mode() == RigidBody::MODE_CHARACTER || rb->get_mode() == RigidBody::MODE_RIGID))) {
-			add = true;
-			meta = rb->get_mode();
-		}
-	}
-
 	if (Object::cast_to<AnimationPlayer>(p_node) || Object::cast_to<AnimationTree>(p_node)) {
 		add = true;
 	}
@@ -341,13 +331,6 @@ void VisibilityEnabler::_notification(int p_what) {
 
 void VisibilityEnabler::_change_node_state(Node *p_node, bool p_enabled) {
 	ERR_FAIL_COND(!nodes.has(p_node));
-
-	if (enabler[ENABLER_FREEZE_BODIES]) {
-		RigidBody *rb = Object::cast_to<RigidBody>(p_node);
-		if (rb) {
-			rb->set_sleeping(!p_enabled);
-		}
-	}
 
 	if (enabler[ENABLER_PAUSE_ANIMATIONS]) {
 		AnimationPlayer *ap = Object::cast_to<AnimationPlayer>(p_node);

@@ -40,7 +40,6 @@
 #include "scene/2d/collision_object_2d.h"
 #include "scene/2d/listener_2d.h"
 #include "scene/3d/camera.h"
-#include "scene/3d/collision_object.h"
 #include "scene/3d/listener.h"
 #include "scene/main/spatial.h"
 #include "scene/main/control.h"
@@ -217,24 +216,6 @@ void Viewport::_update_stretch_transform() {
 	_update_global_transform();
 }
 
-void Viewport::_collision_object_input_event(CollisionObject *p_object, Camera *p_camera, const Ref<InputEvent> &p_input_event, const Vector3 &p_pos, const Vector3 &p_normal, int p_shape) {
-	Transform object_transform = p_object->get_global_transform();
-	Transform camera_transform = p_camera->get_global_transform();
-	ObjectID id = p_object->get_instance_id();
-
-	//avoid sending the fake event unnecessarily if nothing really changed in the context
-	if (object_transform == physics_last_object_transform && camera_transform == physics_last_camera_transform && physics_last_id == id) {
-		Ref<InputEventMouseMotion> mm = p_input_event;
-		if (mm.is_valid() && mm->get_device() == InputEvent::DEVICE_ID_INTERNAL) {
-			return; //discarded
-		}
-	}
-	p_object->_input_event(camera, p_input_event, p_pos, p_normal, p_shape);
-	physics_last_object_transform = object_transform;
-	physics_last_camera_transform = camera_transform;
-	physics_last_id = id;
-}
-
 void Viewport::_own_world_3d_changed() {
 	ERR_FAIL_COND(world_3d.is_null());
 	ERR_FAIL_COND(own_world_3d.is_null());
@@ -372,19 +353,6 @@ void Viewport::_notification(int p_what) {
 				}
 			}
 
-			if (get_tree()->is_debugging_collisions_hint() && contact_3d_debug_multimesh.is_valid()) {
-				Vector<Vector3> points = PhysicsServer::get_singleton()->space_get_contacts(find_world_3d()->get_space());
-				int point_count = PhysicsServer::get_singleton()->space_get_contact_count(find_world_3d()->get_space());
-
-				RS::get_singleton()->multimesh_set_visible_instances(contact_3d_debug_multimesh, point_count);
-
-				for (int i = 0; i < point_count; i++) {
-					Transform point_transform;
-					point_transform.origin = points[i];
-					RS::get_singleton()->multimesh_instance_set_transform(contact_3d_debug_multimesh, i, point_transform);
-				}
-			}
-
 			if (!GLOBAL_GET("physics/common/enable_pause_aware_picking")) {
 				_process_picking(false);
 			}
@@ -423,12 +391,6 @@ void Viewport::_process_picking(bool p_ignore_paused) {
 		_drop_physics_mouseover(true);
 	}
 
-#ifndef _3D_DISABLED
-	Vector2 last_pos(1e20, 1e20);
-	CollisionObject *last_object = nullptr;
-	ObjectID last_id = 0;
-#endif
-	PhysicsDirectSpaceState::RayResult result;
 	Physics2DDirectSpaceState *ss2d = Physics2DServer::get_singleton()->space_get_direct_state(find_world_2d()->get_space());
 
 	if (physics_has_last_mousepos) {
@@ -600,81 +562,6 @@ void Viewport::_process_picking(bool p_ignore_paused) {
 			}
 		}
 
-#ifndef _3D_DISABLED
-		bool captured = false;
-
-		if (physics_object_capture != 0) {
-			CollisionObject *co = Object::cast_to<CollisionObject>(ObjectDB::get_instance(physics_object_capture));
-			if (co && camera) {
-				_collision_object_input_event(co, camera, ev, Vector3(), Vector3(), 0);
-				captured = true;
-				if (mb.is_valid() && mb->get_button_index() == 1 && !mb->is_pressed()) {
-					physics_object_capture = 0;
-				}
-
-			} else {
-				physics_object_capture = 0;
-			}
-		}
-
-		if (captured) {
-			//none
-		} else if (pos == last_pos) {
-			if (last_id) {
-				if (ObjectDB::get_instance(last_id) && last_object) {
-					//good, exists
-					_collision_object_input_event(last_object, camera, ev, result.position, result.normal, result.shape);
-					if (last_object->get_capture_input_on_drag() && mb.is_valid() && mb->get_button_index() == 1 && mb->is_pressed()) {
-						physics_object_capture = last_id;
-					}
-				}
-			}
-		} else {
-			if (camera) {
-				Vector3 from = camera->project_ray_origin(pos);
-				Vector3 dir = camera->project_ray_normal(pos);
-				float far = camera->far;
-
-				PhysicsDirectSpaceState *space = PhysicsServer::get_singleton()->space_get_direct_state(find_world_3d()->get_space());
-				if (space) {
-					bool col = space->intersect_ray(from, from + dir * far, result, RBSet<RID>(), 0xFFFFFFFF, true, true, true);
-					ObjectID new_collider = 0;
-					if (col) {
-						CollisionObject *co = Object::cast_to<CollisionObject>(result.collider);
-						if (co && (!p_ignore_paused || co->can_process())) {
-							_collision_object_input_event(co, camera, ev, result.position, result.normal, result.shape);
-							last_object = co;
-							last_id = result.collider_id;
-							new_collider = last_id;
-							if (co->get_capture_input_on_drag() && mb.is_valid() && mb->get_button_index() == 1 && mb->is_pressed()) {
-								physics_object_capture = last_id;
-							}
-						}
-					}
-
-					if (is_mouse && new_collider != physics_object_over) {
-						if (physics_object_over) {
-							CollisionObject *co = Object::cast_to<CollisionObject>(ObjectDB::get_instance(physics_object_over));
-							if (co) {
-								co->_mouse_exit();
-							}
-						}
-
-						if (new_collider) {
-							CollisionObject *co = Object::cast_to<CollisionObject>(ObjectDB::get_instance(new_collider));
-							if (co) {
-								co->_mouse_enter();
-							}
-						}
-
-						physics_object_over = new_collider;
-					}
-				}
-
-				last_pos = pos;
-			}
-		}
-#endif
 	}
 }
 
@@ -826,25 +713,6 @@ void Viewport::_on_after_world_override_changed() {
 		}
 
 		RenderingServer::get_singleton()->canvas_item_set_parent(contact_2d_debug, find_world_2d()->get_canvas());
-
-		//3D
-		PhysicsServer::get_singleton()->space_set_debug_contacts(find_world_3d()->get_space(), get_tree()->get_collision_debug_contact_count());
-
-		if (contact_3d_debug_multimesh != RID()) {
-			contact_3d_debug_multimesh = RID_PRIME(RenderingServer::get_singleton()->multimesh_create());
-		}
-
-		RenderingServer::get_singleton()->multimesh_allocate(contact_3d_debug_multimesh, get_tree()->get_collision_debug_contact_count(), RS::MULTIMESH_TRANSFORM_3D, RS::MULTIMESH_COLOR_8BIT);
-		RenderingServer::get_singleton()->multimesh_set_visible_instances(contact_3d_debug_multimesh, 0);
-		RenderingServer::get_singleton()->multimesh_set_mesh(contact_3d_debug_multimesh, get_tree()->get_debug_contact_mesh()->get_rid());
-
-		if (contact_3d_debug_instance != RID()) {
-			contact_3d_debug_instance = RID_PRIME(RenderingServer::get_singleton()->instance_create());
-		}
-
-		RenderingServer::get_singleton()->instance_set_base(contact_3d_debug_instance, contact_3d_debug_multimesh);
-		RenderingServer::get_singleton()->instance_set_scenario(contact_3d_debug_instance, find_world_3d()->get_scenario());
-		//RenderingServer::get_singleton()->instance_geometry_set_flag(contact_3d_debug_instance, RS::INSTANCE_FLAG_VISIBLE_IN_ALL_ROOMS, true);
 	}
 }
 
@@ -2714,20 +2582,6 @@ void Viewport::_drop_physics_mouseover(bool p_paused_only) {
 		physics_2d_mouseover.erase(to_erase.front()->get());
 		to_erase.pop_front();
 	}
-
-#ifndef _3D_DISABLED
-	if (physics_object_over) {
-		CollisionObject *co = Object::cast_to<CollisionObject>(ObjectDB::get_instance(physics_object_over));
-		if (co) {
-			if (!co->is_inside_tree()) {
-				physics_object_over = physics_object_capture = 0;
-			} else if (!(p_paused_only && co->can_process())) {
-				co->_mouse_exit();
-				physics_object_over = physics_object_capture = 0;
-			}
-		}
-	}
-#endif
 }
 
 List<Control *>::Element *Viewport::_gui_show_modal(Control *p_control) {

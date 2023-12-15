@@ -33,8 +33,6 @@
 
 #include "core/object/resource.h"
 #include "core/containers/local_vector.h"
-#include "scene/resources/shapes/concave_polygon_shape.h"
-#include "scene/resources/shapes/convex_polygon_shape.h"
 #include "scene/resources/mesh/mesh.h"
 #include "scene/resources/navigation/navigation_mesh.h"
 
@@ -116,7 +114,6 @@ public:
 	void set_surface_material(int p_surface, const Ref<Material> &p_material);
 
 	Vector<Face3> get_faces() const;
-	Ref<Shape> create_trimesh_shape() const;
 	Ref<NavigationMesh> create_navigation_mesh();
 
 	bool has_mesh() const;

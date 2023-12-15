@@ -35,13 +35,6 @@
 #include "core/containers/local_vector.h"
 #include "core/object/reference.h"
 
-#include "modules/modules_enabled.gen.h"
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-class Skin;
-class SkinReference;
-#endif
-
 class Mesh;
 class NodePath;
 
@@ -50,38 +43,6 @@ class MeshInstance : public GeometryInstance {
 
 protected:
 	Ref<Mesh> mesh;
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-	Ref<Skin> skin;
-	Ref<Skin> skin_internal;
-	Ref<SkinReference> skin_ref;
-	NodePath skeleton_path;
-
-	struct SoftwareSkinning {
-		enum Flags {
-			// Data flags.
-			FLAG_TRANSFORM_NORMALS = 1 << 0,
-
-			// Runtime flags.
-			FLAG_BONES_READY = 1 << 1,
-		};
-
-		struct SurfaceData {
-			PoolByteArray source_buffer;
-			uint32_t source_format;
-			PoolByteArray buffer;
-			PoolByteArray::Write buffer_write;
-			bool transform_tangents;
-			bool ensure_correct_normals;
-		};
-
-		Ref<Mesh> mesh_instance;
-		LocalVector<SurfaceData> surface_data;
-	};
-
-	SoftwareSkinning *software_skinning;
-	uint32_t software_skinning_flags;
-#endif
 
 	struct BlendShapeTrack {
 		int idx;
@@ -96,16 +57,6 @@ protected:
 	Vector<Ref<Material>> materials;
 
 	void _mesh_changed();
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-	void _resolve_skeleton_path();
-
-	bool _is_software_skinning_enabled() const;
-	static bool _is_global_software_skinning_enabled();
-
-	void _initialize_skinning(bool p_force_reset = false, bool p_call_attach_skeleton = true);
-	void _update_skinning();
-#endif
 
 private:
 	// merging
@@ -128,14 +79,6 @@ protected:
 public:
 	void set_mesh(const Ref<Mesh> &p_mesh);
 	Ref<Mesh> get_mesh() const;
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-	void set_skin(const Ref<Skin> &p_skin);
-	Ref<Skin> get_skin() const;
-
-	void set_skeleton_path(const NodePath &p_skeleton);
-	NodePath get_skeleton_path();
-#endif
 
 	int get_surface_material_count() const;
 	void set_surface_material(int p_surface, const Ref<Material> &p_material);

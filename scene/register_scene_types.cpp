@@ -140,19 +140,13 @@
 #include "scene/main/world.h"
 #include "scene/audio/audio_stream_sample.h"
 #include "scene/resources/bit_map.h"
-#include "scene/resources/shapes/box_shape.h"
-#include "scene/resources/shapes/capsule_shape.h"
 #include "scene/resources/shapes_2d/capsule_shape_2d.h"
 #include "scene/resources/shapes_2d/circle_shape_2d.h"
-#include "scene/resources/shapes/concave_polygon_shape.h"
 #include "scene/resources/shapes_2d/concave_polygon_shape_2d.h"
-#include "scene/resources/shapes/convex_polygon_shape.h"
 #include "scene/resources/shapes_2d/convex_polygon_shape_2d.h"
-#include "scene/resources/shapes/cylinder_shape.h"
 #include "scene/resources/default_theme/default_theme.h"
 #include "scene/resources/font/dynamic_font.h"
 #include "scene/resources/gradient.h"
-#include "scene/resources/shapes/height_map_shape.h"
 #include "scene/resources/mesh/immediate_mesh.h"
 #include "scene/resources/shapes_2d/line_shape_2d.h"
 #include "scene/resources/material/material.h"
@@ -167,17 +161,15 @@
 #include "scene/resources/navigation_2d/navigation_polygon.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/material/particles_material.h"
-#include "scene/resources/physics_material.h"
-#include "scene/resources/shapes/plane_shape.h"
 #include "scene/resources/mesh/polygon_path_finder.h"
 #include "scene/resources/mesh/primitive_meshes.h"
-#include "scene/resources/shapes/ray_shape.h"
 #include "scene/resources/shapes_2d/rectangle_shape_2d.h"
 #include "scene/resources/resource_format_text.h"
 #include "scene/resources/shapes_2d/segment_shape_2d.h"
 
+#include "scene/resources/physics_material.h"
+
 #include "scene/resources/sky.h"
-#include "scene/resources/shapes/sphere_shape.h"
 #include "scene/resources/mesh/surface_tool.h"
 #include "scene/gui/resources/syntax_highlighter.h"
 #include "scene/resources/text_file.h"
@@ -188,11 +180,8 @@
 #include "scene/main/scene_string_names.h"
 
 #ifndef _3D_DISABLED
-#include "scene/3d/area.h"
 #include "scene/3d/audio_stream_player_3d.h"
 #include "scene/3d/camera.h"
-#include "scene/3d/collision_polygon.h"
-#include "scene/3d/collision_shape.h"
 #include "scene/3d/cpu_particles.h"
 #include "scene/3d/immediate_geometry.h"
 #include "scene/3d/interpolated_camera.h"
@@ -205,26 +194,18 @@
 #include "scene/3d/navigation_geometry_parser_3d.h"
 #include "scene/3d/navigation_link_3d.h"
 #include "scene/3d/navigation_mesh_instance.h"
-#include "scene/3d/navigation_obstacle.h"
 #include "scene/3d/occluder.h"
 #include "scene/3d/path.h"
-#include "scene/3d/physics_body.h"
-#include "scene/3d/physics_joint.h"
 #include "scene/3d/portal.h"
 #include "scene/3d/position_3d.h"
 #include "scene/3d/proximity_group.h"
-#include "scene/3d/ray_cast.h"
 #include "scene/3d/reflection_probe.h"
 #include "scene/3d/remote_transform.h"
 #include "scene/3d/room.h"
 #include "scene/3d/room_group.h"
 #include "scene/3d/room_manager.h"
-#include "scene/3d/shape_cast.h"
-#include "scene/3d/soft_body.h"
 #include "scene/3d/spatial_velocity_tracker.h"
-#include "scene/3d/spring_arm.h"
 #include "scene/3d/sprite_3d.h"
-#include "scene/3d/vehicle_body.h"
 #include "scene/3d/visibility_notifier.h"
 #include "scene/resources/environment_3d.h"
 #include "scene/resources/mesh/multimesh.h"
@@ -438,7 +419,6 @@ void register_scene_types() {
 	ClassDB::register_virtual_class<CullInstance>();
 	ClassDB::register_virtual_class<GeometryInstance>();
 	ClassDB::register_class<Camera>();
-	ClassDB::register_class<ClippedCamera>();
 	ClassDB::register_class<Listener>();
 	ClassDB::register_class<InterpolatedCamera>();
 	ClassDB::register_class<MeshInstance>();
@@ -468,24 +448,7 @@ void register_scene_types() {
 
 	OS::get_singleton()->yield(); //may take time to init
 
-	ClassDB::register_virtual_class<CollisionObject>();
-	ClassDB::register_virtual_class<PhysicsBody>();
-	ClassDB::register_class<StaticBody>();
-	ClassDB::register_class<RigidBody>();
-	ClassDB::register_class<KinematicCollision>();
-	ClassDB::register_class<KinematicBody>();
-	ClassDB::register_class<SpringArm>();
-
-	ClassDB::register_class<SoftBody>();
-
-	ClassDB::register_class<VehicleBody>();
-	ClassDB::register_class<VehicleWheel>();
-	ClassDB::register_class<Area>();
 	ClassDB::register_class<ProximityGroup>();
-	ClassDB::register_class<CollisionShape>();
-	ClassDB::register_class<CollisionPolygon>();
-	ClassDB::register_class<RayCast>();
-	ClassDB::register_class<ShapeCast>();
 	ClassDB::register_class<MultiMeshInstance>();
 
 	ClassDB::register_class<Curve3D>();
@@ -496,17 +459,10 @@ void register_scene_types() {
 	ClassDB::register_class<WorldEnvironment3D>();
 	ClassDB::register_class<RemoteTransform>();
 
-	ClassDB::register_virtual_class<Joint>();
-	ClassDB::register_class<PinJoint>();
-	ClassDB::register_class<HingeJoint>();
-	ClassDB::register_class<SliderJoint>();
-	ClassDB::register_class<ConeTwistJoint>();
-	ClassDB::register_class<Generic6DOFJoint>();
 
 	ClassDB::register_class<Navigation>();
 	ClassDB::register_class<NavigationMeshInstance>();
 	ClassDB::register_class<NavigationAgent>();
-	ClassDB::register_class<NavigationObstacle>();
 	ClassDB::register_class<NavigationLink3D>();
 
 	OS::get_singleton()->yield(); //may take time to init
@@ -598,22 +554,6 @@ void register_scene_types() {
 	ClassDB::register_class<SpatialMaterial>();
 	SceneTree::add_idle_callback(SpatialMaterial::flush_changes);
 	SpatialMaterial::init_shaders();
-
-	OS::get_singleton()->yield(); //may take time to init
-
-	ClassDB::register_virtual_class<Shape>();
-	ClassDB::register_class<RayShape>();
-	ClassDB::register_class<SphereShape>();
-	ClassDB::register_class<BoxShape>();
-	ClassDB::register_class<CapsuleShape>();
-	ClassDB::register_class<CylinderShape>();
-	ClassDB::register_class<HeightMapShape>();
-	ClassDB::register_class<PlaneShape>();
-	ClassDB::register_class<ConvexPolygonShape>();
-	ClassDB::register_class<ConcavePolygonShape>();
-	ClassDB::register_virtual_class<OccluderShape>();
-	ClassDB::register_class<OccluderShapeSphere>();
-	ClassDB::register_class<OccluderShapePolygon>();
 
 	OS::get_singleton()->yield(); //may take time to init
 

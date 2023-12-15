@@ -42,7 +42,6 @@
 #ifndef _3D_DISABLED
 #include "geometry_parser_3d/meshinstance3d_navigation_geometry_parser_3d.h"
 #include "geometry_parser_3d/multimeshinstance3d_navigation_geometry_parser_3d.h"
-#include "geometry_parser_3d/staticbody3d_navigation_geometry_parser_3d.h"
 #endif // _3D_DISABLED
 
 void register_navigation_geometry_parsers_types(ModuleRegistrationLevel p_level) {
@@ -54,7 +53,6 @@ void register_navigation_geometry_parsers_types(ModuleRegistrationLevel p_level)
 #ifndef _3D_DISABLED
 		NavigationMeshGenerator::get_singleton()->register_geometry_parser_3d(memnew(MeshInstance3DNavigationGeometryParser3D));
 		NavigationMeshGenerator::get_singleton()->register_geometry_parser_3d(memnew(MultiMeshInstance3DNavigationGeometryParser3D));
-		NavigationMeshGenerator::get_singleton()->register_geometry_parser_3d(memnew(StaticBody3DNavigationGeometryParser3D));
 #endif // _3D_DISABLED
 	}
 }

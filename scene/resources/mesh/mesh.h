@@ -35,7 +35,6 @@
 #include "core/object/resource.h"
 
 #include "scene/resources/material/material.h"
-#include "scene/resources/shapes/shape.h"
 #include "servers/rendering_server.h"
 
 class Mesh : public Resource {
@@ -136,9 +135,6 @@ public:
 	void generate_debug_mesh_lines(Vector<Vector3> &r_lines);
 	void generate_debug_mesh_indices(Vector<Vector3> &r_points);
 
-	Ref<Shape> create_trimesh_shape() const;
-	Ref<Shape> create_convex_shape(bool p_clean = true, bool p_simplify = false) const;
-
 	Ref<Mesh> create_outline(float p_margin) const;
 
 	virtual AABB get_aabb() const = 0;
@@ -148,8 +144,6 @@ public:
 	typedef Vector<PoolVector<Vector3>> (*ConvexDecompositionFunc)(const real_t *p_vertices, int p_vertex_count, const uint32_t *p_triangles, int p_triangle_count, int p_max_convex_hulls, Vector<PoolVector<uint32_t>> *r_convex_indices);
 
 	static ConvexDecompositionFunc convex_decomposition_function;
-
-	Vector<Ref<Shape>> convex_decompose(int p_max_convex_hulls = -1) const;
 
 	Mesh();
 };

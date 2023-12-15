@@ -34,8 +34,6 @@
 #include "core/containers/local_vector.h"
 #include "core/math/convex_hull.h"
 #include "core/containers/pair.h"
-#include "scene/resources/shapes/concave_polygon_shape.h"
-#include "scene/resources/shapes/convex_polygon_shape.h"
 #include "surface_tool.h"
 
 #include <stdlib.h>
@@ -200,68 +198,6 @@ PoolVector<Face3> Mesh::get_faces() const {
 		return tm->get_faces();
 	}
 	return PoolVector<Face3>();
-}
-
-Ref<Shape> Mesh::create_convex_shape(bool p_clean, bool p_simplify) const {
-	if (p_simplify) {
-		Vector<Ref<Shape>> decomposed = convex_decompose(1);
-		if (decomposed.size() == 1) {
-			return decomposed[0];
-		} else {
-			ERR_PRINT("Convex shape simplification failed, falling back to simpler process.");
-		}
-	}
-
-	PoolVector<Vector3> vertices;
-	for (int i = 0; i < get_surface_count(); i++) {
-		Array a = surface_get_arrays(i);
-		ERR_FAIL_COND_V(a.empty(), Ref<ConvexPolygonShape>());
-		PoolVector<Vector3> v = a[ARRAY_VERTEX];
-		vertices.append_array(v);
-	}
-
-	Ref<ConvexPolygonShape> shape = memnew(ConvexPolygonShape);
-
-	if (p_clean) {
-		Geometry::MeshData md;
-		Error err = ConvexHullComputer::convex_hull(vertices, md);
-		if (err == OK) {
-			int vertex_count = md.vertices.size();
-			vertices.resize(vertex_count);
-			{
-				PoolVector<Vector3>::Write w = vertices.write();
-				for (int idx = 0; idx < vertex_count; ++idx) {
-					w[idx] = md.vertices[idx];
-				}
-			}
-		} else {
-			ERR_PRINT("Convex shape cleaning failed, falling back to simpler process.");
-		}
-	}
-
-	shape->set_points(vertices);
-	return shape;
-}
-
-Ref<Shape> Mesh::create_trimesh_shape() const {
-	PoolVector<Face3> faces = get_faces();
-	if (faces.size() == 0) {
-		return Ref<Shape>();
-	}
-
-	PoolVector<Vector3> face_points;
-	face_points.resize(faces.size() * 3);
-
-	for (int i = 0; i < face_points.size(); i += 3) {
-		Face3 f = faces.get(i / 3);
-		face_points.set(i, f.vertex[0]);
-		face_points.set(i + 1, f.vertex[1]);
-		face_points.set(i + 2, f.vertex[2]);
-	}
-
-	Ref<ConcavePolygonShape> shape = memnew(ConcavePolygonShape);
-	shape->set_faces(face_points);
-	return shape;
 }
 
 Ref<Mesh> Mesh::create_outline(float p_margin) const {
@@ -525,44 +461,6 @@ void Mesh::_bind_methods() {
 void Mesh::clear_cache() const {
 	triangle_mesh.unref();
 	debug_lines.clear();
-}
-
-Vector<Ref<Shape>> Mesh::convex_decompose(int p_max_convex_hulls) const {
-	ERR_FAIL_COND_V(!convex_decomposition_function, Vector<Ref<Shape>>());
-
-	Ref<TriangleMesh> tm = generate_triangle_mesh();
-	ERR_FAIL_COND_V(!tm.is_valid(), Vector<Ref<Shape>>());
-
-	const PoolVector<TriangleMesh::Triangle> &triangles = tm->get_triangles();
-	int triangle_count = triangles.size();
-
-	PoolVector<uint32_t> indices;
-	{
-		indices.resize(triangle_count * 3);
-		PoolVector<uint32_t>::Write w = indices.write();
-		PoolVector<TriangleMesh::Triangle>::Read triangles_read = triangles.read();
-		for (int i = 0; i < triangle_count; i++) {
-			for (int j = 0; j < 3; j++) {
-				w[i * 3 + j] = triangles_read[i].indices[j];
-			}
-		}
-	}
-
-	const PoolVector<Vector3> &vertices = tm->get_vertices();
-	int vertex_count = vertices.size();
-
-	Vector<PoolVector<Vector3>> decomposed = convex_decomposition_function((real_t *)vertices.read().ptr(), vertex_count, indices.read().ptr(), triangle_count, p_max_convex_hulls, nullptr);
-
-	Vector<Ref<Shape>> ret;
-
-	for (int i = 0; i < decomposed.size(); i++) {
-		Ref<ConvexPolygonShape> shape;
-		shape.instance();
-		shape->set_points(decomposed[i]);
-		ret.push_back(shape);
-	}
-
-	return ret;
 }
 
 Mesh::Mesh() {
@@ -1081,8 +979,6 @@ void ArrayMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("surface_find_by_name", "name"), &ArrayMesh::surface_find_by_name);
 	ClassDB::bind_method(D_METHOD("surface_set_name", "surf_idx", "name"), &ArrayMesh::surface_set_name);
 	ClassDB::bind_method(D_METHOD("surface_get_name", "surf_idx"), &ArrayMesh::surface_get_name);
-	ClassDB::bind_method(D_METHOD("create_trimesh_shape"), &ArrayMesh::create_trimesh_shape);
-	ClassDB::bind_method(D_METHOD("create_convex_shape", "clean", "simplify"), &ArrayMesh::create_convex_shape, DEFVAL(true), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("create_outline", "margin"), &ArrayMesh::create_outline);
 	ClassDB::bind_method(D_METHOD("regen_normalmaps"), &ArrayMesh::regen_normalmaps);
 	ClassDB::set_method_flags(get_class_static(), _scs_create("regen_normalmaps"), METHOD_FLAGS_DEFAULT | METHOD_FLAG_EDITOR);
