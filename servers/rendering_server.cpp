@@ -368,8 +368,6 @@ Error RenderingServer::_surface_set_data(Array p_arrays, uint32_t p_format, uint
 		iw = r_index_array.write();
 	}
 
-	int max_bone = 0;
-
 	for (int ai = 0; ai < RS::ARRAY_MAX; ai++) {
 		if (!(p_format & (1 << ai))) { // no array
 			continue;
@@ -468,47 +466,22 @@ Error RenderingServer::_surface_set_data(Array p_arrays, uint32_t p_format, uint
 
 				// setting vertices means regenerating the AABB
 
-				if (p_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					if ((p_format & ARRAY_COMPRESS_NORMAL) && (p_format & ARRAY_FORMAT_TANGENT) && (p_format & ARRAY_COMPRESS_TANGENT)) {
-						for (int i = 0; i < p_vertex_array_len; i++) {
-							Vector2 res = norm_to_oct(src[i]);
-							int8_t vector[2] = {
-								(int8_t)CLAMP(res.x * 127, -128, 127),
-								(int8_t)CLAMP(res.y * 127, -128, 127),
-							};
+				if (p_format & ARRAY_COMPRESS_NORMAL) {
+					for (int i = 0; i < p_vertex_array_len; i++) {
+						int8_t vector[4] = {
+							(int8_t)CLAMP(src[i].x * 127, -128, 127),
+							(int8_t)CLAMP(src[i].y * 127, -128, 127),
+							(int8_t)CLAMP(src[i].z * 127, -128, 127),
+							0,
+						};
 
-							memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], vector, 2);
-						}
-
-					} else {
-						for (int i = 0; i < p_vertex_array_len; i++) {
-							Vector2 res = norm_to_oct(src[i]);
-							int16_t vector[2] = {
-								(int16_t)CLAMP(res.x * 32767, -32768, 32767),
-								(int16_t)CLAMP(res.y * 32767, -32768, 32767),
-							};
-
-							memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], vector, 4);
-						}
+						memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], vector, 4);
 					}
+
 				} else {
-					if (p_format & ARRAY_COMPRESS_NORMAL) {
-						for (int i = 0; i < p_vertex_array_len; i++) {
-							int8_t vector[4] = {
-								(int8_t)CLAMP(src[i].x * 127, -128, 127),
-								(int8_t)CLAMP(src[i].y * 127, -128, 127),
-								(int8_t)CLAMP(src[i].z * 127, -128, 127),
-								0,
-							};
-
-							memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], vector, 4);
-						}
-
-					} else {
-						for (int i = 0; i < p_vertex_array_len; i++) {
-							float vector[3] = { src[i].x, src[i].y, src[i].z };
-							memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], vector, 3 * 4);
-						}
+					for (int i = 0; i < p_vertex_array_len; i++) {
+						float vector[3] = { src[i].x, src[i].y, src[i].z };
+						memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], vector, 3 * 4);
 					}
 				}
 
@@ -524,57 +497,28 @@ Error RenderingServer::_surface_set_data(Array p_arrays, uint32_t p_format, uint
 				PoolVector<real_t>::Read read = array.read();
 				const real_t *src = read.ptr();
 
-				if (p_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					if (p_format & ARRAY_COMPRESS_TANGENT) {
-						for (int i = 0; i < p_vertex_array_len; i++) {
-							Vector3 source(src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2]);
-							Vector2 res = tangent_to_oct(source, src[i * 4 + 3], false);
+				if (p_format & ARRAY_COMPRESS_TANGENT) {
+					for (int i = 0; i < p_vertex_array_len; i++) {
+						int8_t xyzw[4] = {
+							(int8_t)CLAMP(src[i * 4 + 0] * 127, -128, 127),
+							(int8_t)CLAMP(src[i * 4 + 1] * 127, -128, 127),
+							(int8_t)CLAMP(src[i * 4 + 2] * 127, -128, 127),
+							(int8_t)CLAMP(src[i * 4 + 3] * 127, -128, 127)
+						};
 
-							int8_t vector[2] = {
-								(int8_t)CLAMP(res.x * 127, -128, 127),
-								(int8_t)CLAMP(res.y * 127, -128, 127)
-							};
-
-							memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], vector, 2);
-						}
-
-					} else {
-						for (int i = 0; i < p_vertex_array_len; i++) {
-							Vector3 source(src[i * 4 + 0], src[i * 4 + 1], src[i * 4 + 2]);
-							Vector2 res = tangent_to_oct(source, src[i * 4 + 3], true);
-
-							int16_t vector[2] = {
-								(int16_t)CLAMP(res.x * 32767, -32768, 32767),
-								(int16_t)CLAMP(res.y * 32767, -32768, 32767)
-							};
-
-							memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], vector, 4);
-						}
+						memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], xyzw, 4);
 					}
+
 				} else {
-					if (p_format & ARRAY_COMPRESS_TANGENT) {
-						for (int i = 0; i < p_vertex_array_len; i++) {
-							int8_t xyzw[4] = {
-								(int8_t)CLAMP(src[i * 4 + 0] * 127, -128, 127),
-								(int8_t)CLAMP(src[i * 4 + 1] * 127, -128, 127),
-								(int8_t)CLAMP(src[i * 4 + 2] * 127, -128, 127),
-								(int8_t)CLAMP(src[i * 4 + 3] * 127, -128, 127)
-							};
+					for (int i = 0; i < p_vertex_array_len; i++) {
+						float xyzw[4] = {
+							src[i * 4 + 0],
+							src[i * 4 + 1],
+							src[i * 4 + 2],
+							src[i * 4 + 3]
+						};
 
-							memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], xyzw, 4);
-						}
-
-					} else {
-						for (int i = 0; i < p_vertex_array_len; i++) {
-							float xyzw[4] = {
-								src[i * 4 + 0],
-								src[i * 4 + 1],
-								src[i * 4 + 2],
-								src[i * 4 + 3]
-							};
-
-							memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], xyzw, 4 * 4);
-						}
+						memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], xyzw, 4 * 4);
 					}
 				}
 
@@ -658,73 +602,6 @@ Error RenderingServer::_surface_set_data(Array p_arrays, uint32_t p_format, uint
 					}
 				}
 			} break;
-			case RS::ARRAY_WEIGHTS: {
-				ERR_FAIL_COND_V(p_arrays[ai].get_type() != Variant::POOL_REAL_ARRAY, ERR_INVALID_PARAMETER);
-
-				PoolVector<real_t> array = p_arrays[ai];
-
-				ERR_FAIL_COND_V(array.size() != p_vertex_array_len * RS::ARRAY_WEIGHTS_SIZE, ERR_INVALID_PARAMETER);
-
-				PoolVector<real_t>::Read read = array.read();
-
-				const real_t *src = read.ptr();
-
-				if (p_format & ARRAY_COMPRESS_WEIGHTS) {
-					for (int i = 0; i < p_vertex_array_len; i++) {
-						uint16_t data[RS::ARRAY_WEIGHTS_SIZE];
-						for (int j = 0; j < RS::ARRAY_WEIGHTS_SIZE; j++) {
-							data[j] = CLAMP(src[i * RS::ARRAY_WEIGHTS_SIZE + j] * 65535, 0, 65535);
-						}
-
-						memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], data, 2 * 4);
-					}
-				} else {
-					for (int i = 0; i < p_vertex_array_len; i++) {
-						float data[RS::ARRAY_WEIGHTS_SIZE];
-						for (int j = 0; j < RS::ARRAY_WEIGHTS_SIZE; j++) {
-							data[j] = src[i * RS::ARRAY_WEIGHTS_SIZE + j];
-						}
-
-						memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], data, 4 * 4);
-					}
-				}
-
-			} break;
-			case RS::ARRAY_BONES: {
-				ERR_FAIL_COND_V(p_arrays[ai].get_type() != Variant::POOL_INT_ARRAY && p_arrays[ai].get_type() != Variant::POOL_REAL_ARRAY, ERR_INVALID_PARAMETER);
-
-				PoolVector<int> array = p_arrays[ai];
-
-				ERR_FAIL_COND_V(array.size() != p_vertex_array_len * RS::ARRAY_WEIGHTS_SIZE, ERR_INVALID_PARAMETER);
-
-				PoolVector<int>::Read read = array.read();
-
-				const int *src = read.ptr();
-
-				if (!(p_format & ARRAY_FLAG_USE_16_BIT_BONES)) {
-					for (int i = 0; i < p_vertex_array_len; i++) {
-						uint8_t data[RS::ARRAY_WEIGHTS_SIZE];
-						for (int j = 0; j < RS::ARRAY_WEIGHTS_SIZE; j++) {
-							data[j] = CLAMP(src[i * RS::ARRAY_WEIGHTS_SIZE + j], 0, 255);
-							max_bone = MAX(data[j], max_bone);
-						}
-
-						memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], data, 4);
-					}
-
-				} else {
-					for (int i = 0; i < p_vertex_array_len; i++) {
-						uint16_t data[RS::ARRAY_WEIGHTS_SIZE];
-						for (int j = 0; j < RS::ARRAY_WEIGHTS_SIZE; j++) {
-							data[j] = src[i * RS::ARRAY_WEIGHTS_SIZE + j];
-							max_bone = MAX(data[j], max_bone);
-						}
-
-						memcpy(&vw[p_offsets[ai] + i * p_stride[ai]], data, 2 * 4);
-					}
-				}
-
-			} break;
 			case RS::ARRAY_INDEX: {
 				ERR_FAIL_COND_V(p_index_array_len <= 0, ERR_INVALID_DATA);
 				ERR_FAIL_COND_V(p_arrays[ai].get_type() != Variant::POOL_INT_ARRAY, ERR_INVALID_PARAMETER);
@@ -756,59 +633,6 @@ Error RenderingServer::_surface_set_data(Array p_arrays, uint32_t p_format, uint
 		}
 	}
 
-	if (p_format & RS::ARRAY_FORMAT_BONES) {
-		//create AABBs for each detected bone
-		int total_bones = max_bone + 1;
-
-		bool first = r_bone_aabb.size() == 0;
-
-		r_bone_aabb.resize(total_bones);
-
-		if (first) {
-			for (int i = 0; i < total_bones; i++) {
-				r_bone_aabb.write[i].size = Vector3(-1, -1, -1); //negative means unused
-			}
-		}
-
-		PoolVector<Vector3> vertices = p_arrays[RS::ARRAY_VERTEX];
-		PoolVector<int> bones = p_arrays[RS::ARRAY_BONES];
-		PoolVector<float> weights = p_arrays[RS::ARRAY_WEIGHTS];
-
-		bool any_valid = false;
-
-		if (vertices.size() && bones.size() == vertices.size() * 4 && weights.size() == bones.size()) {
-			int vs = vertices.size();
-			PoolVector<Vector3>::Read rv = vertices.read();
-			PoolVector<int>::Read rb = bones.read();
-			PoolVector<float>::Read rw = weights.read();
-
-			AABB *bptr = r_bone_aabb.ptrw();
-
-			for (int i = 0; i < vs; i++) {
-				Vector3 v = rv[i];
-				for (int j = 0; j < 4; j++) {
-					int idx = rb[i * 4 + j];
-					float w = rw[i * 4 + j];
-					if (w == 0) {
-						continue; //break;
-					}
-					ERR_FAIL_INDEX_V(idx, total_bones, ERR_INVALID_DATA);
-
-					if (bptr[idx].size.x < 0) {
-						//first
-						bptr[idx] = AABB(v, SMALL_VEC3);
-						any_valid = true;
-					} else {
-						bptr[idx].expand_to(v);
-					}
-				}
-			}
-		}
-
-		if (!any_valid && first) {
-			r_bone_aabb.clear();
-		}
-	}
 	return OK;
 }
 
@@ -872,41 +696,24 @@ void RenderingServer::mesh_surface_make_offsets_from_format(uint32_t p_format, i
 
 			} break;
 			case RS::ARRAY_NORMAL: {
-				if (p_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					// normal will always be oct32 (4 byte) encoded
-					// UNLESS tangent exists and is also compressed
-					// then it will be oct16 encoded along with tangent
-					if ((p_format & ARRAY_COMPRESS_NORMAL) && (p_format & ARRAY_FORMAT_TANGENT) && (p_format & ARRAY_COMPRESS_TANGENT)) {
-						elem_size = sizeof(uint8_t) * 2;
-					} else {
-						elem_size = sizeof(uint16_t) * 2;
-					}
+				if (p_format & ARRAY_COMPRESS_NORMAL) {
+					elem_size = sizeof(uint32_t);
 				} else {
-					if (p_format & ARRAY_COMPRESS_NORMAL) {
-						elem_size = sizeof(uint32_t);
-					} else {
-						elem_size = sizeof(float) * 3;
-					}
+					elem_size = sizeof(float) * 3;
 				}
+
 				r_offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
 
 			} break;
 
 			case RS::ARRAY_TANGENT: {
-				if (p_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					if (p_format & ARRAY_COMPRESS_TANGENT && (p_format & ARRAY_FORMAT_NORMAL) && (p_format & ARRAY_COMPRESS_NORMAL)) {
-						elem_size = sizeof(uint8_t) * 2;
-					} else {
-						elem_size = sizeof(uint16_t) * 2;
-					}
+				if (p_format & ARRAY_COMPRESS_TANGENT) {
+					elem_size = sizeof(uint32_t);
 				} else {
-					if (p_format & ARRAY_COMPRESS_TANGENT) {
-						elem_size = sizeof(uint32_t);
-					} else {
-						elem_size = sizeof(float) * 4;
-					}
+					elem_size = sizeof(float) * 4;
 				}
+
 				r_offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
 
@@ -937,26 +744,6 @@ void RenderingServer::mesh_surface_make_offsets_from_format(uint32_t p_format, i
 					elem_size = sizeof(uint32_t);
 				} else {
 					elem_size = sizeof(float) * 2;
-				}
-				r_offsets[i] = attributes_base_offset + attributes_stride;
-				attributes_stride += elem_size;
-
-			} break;
-			case RS::ARRAY_WEIGHTS: {
-				if (p_format & ARRAY_COMPRESS_WEIGHTS) {
-					elem_size = sizeof(uint16_t) * 4;
-				} else {
-					elem_size = sizeof(float) * 4;
-				}
-				r_offsets[i] = attributes_base_offset + attributes_stride;
-				attributes_stride += elem_size;
-
-			} break;
-			case RS::ARRAY_BONES: {
-				if (p_format & ARRAY_FLAG_USE_16_BIT_BONES) {
-					elem_size = sizeof(uint16_t) * 4;
-				} else {
-					elem_size = sizeof(uint32_t);
 				}
 				r_offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
@@ -1102,41 +889,24 @@ void RenderingServer::mesh_add_surface_from_arrays(RID p_mesh, PrimitiveType p_p
 
 			} break;
 			case RS::ARRAY_NORMAL: {
-				if (p_compress_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					// normal will always be oct32 (4 byte) encoded
-					// UNLESS tangent exists and is also compressed
-					// then it will be oct16 encoded along with tangent
-					if ((p_compress_format & ARRAY_COMPRESS_NORMAL) && (format & ARRAY_FORMAT_TANGENT) && (p_compress_format & ARRAY_COMPRESS_TANGENT)) {
-						elem_size = sizeof(uint8_t) * 2;
-					} else {
-						elem_size = sizeof(uint16_t) * 2;
-					}
+				if (p_compress_format & ARRAY_COMPRESS_NORMAL) {
+					elem_size = sizeof(uint32_t);
 				} else {
-					if (p_compress_format & ARRAY_COMPRESS_NORMAL) {
-						elem_size = sizeof(uint32_t);
-					} else {
-						elem_size = sizeof(float) * 3;
-					}
+					elem_size = sizeof(float) * 3;
 				}
+
 				offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
 
 			} break;
 
 			case RS::ARRAY_TANGENT: {
-				if (p_compress_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					if (p_compress_format & ARRAY_COMPRESS_TANGENT && (format & ARRAY_FORMAT_NORMAL) && (p_compress_format & ARRAY_COMPRESS_NORMAL)) {
-						elem_size = sizeof(uint8_t) * 2;
-					} else {
-						elem_size = sizeof(uint16_t) * 2;
-					}
+				if (p_compress_format & ARRAY_COMPRESS_TANGENT) {
+					elem_size = sizeof(uint32_t);
 				} else {
-					if (p_compress_format & ARRAY_COMPRESS_TANGENT) {
-						elem_size = sizeof(uint32_t);
-					} else {
-						elem_size = sizeof(float) * 4;
-					}
+					elem_size = sizeof(float) * 4;
 				}
+
 				offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
 
@@ -1167,39 +937,6 @@ void RenderingServer::mesh_add_surface_from_arrays(RID p_mesh, PrimitiveType p_p
 					elem_size = sizeof(uint32_t);
 				} else {
 					elem_size = sizeof(float) * 2;
-				}
-				offsets[i] = attributes_base_offset + attributes_stride;
-				attributes_stride += elem_size;
-
-			} break;
-			case RS::ARRAY_WEIGHTS: {
-				if (p_compress_format & ARRAY_COMPRESS_WEIGHTS) {
-					elem_size = sizeof(uint16_t) * 4;
-				} else {
-					elem_size = sizeof(float) * 4;
-				}
-				offsets[i] = attributes_base_offset + attributes_stride;
-				attributes_stride += elem_size;
-
-			} break;
-			case RS::ARRAY_BONES: {
-				PoolVector<int> bones = p_arrays[RS::ARRAY_BONES];
-				int max_bone = 0;
-
-				{
-					int bc = bones.size();
-					PoolVector<int>::Read r = bones.read();
-					for (int j = 0; j < bc; j++) {
-						max_bone = MAX(r[j], max_bone);
-					}
-				}
-
-				if (max_bone > 255) {
-					p_compress_format |= ARRAY_FLAG_USE_16_BIT_BONES;
-					elem_size = sizeof(uint16_t) * 4;
-				} else {
-					p_compress_format &= ~ARRAY_FLAG_USE_16_BIT_BONES;
-					elem_size = sizeof(uint32_t);
 				}
 				offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
@@ -1320,41 +1057,24 @@ Array RenderingServer::_get_array_from_surface(uint32_t p_format, PoolVector<uin
 
 			} break;
 			case RS::ARRAY_NORMAL: {
-				if (p_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					// normal will always be oct32 (4 byte) encoded
-					// UNLESS tangent exists and is also compressed
-					// then it will be oct16 encoded along with tangent
-					if ((p_format & ARRAY_COMPRESS_NORMAL) && (p_format & ARRAY_FORMAT_TANGENT) && (p_format & ARRAY_COMPRESS_TANGENT)) {
-						elem_size = sizeof(uint8_t) * 2;
-					} else {
-						elem_size = sizeof(uint16_t) * 2;
-					}
+				if (p_format & ARRAY_COMPRESS_NORMAL) {
+					elem_size = sizeof(uint32_t);
 				} else {
-					if (p_format & ARRAY_COMPRESS_NORMAL) {
-						elem_size = sizeof(uint32_t);
-					} else {
-						elem_size = sizeof(float) * 3;
-					}
+					elem_size = sizeof(float) * 3;
 				}
+
 				offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
 
 			} break;
 
 			case RS::ARRAY_TANGENT: {
-				if (p_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					if (p_format & ARRAY_COMPRESS_TANGENT && (p_format & ARRAY_FORMAT_NORMAL) && (p_format & ARRAY_COMPRESS_NORMAL)) {
-						elem_size = sizeof(uint8_t) * 2;
-					} else {
-						elem_size = sizeof(uint16_t) * 2;
-					}
+				if (p_format & ARRAY_COMPRESS_TANGENT) {
+					elem_size = sizeof(uint32_t);
 				} else {
-					if (p_format & ARRAY_COMPRESS_TANGENT) {
-						elem_size = sizeof(uint32_t);
-					} else {
-						elem_size = sizeof(float) * 4;
-					}
+					elem_size = sizeof(float) * 4;
 				}
+
 				offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
 
@@ -1385,26 +1105,6 @@ Array RenderingServer::_get_array_from_surface(uint32_t p_format, PoolVector<uin
 					elem_size = sizeof(uint32_t);
 				} else {
 					elem_size = sizeof(float) * 2;
-				}
-				offsets[i] = attributes_base_offset + attributes_stride;
-				attributes_stride += elem_size;
-
-			} break;
-			case RS::ARRAY_WEIGHTS: {
-				if (p_format & ARRAY_COMPRESS_WEIGHTS) {
-					elem_size = sizeof(uint16_t) * 4;
-				} else {
-					elem_size = sizeof(float) * 4;
-				}
-				offsets[i] = attributes_base_offset + attributes_stride;
-				attributes_stride += elem_size;
-
-			} break;
-			case RS::ARRAY_BONES: {
-				if (p_format & ARRAY_FLAG_USE_16_BIT_BONES) {
-					elem_size = sizeof(uint16_t) * 4;
-				} else {
-					elem_size = sizeof(uint32_t);
 				}
 				offsets[i] = attributes_base_offset + attributes_stride;
 				attributes_stride += elem_size;
@@ -1503,42 +1203,20 @@ Array RenderingServer::_get_array_from_surface(uint32_t p_format, PoolVector<uin
 				PoolVector<Vector3> arr;
 				arr.resize(p_vertex_len);
 
-				if (p_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					if (p_format & ARRAY_COMPRESS_NORMAL && (p_format & ARRAY_FORMAT_TANGENT) && (p_format & ARRAY_COMPRESS_TANGENT)) {
-						PoolVector<Vector3>::Write w = arr.write();
+				if (p_format & ARRAY_COMPRESS_NORMAL) {
+					PoolVector<Vector3>::Write w = arr.write();
+					const float multiplier = 1.f / 127.f;
 
-						for (int j = 0; j < p_vertex_len; j++) {
-							const int8_t *n = (const int8_t *)&r[j * strides[i] + offsets[i]];
-							Vector2 enc(n[0] / 127.0f, n[1] / 127.0f);
-
-							w[j] = oct_to_norm(enc);
-						}
-					} else {
-						PoolVector<Vector3>::Write w = arr.write();
-
-						for (int j = 0; j < p_vertex_len; j++) {
-							const int16_t *n = (const int16_t *)&r[j * strides[i] + offsets[i]];
-							Vector2 enc(n[0] / 32767.0f, n[1] / 32767.0f);
-
-							w[j] = oct_to_norm(enc);
-						}
+					for (int j = 0; j < p_vertex_len; j++) {
+						const int8_t *v = (const int8_t *)&r[j * strides[i] + offsets[i]];
+						w[j] = Vector3(float(v[0]) * multiplier, float(v[1]) * multiplier, float(v[2]) * multiplier);
 					}
 				} else {
-					if (p_format & ARRAY_COMPRESS_NORMAL) {
-						PoolVector<Vector3>::Write w = arr.write();
-						const float multiplier = 1.f / 127.f;
+					PoolVector<Vector3>::Write w = arr.write();
 
-						for (int j = 0; j < p_vertex_len; j++) {
-							const int8_t *v = (const int8_t *)&r[j * strides[i] + offsets[i]];
-							w[j] = Vector3(float(v[0]) * multiplier, float(v[1]) * multiplier, float(v[2]) * multiplier);
-						}
-					} else {
-						PoolVector<Vector3>::Write w = arr.write();
-
-						for (int j = 0; j < p_vertex_len; j++) {
-							const float *v = (const float *)&r[j * strides[i] + offsets[i]];
-							w[j] = Vector3(v[0], v[1], v[2]);
-						}
+					for (int j = 0; j < p_vertex_len; j++) {
+						const float *v = (const float *)&r[j * strides[i] + offsets[i]];
+						w[j] = Vector3(v[0], v[1], v[2]);
 					}
 				}
 
@@ -1550,50 +1228,22 @@ Array RenderingServer::_get_array_from_surface(uint32_t p_format, PoolVector<uin
 				PoolVector<float> arr;
 				arr.resize(p_vertex_len * 4);
 
-				if (p_format & ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION) {
-					if (p_format & ARRAY_COMPRESS_TANGENT) {
-						PoolVector<float>::Write w = arr.write();
+				if (p_format & ARRAY_COMPRESS_TANGENT) {
+					PoolVector<float>::Write w = arr.write();
 
-						for (int j = 0; j < p_vertex_len; j++) {
-							const int8_t *t = (const int8_t *)&r[j * strides[i] + offsets[i]];
-							Vector2 enc(t[0] / 127.0f, t[1] / 127.0f);
-							Vector3 dec = oct_to_tangent(enc, &w[j * 4 + 3]);
-
-							w[j * 4 + 0] = dec.x;
-							w[j * 4 + 1] = dec.y;
-							w[j * 4 + 2] = dec.z;
-						}
-					} else {
-						PoolVector<float>::Write w = arr.write();
-
-						for (int j = 0; j < p_vertex_len; j++) {
-							const int16_t *t = (const int16_t *)&r[j * strides[i] + offsets[i]];
-							Vector2 enc(t[0] / 32767.0f, t[1] / 32767.0f);
-							Vector3 dec = oct_to_tangent(enc, &w[j * 4 + 3]);
-
-							w[j * 4 + 0] = dec.x;
-							w[j * 4 + 1] = dec.y;
-							w[j * 4 + 2] = dec.z;
+					for (int j = 0; j < p_vertex_len; j++) {
+						const int8_t *v = (const int8_t *)&r[j * strides[i] + offsets[i]];
+						for (int k = 0; k < 4; k++) {
+							w[j * 4 + k] = float(v[k] / 127.0);
 						}
 					}
 				} else {
-					if (p_format & ARRAY_COMPRESS_TANGENT) {
-						PoolVector<float>::Write w = arr.write();
+					PoolVector<float>::Write w = arr.write();
 
-						for (int j = 0; j < p_vertex_len; j++) {
-							const int8_t *v = (const int8_t *)&r[j * strides[i] + offsets[i]];
-							for (int k = 0; k < 4; k++) {
-								w[j * 4 + k] = float(v[k] / 127.0);
-							}
-						}
-					} else {
-						PoolVector<float>::Write w = arr.write();
-
-						for (int j = 0; j < p_vertex_len; j++) {
-							const float *v = (const float *)&r[j * strides[i] + offsets[i]];
-							for (int k = 0; k < 4; k++) {
-								w[j * 4 + k] = v[k];
-							}
+					for (int j = 0; j < p_vertex_len; j++) {
+						const float *v = (const float *)&r[j * strides[i] + offsets[i]];
+						for (int k = 0; k < 4; k++) {
+							w[j * 4 + k] = v[k];
 						}
 					}
 				}
@@ -1663,58 +1313,6 @@ Array RenderingServer::_get_array_from_surface(uint32_t p_format, PoolVector<uin
 					for (int j = 0; j < p_vertex_len; j++) {
 						const float *v = (const float *)&r[j * strides[i] + offsets[i]];
 						w[j] = Vector2(v[0], v[1]);
-					}
-				}
-
-				ret[i] = arr;
-
-			} break;
-			case RS::ARRAY_WEIGHTS: {
-				PoolVector<float> arr;
-				arr.resize(p_vertex_len * 4);
-				if (p_format & ARRAY_COMPRESS_WEIGHTS) {
-					PoolVector<float>::Write w = arr.write();
-
-					for (int j = 0; j < p_vertex_len; j++) {
-						const uint16_t *v = (const uint16_t *)&r[j * strides[i] + offsets[i]];
-						for (int k = 0; k < 4; k++) {
-							w[j * 4 + k] = float(v[k] / 65535.0);
-						}
-					}
-				} else {
-					PoolVector<float>::Write w = arr.write();
-
-					for (int j = 0; j < p_vertex_len; j++) {
-						const float *v = (const float *)&r[j * strides[i] + offsets[i]];
-						for (int k = 0; k < 4; k++) {
-							w[j * 4 + k] = v[k];
-						}
-					}
-				}
-
-				ret[i] = arr;
-
-			} break;
-			case RS::ARRAY_BONES: {
-				PoolVector<int> arr;
-				arr.resize(p_vertex_len * 4);
-				if (p_format & ARRAY_FLAG_USE_16_BIT_BONES) {
-					PoolVector<int>::Write w = arr.write();
-
-					for (int j = 0; j < p_vertex_len; j++) {
-						const uint16_t *v = (const uint16_t *)&r[j * strides[i] + offsets[i]];
-						for (int k = 0; k < 4; k++) {
-							w[j * 4 + k] = v[k];
-						}
-					}
-				} else {
-					PoolVector<int>::Write w = arr.write();
-
-					for (int j = 0; j < p_vertex_len; j++) {
-						const uint8_t *v = (const uint8_t *)&r[j * strides[i] + offsets[i]];
-						for (int k = 0; k < 4; k++) {
-							w[j * 4 + k] = v[k];
-						}
 					}
 				}
 
@@ -2030,8 +1628,6 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(ARRAY_COLOR);
 	BIND_ENUM_CONSTANT(ARRAY_TEX_UV);
 	BIND_ENUM_CONSTANT(ARRAY_TEX_UV2);
-	BIND_ENUM_CONSTANT(ARRAY_BONES);
-	BIND_ENUM_CONSTANT(ARRAY_WEIGHTS);
 	BIND_ENUM_CONSTANT(ARRAY_INDEX);
 	BIND_ENUM_CONSTANT(ARRAY_MAX);
 
@@ -2041,8 +1637,6 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(ARRAY_FORMAT_COLOR);
 	BIND_ENUM_CONSTANT(ARRAY_FORMAT_TEX_UV);
 	BIND_ENUM_CONSTANT(ARRAY_FORMAT_TEX_UV2);
-	BIND_ENUM_CONSTANT(ARRAY_FORMAT_BONES);
-	BIND_ENUM_CONSTANT(ARRAY_FORMAT_WEIGHTS);
 	BIND_ENUM_CONSTANT(ARRAY_FORMAT_INDEX);
 	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_VERTEX);
 	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_NORMAL);
@@ -2050,12 +1644,8 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_COLOR);
 	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_TEX_UV);
 	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_TEX_UV2);
-	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_BONES);
-	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_WEIGHTS);
 	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_INDEX);
 	BIND_ENUM_CONSTANT(ARRAY_FLAG_USE_2D_VERTICES);
-	BIND_ENUM_CONSTANT(ARRAY_FLAG_USE_16_BIT_BONES);
-	BIND_ENUM_CONSTANT(ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION);
 	BIND_ENUM_CONSTANT(ARRAY_COMPRESS_DEFAULT);
 
 	BIND_ENUM_CONSTANT(PRIMITIVE_POINTS);

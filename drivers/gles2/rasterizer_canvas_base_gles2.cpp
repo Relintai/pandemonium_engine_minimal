@@ -404,22 +404,6 @@ void RasterizerCanvasBaseGLES2::_draw_polygon(const int *p_indices, int p_index_
 		glDisableVertexAttribArray(RS::ARRAY_TEX_UV);
 	}
 
-	if (p_weights && p_bones) {
-		RAST_FAIL_COND(!storage->safe_buffer_sub_data(data.polygon_buffer_size, GL_ARRAY_BUFFER, buffer_ofs, sizeof(float) * 4 * p_vertex_count, p_weights, buffer_ofs_after));
-		glEnableVertexAttribArray(RS::ARRAY_WEIGHTS);
-		glVertexAttribPointer(RS::ARRAY_WEIGHTS, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, CAST_INT_TO_UCHAR_PTR(buffer_ofs));
-		buffer_ofs = buffer_ofs_after;
-
-		RAST_FAIL_COND(!storage->safe_buffer_sub_data(data.polygon_buffer_size, GL_ARRAY_BUFFER, buffer_ofs, sizeof(int) * 4 * p_vertex_count, p_bones, buffer_ofs_after));
-		glEnableVertexAttribArray(RS::ARRAY_BONES);
-		glVertexAttribPointer(RS::ARRAY_BONES, 4, GL_UNSIGNED_INT, GL_FALSE, sizeof(int) * 4, CAST_INT_TO_UCHAR_PTR(buffer_ofs));
-		buffer_ofs = buffer_ofs_after;
-
-	} else {
-		glDisableVertexAttribArray(RS::ARRAY_WEIGHTS);
-		glDisableVertexAttribArray(RS::ARRAY_BONES);
-	}
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.polygon_index_buffer);
 
 	if (storage->config.support_32_bits_indices) { //should check for

@@ -60,22 +60,6 @@ bool SurfaceTool::Vertex::operator==(const Vertex &p_vertex) const {
 		return false;
 	}
 
-	if (num_bones != p_vertex.num_bones) {
-		return false;
-	}
-
-	for (int i = 0; i < num_bones; i++) {
-		if (bones[i] != p_vertex.bones[i]) {
-			return false;
-		}
-	}
-
-	for (int i = 0; i < num_bones; i++) {
-		if (weights[i] != p_vertex.weights[i]) {
-			return false;
-		}
-	}
-
 	return true;
 }
 
@@ -87,8 +71,6 @@ uint32_t SurfaceTool::VertexHasher::hash(const Vertex &p_vtx) {
 	h = hash_djb2_buffer((const uint8_t *)&p_vtx.uv, sizeof(real_t) * 2, h);
 	h = hash_djb2_buffer((const uint8_t *)&p_vtx.uv2, sizeof(real_t) * 2, h);
 	h = hash_djb2_buffer((const uint8_t *)&p_vtx.color, sizeof(real_t) * 4, h);
-	h = hash_djb2_buffer((const uint8_t *)p_vtx.bones, p_vtx.num_bones * sizeof(int16_t), h);
-	h = hash_djb2_buffer((const uint8_t *)p_vtx.weights, p_vtx.num_bones * sizeof(float), h);
 	return h;
 }
 
@@ -165,16 +147,6 @@ void SurfaceTool::add_vertex(const Vector3 &p_vertex) {
 	vtx.tangent = last_tangent.normal;
 	vtx.binormal = last_normal.cross(last_tangent.normal).normalized() * last_tangent.d;
 
-	if (format & Mesh::ARRAY_FORMAT_WEIGHTS || format & Mesh::ARRAY_FORMAT_BONES) {
-		ERR_FAIL_COND(!_sanitize_last_bones_and_weights());
-
-		vtx.num_bones = last_bones.size();
-		for (int n = 0; n < last_bones.size(); n++) {
-			vtx.bones[n] = last_bones[n];
-			vtx.weights[n] = last_weights[n];
-		}
-	}
-
 	vertex_array.push_back(vtx);
 	first = false;
 
@@ -219,22 +191,6 @@ void SurfaceTool::add_uv2(const Vector2 &p_uv2) {
 
 	format |= Mesh::ARRAY_FORMAT_TEX_UV2;
 	last_uv2 = p_uv2;
-}
-
-void SurfaceTool::add_bones(const Vector<int> &p_bones) {
-	ERR_FAIL_COND(!begun);
-	ERR_FAIL_COND(!first && !(format & Mesh::ARRAY_FORMAT_BONES));
-
-	format |= Mesh::ARRAY_FORMAT_BONES;
-	last_bones = p_bones;
-}
-
-void SurfaceTool::add_weights(const Vector<float> &p_weights) {
-	ERR_FAIL_COND(!begun);
-	ERR_FAIL_COND(!first && !(format & Mesh::ARRAY_FORMAT_WEIGHTS));
-
-	format |= Mesh::ARRAY_FORMAT_WEIGHTS;
-	last_weights = p_weights;
 }
 
 void SurfaceTool::add_smooth_group(bool p_smooth) {
@@ -375,45 +331,6 @@ Array SurfaceTool::commit_to_arrays() {
 				w.release();
 				a[i] = array;
 			} break;
-			case Mesh::ARRAY_BONES: {
-				PoolVector<int> array;
-				array.resize(varr_len * Vertex::MAX_BONES);
-				PoolVector<int>::Write w = array.write();
-
-				int idx = 0;
-				for (uint32_t n = 0; n < vertex_array.size(); n++, idx += Vertex::MAX_BONES) {
-					const Vertex &v = vertex_array[n];
-
-					ERR_CONTINUE(v.num_bones != Vertex::MAX_BONES);
-					for (int j = 0; j < Vertex::MAX_BONES; j++) {
-						w[idx + j] = v.bones[j];
-					}
-				}
-
-				w.release();
-				a[i] = array;
-
-			} break;
-			case Mesh::ARRAY_WEIGHTS: {
-				PoolVector<float> array;
-				array.resize(varr_len * Vertex::MAX_BONES);
-				PoolVector<float>::Write w = array.write();
-
-				int idx = 0;
-				for (uint32_t n = 0; n < vertex_array.size(); n++, idx += Vertex::MAX_BONES) {
-					const Vertex &v = vertex_array[n];
-
-					ERR_CONTINUE(v.num_bones != Vertex::MAX_BONES);
-
-					for (int j = 0; j < Vertex::MAX_BONES; j++) {
-						w[idx + j] = v.weights[j];
-					}
-				}
-
-				w.release();
-				a[i] = array;
-
-			} break;
 			case Mesh::ARRAY_INDEX: {
 				ERR_CONTINUE(index_array.size() == 0);
 
@@ -536,8 +453,6 @@ Vector<SurfaceTool::Vertex> SurfaceTool::create_vertex_array_from_triangle_array
 	PoolVector<Color> carr = p_arrays[RS::ARRAY_COLOR];
 	PoolVector<Vector2> uvarr = p_arrays[RS::ARRAY_TEX_UV];
 	PoolVector<Vector2> uv2arr = p_arrays[RS::ARRAY_TEX_UV2];
-	PoolVector<int> barr = p_arrays[RS::ARRAY_BONES];
-	PoolVector<float> warr = p_arrays[RS::ARRAY_WEIGHTS];
 
 	int vc = varr.size();
 
@@ -579,18 +494,6 @@ Vector<SurfaceTool::Vertex> SurfaceTool::create_vertex_array_from_triangle_array
 		ruv2 = uv2arr.read();
 	}
 
-	PoolVector<int>::Read rb;
-	if (barr.size()) {
-		lformat |= RS::ARRAY_FORMAT_BONES;
-		rb = barr.read();
-	}
-
-	PoolVector<float>::Read rw;
-	if (warr.size()) {
-		lformat |= RS::ARRAY_FORMAT_WEIGHTS;
-		rw = warr.read();
-	}
-
 	ret.resize(vc);
 	Vertex *ret_dest = ret.ptrw();
 
@@ -617,18 +520,6 @@ Vector<SurfaceTool::Vertex> SurfaceTool::create_vertex_array_from_triangle_array
 		if (lformat & RS::ARRAY_FORMAT_TEX_UV2) {
 			v.uv2 = uv2arr[i];
 		}
-		if (lformat & RS::ARRAY_FORMAT_BONES) {
-			v.num_bones = Vertex::MAX_BONES;
-			for (int b = 0; b < Vertex::MAX_BONES; b++) {
-				v.bones[b] = barr[i * Vertex::MAX_BONES + b];
-			}
-		}
-		if (lformat & RS::ARRAY_FORMAT_WEIGHTS) {
-			v.num_bones = Vertex::MAX_BONES;
-			for (int b = 0; b < Vertex::MAX_BONES; b++) {
-				v.weights[b] = warr[i * Vertex::MAX_BONES + b];
-			}
-		}
 	}
 
 	return ret;
@@ -641,8 +532,6 @@ void SurfaceTool::_create_list_from_arrays(Array arr, LocalVector<Vertex> *r_ver
 	PoolVector<Color> carr = arr[RS::ARRAY_COLOR];
 	PoolVector<Vector2> uvarr = arr[RS::ARRAY_TEX_UV];
 	PoolVector<Vector2> uv2arr = arr[RS::ARRAY_TEX_UV2];
-	PoolVector<int> barr = arr[RS::ARRAY_BONES];
-	PoolVector<float> warr = arr[RS::ARRAY_WEIGHTS];
 
 	int vc = varr.size();
 
@@ -684,18 +573,6 @@ void SurfaceTool::_create_list_from_arrays(Array arr, LocalVector<Vertex> *r_ver
 		ruv2 = uv2arr.read();
 	}
 
-	PoolVector<int>::Read rb;
-	if (barr.size()) {
-		lformat |= RS::ARRAY_FORMAT_BONES;
-		rb = barr.read();
-	}
-
-	PoolVector<float>::Read rw;
-	if (warr.size()) {
-		lformat |= RS::ARRAY_FORMAT_WEIGHTS;
-		rw = warr.read();
-	}
-
 	DEV_ASSERT(vc);
 	uint32_t start = r_vertex->size();
 	r_vertex->resize(start + vc);
@@ -723,18 +600,6 @@ void SurfaceTool::_create_list_from_arrays(Array arr, LocalVector<Vertex> *r_ver
 		}
 		if (lformat & RS::ARRAY_FORMAT_TEX_UV2) {
 			v.uv2 = uv2arr[i];
-		}
-		if (lformat & RS::ARRAY_FORMAT_BONES) {
-			v.num_bones = Vertex::MAX_BONES;
-			for (int b = 0; b < Vertex::MAX_BONES; b++) {
-				v.bones[b] = barr[i * Vertex::MAX_BONES + b];
-			}
-		}
-		if (lformat & RS::ARRAY_FORMAT_WEIGHTS) {
-			v.num_bones = Vertex::MAX_BONES;
-			for (int b = 0; b < Vertex::MAX_BONES; b++) {
-				v.weights[b] = warr[i * Vertex::MAX_BONES + b];
-			}
 		}
 	}
 
@@ -1073,8 +938,6 @@ void SurfaceTool::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_tangent", "tangent"), &SurfaceTool::add_tangent);
 	ClassDB::bind_method(D_METHOD("add_uv", "uv"), &SurfaceTool::add_uv);
 	ClassDB::bind_method(D_METHOD("add_uv2", "uv2"), &SurfaceTool::add_uv2);
-	ClassDB::bind_method(D_METHOD("add_bones", "bones"), &SurfaceTool::add_bones);
-	ClassDB::bind_method(D_METHOD("add_weights", "weights"), &SurfaceTool::add_weights);
 	ClassDB::bind_method(D_METHOD("add_smooth_group", "smooth"), &SurfaceTool::add_smooth_group);
 
 	ClassDB::bind_method(D_METHOD("add_triangle_fan", "vertices", "uvs", "colors", "uv2s", "normals", "tangents"), &SurfaceTool::add_triangle_fan, DEFVAL(Vector<Vector2>()), DEFVAL(Vector<Color>()), DEFVAL(Vector<Vector2>()), DEFVAL(Vector<Vector3>()), DEFVAL(Vector<Plane>()));

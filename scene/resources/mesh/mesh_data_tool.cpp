@@ -102,16 +102,6 @@ Error MeshDataTool::create_from_surface(const Ref<ArrayMesh> &p_mesh, int p_surf
 		col = arrays[Mesh::ARRAY_COLOR].operator PoolVector<Color>().read();
 	}
 
-	PoolVector<int>::Read bo;
-	if (arrays[Mesh::ARRAY_BONES].get_type() != Variant::NIL) {
-		bo = arrays[Mesh::ARRAY_BONES].operator PoolVector<int>().read();
-	}
-
-	PoolVector<real_t>::Read we;
-	if (arrays[Mesh::ARRAY_WEIGHTS].get_type() != Variant::NIL) {
-		we = arrays[Mesh::ARRAY_WEIGHTS].operator PoolVector<real_t>().read();
-	}
-
 	vertices.resize(vcount);
 
 	for (int i = 0; i < vcount; i++) {
@@ -131,20 +121,6 @@ Error MeshDataTool::create_from_surface(const Ref<ArrayMesh> &p_mesh, int p_surf
 		}
 		if (col.ptr()) {
 			v.color = col[i];
-		}
-
-		if (we.ptr()) {
-			v.weights.push_back(we[i * 4 + 0]);
-			v.weights.push_back(we[i * 4 + 1]);
-			v.weights.push_back(we[i * 4 + 2]);
-			v.weights.push_back(we[i * 4 + 3]);
-		}
-
-		if (bo.ptr()) {
-			v.bones.push_back(bo[i * 4 + 0]);
-			v.bones.push_back(bo[i * 4 + 1]);
-			v.bones.push_back(bo[i * 4 + 2]);
-			v.bones.push_back(bo[i * 4 + 3]);
 		}
 
 		vertices.write[i] = v;
@@ -241,18 +217,6 @@ Error MeshDataTool::commit_to_surface(const Ref<ArrayMesh> &p_mesh) {
 			col = c.write();
 		}
 
-		PoolVector<int>::Write bo;
-		if (format & Mesh::ARRAY_FORMAT_BONES) {
-			b.resize(vcount * 4);
-			bo = b.write();
-		}
-
-		PoolVector<real_t>::Write we;
-		if (format & Mesh::ARRAY_FORMAT_WEIGHTS) {
-			w.resize(vcount * 4);
-			we = w.write();
-		}
-
 		for (int i = 0; i < vcount; i++) {
 			const Vertex &vtx = vertices[i];
 
@@ -274,20 +238,6 @@ Error MeshDataTool::commit_to_surface(const Ref<ArrayMesh> &p_mesh) {
 			}
 			if (col.ptr()) {
 				col[i] = vtx.color;
-			}
-
-			if (we.ptr()) {
-				we[i * 4 + 0] = vtx.weights[0];
-				we[i * 4 + 1] = vtx.weights[1];
-				we[i * 4 + 2] = vtx.weights[2];
-				we[i * 4 + 3] = vtx.weights[3];
-			}
-
-			if (bo.ptr()) {
-				bo[i * 4 + 0] = vtx.bones[0];
-				bo[i * 4 + 1] = vtx.bones[1];
-				bo[i * 4 + 2] = vtx.bones[2];
-				bo[i * 4 + 3] = vtx.bones[3];
 			}
 		}
 
@@ -317,12 +267,6 @@ Error MeshDataTool::commit_to_surface(const Ref<ArrayMesh> &p_mesh) {
 	}
 	if (t.size()) {
 		arr[Mesh::ARRAY_TANGENT] = t;
-	}
-	if (b.size()) {
-		arr[Mesh::ARRAY_BONES] = b;
-	}
-	if (w.size()) {
-		arr[Mesh::ARRAY_WEIGHTS] = w;
 	}
 
 	Ref<ArrayMesh> ncmesh = p_mesh;
@@ -404,28 +348,6 @@ void MeshDataTool::set_vertex_color(int p_idx, const Color &p_color) {
 	ERR_FAIL_INDEX(p_idx, vertices.size());
 	vertices.write[p_idx].color = p_color;
 	format |= Mesh::ARRAY_FORMAT_COLOR;
-}
-
-Vector<int> MeshDataTool::get_vertex_bones(int p_idx) const {
-	ERR_FAIL_INDEX_V(p_idx, vertices.size(), Vector<int>());
-	return vertices[p_idx].bones;
-}
-void MeshDataTool::set_vertex_bones(int p_idx, const Vector<int> &p_bones) {
-	ERR_FAIL_INDEX(p_idx, vertices.size());
-	ERR_FAIL_COND(p_bones.size() != 4);
-	vertices.write[p_idx].bones = p_bones;
-	format |= Mesh::ARRAY_FORMAT_BONES;
-}
-
-Vector<float> MeshDataTool::get_vertex_weights(int p_idx) const {
-	ERR_FAIL_INDEX_V(p_idx, vertices.size(), Vector<float>());
-	return vertices[p_idx].weights;
-}
-void MeshDataTool::set_vertex_weights(int p_idx, const Vector<float> &p_weights) {
-	ERR_FAIL_INDEX(p_idx, vertices.size());
-	ERR_FAIL_COND(p_weights.size() != 4);
-	vertices.write[p_idx].weights = p_weights;
-	format |= Mesh::ARRAY_FORMAT_WEIGHTS;
 }
 
 Variant MeshDataTool::get_vertex_meta(int p_idx) const {
@@ -529,12 +451,6 @@ void MeshDataTool::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_vertex_color", "idx", "color"), &MeshDataTool::set_vertex_color);
 	ClassDB::bind_method(D_METHOD("get_vertex_color", "idx"), &MeshDataTool::get_vertex_color);
-
-	ClassDB::bind_method(D_METHOD("set_vertex_bones", "idx", "bones"), &MeshDataTool::set_vertex_bones);
-	ClassDB::bind_method(D_METHOD("get_vertex_bones", "idx"), &MeshDataTool::get_vertex_bones);
-
-	ClassDB::bind_method(D_METHOD("set_vertex_weights", "idx", "weights"), &MeshDataTool::set_vertex_weights);
-	ClassDB::bind_method(D_METHOD("get_vertex_weights", "idx"), &MeshDataTool::get_vertex_weights);
 
 	ClassDB::bind_method(D_METHOD("set_vertex_meta", "idx", "meta"), &MeshDataTool::set_vertex_meta);
 	ClassDB::bind_method(D_METHOD("get_vertex_meta", "idx"), &MeshDataTool::get_vertex_meta);

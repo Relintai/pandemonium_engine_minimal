@@ -435,7 +435,7 @@ void RasterizerSceneGLES2::_setup_geometry(RenderList::Element *p_element) {
 				if (s->attribs[i].enabled) {
 					glEnableVertexAttribArray(i);
 
-					if (!s->blend_shape_data.empty() && i != RS::ARRAY_BONES && s->blend_shape_buffer_size > 0) {
+					if (!s->blend_shape_data.empty() && s->blend_shape_buffer_size > 0) {
 						glBindBuffer(GL_ARRAY_BUFFER, s->blend_shape_buffer_id);
 						// When using octahedral compression (2 component normal/tangent)
 						// decompression changes the component count to 3/4
@@ -535,20 +535,6 @@ void RasterizerSceneGLES2::_render_geometry(RenderList::Element *p_element) {
 				glDrawArrays(gl_primitive[s->primitive], 0, s->array_len);
 				storage->info.render.vertices_count += s->array_len;
 			}
-			/*
-			if (p_element->instance->skeleton.is_valid() && s->attribs[RS::ARRAY_BONES].enabled && s->attribs[RS::ARRAY_WEIGHTS].enabled) {
-				//clean up after skeleton
-				glBindBuffer(GL_ARRAY_BUFFER, storage->resources.skeleton_transform_buffer);
-
-				glDisableVertexAttribArray(RS::ARRAY_MAX + 0);
-				glDisableVertexAttribArray(RS::ARRAY_MAX + 1);
-				glDisableVertexAttribArray(RS::ARRAY_MAX + 2);
-
-				glVertexAttrib4f(RS::ARRAY_MAX + 0, 1, 0, 0, 0);
-				glVertexAttrib4f(RS::ARRAY_MAX + 1, 0, 1, 0, 0);
-				glVertexAttrib4f(RS::ARRAY_MAX + 2, 0, 0, 1, 0);
-			}
-*/
 		} break;
 
 		case RS::INSTANCE_MULTIMESH: {
@@ -632,8 +618,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 	RasterizerStorageGLES2::Material *prev_material = nullptr;
 	RasterizerStorageGLES2::Geometry *prev_geometry = nullptr;
 	RasterizerStorageGLES2::GeometryOwner *prev_owner = nullptr;
-
-	bool prev_octahedral_compression = false;
 
 	Transform view_transform_inverse = p_view_transform.inverse();
 	Projection projection_inverse = p_projection.inverse();
@@ -776,13 +760,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 
 		state.scene_shader.set_conditional(SceneShaderGLES2::USE_PHYSICAL_LIGHT_ATTENUATION, storage->config.use_physical_light_attenuation);
 
-		bool octahedral_compression = ((RasterizerStorageGLES2::Surface *)e->geometry)->format & RenderingServer::ArrayFormat::ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION &&
-				(((RasterizerStorageGLES2::Surface *)e->geometry)->blend_shape_data.empty() || ((RasterizerStorageGLES2::Surface *)e->geometry)->blend_shape_buffer_size == 0);
-		if (octahedral_compression != prev_octahedral_compression) {
-			state.scene_shader.set_conditional(SceneShaderGLES2::ENABLE_OCTAHEDRAL_COMPRESSION, octahedral_compression);
-			rebind = true;
-		}
-
 		bool shader_rebind = false;
 		if (rebind || material != prev_material) {
 			storage->info.render.material_switch_count++;
@@ -827,7 +804,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 		prev_owner = e->owner;
 		prev_material = material;
 		prev_instancing = instancing;
-		prev_octahedral_compression = octahedral_compression;
 	}
 
 	state.scene_shader.set_conditional(SceneShaderGLES2::ENABLE_OCTAHEDRAL_COMPRESSION, false);

@@ -49,10 +49,6 @@ public:
 		Vector2 uv;
 		Vector2 uv2;
 
-		int16_t bones[MAX_BONES];
-		float weights[MAX_BONES];
-		int32_t num_bones = 0;
-
 		bool operator==(const Vertex &p_vertex) const;
 
 		Vertex() {}
@@ -121,8 +117,6 @@ public:
 	void add_tangent(const Plane &p_tangent);
 	void add_uv(const Vector2 &p_uv);
 	void add_uv2(const Vector2 &p_uv2);
-	void add_bones(const Vector<int> &p_bones);
-	void add_weights(const Vector<float> &p_weights);
 	void add_smooth_group(bool p_smooth);
 
 	void add_triangle_fan(const Vector<Vector3> &p_vertices, const Vector<Vector2> &p_uvs = Vector<Vector2>(), const Vector<Color> &p_colors = Vector<Color>(), const Vector<Vector2> &p_uv2s = Vector<Vector2>(), const Vector<Vector3> &p_normals = Vector<Vector3>(), const Vector<Plane> &p_tangents = Vector<Plane>());

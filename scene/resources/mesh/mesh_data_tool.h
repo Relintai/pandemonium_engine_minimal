@@ -43,8 +43,6 @@ class MeshDataTool : public Reference {
 		Plane tangent;
 		Vector2 uv;
 		Vector2 uv2;
-		Vector<int> bones;
-		Vector<float> weights;
 		Vector<int> edges;
 		Vector<int> faces;
 		Variant meta;
@@ -101,12 +99,6 @@ public:
 
 	Color get_vertex_color(int p_idx) const;
 	void set_vertex_color(int p_idx, const Color &p_color);
-
-	Vector<int> get_vertex_bones(int p_idx) const;
-	void set_vertex_bones(int p_idx, const Vector<int> &p_bones);
-
-	Vector<float> get_vertex_weights(int p_idx) const;
-	void set_vertex_weights(int p_idx, const Vector<float> &p_weights);
 
 	Variant get_vertex_meta(int p_idx) const;
 	void set_vertex_meta(int p_idx, const Variant &p_meta);

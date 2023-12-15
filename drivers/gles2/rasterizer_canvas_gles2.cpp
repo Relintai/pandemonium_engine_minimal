@@ -222,13 +222,6 @@ void RasterizerCanvasGLES2::_batch_render_generic(const Batch &p_batch, Rasteriz
 		glVertexAttribPointer(RS::ARRAY_TEX_UV2, 4, GL_FLOAT, GL_FALSE, sizeof_vert, CAST_INT_TO_UCHAR_PTR(pointer + (9 * 4)));
 	}
 
-	if (use_large_verts) {
-		glEnableVertexAttribArray(RS::ARRAY_BONES);
-		glVertexAttribPointer(RS::ARRAY_BONES, 2, GL_FLOAT, GL_FALSE, sizeof_vert, CAST_INT_TO_UCHAR_PTR(pointer + (13 * 4)));
-		glEnableVertexAttribArray(RS::ARRAY_WEIGHTS);
-		glVertexAttribPointer(RS::ARRAY_WEIGHTS, 4, GL_FLOAT, GL_FALSE, sizeof_vert, CAST_INT_TO_UCHAR_PTR(pointer + (15 * 4)));
-	}
-
 	// We only want to set the GL wrapping mode if the texture is not already tiled (i.e. set in Import).
 	// This  is an optimization left over from the legacy renderer.
 	// If we DID set tiling in the API, and reverted to clamped, then the next draw using this texture
@@ -289,8 +282,6 @@ void RasterizerCanvasGLES2::_batch_render_generic(const Batch &p_batch, Rasteriz
 	glDisableVertexAttribArray(RS::ARRAY_COLOR);
 	glDisableVertexAttribArray(RS::ARRAY_TANGENT);
 	glDisableVertexAttribArray(RS::ARRAY_TEX_UV2);
-	glDisableVertexAttribArray(RS::ARRAY_BONES);
-	glDisableVertexAttribArray(RS::ARRAY_WEIGHTS);
 
 	// may not be necessary .. state change optimization still TODO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
