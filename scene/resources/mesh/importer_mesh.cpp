@@ -422,54 +422,6 @@ Vector<Face3> ImporterMesh::get_faces() const {
 	return faces;
 }
 
-Ref<NavigationMesh> ImporterMesh::create_navigation_mesh() {
-	Vector<Face3> faces = get_faces();
-	if (faces.size() == 0) {
-		return Ref<NavigationMesh>();
-	}
-
-	HashMap<Vector3, int> unique_vertices;
-	LocalVector<int> face_indices;
-
-	for (int i = 0; i < faces.size(); i++) {
-		for (int j = 0; j < 3; j++) {
-			Vector3 v = faces[i].vertex[j];
-			int idx;
-			if (unique_vertices.has(v)) {
-				idx = unique_vertices[v];
-			} else {
-				idx = unique_vertices.size();
-				unique_vertices[v] = idx;
-			}
-			face_indices.push_back(idx);
-		}
-	}
-
-	PoolVector<Vector3> vertices;
-	vertices.resize(unique_vertices.size());
-
-	const Vector3 *key = NULL;
-	while ((key = unique_vertices.next(key))) {
-		Vector3 k = *key;
-		vertices.set(unique_vertices[k], k);
-	}
-
-	Ref<NavigationMesh> nm;
-	nm.instance();
-	nm->set_vertices(vertices);
-
-	Vector<int> v3;
-	v3.resize(3);
-	for (uint32_t i = 0; i < face_indices.size(); i += 3) {
-		v3.write[0] = face_indices[i + 0];
-		v3.write[1] = face_indices[i + 1];
-		v3.write[2] = face_indices[i + 2];
-		nm->add_polygon(v3);
-	}
-
-	return nm;
-}
-
 struct EditorSceneFormatImporterMeshLightmapSurface {
 	Ref<Material> material;
 	LocalVector<SurfaceTool::Vertex> vertices;

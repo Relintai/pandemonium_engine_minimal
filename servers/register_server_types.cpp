@@ -52,13 +52,6 @@
 #include "audio/effects/audio_effect_stereo_enhance.h"
 #include "audio/effects/audio_stream_generator.h"
 #include "audio_server.h"
-#include "navigation/navigation_mesh_generator.h"
-#include "navigation/navigation_path_query_parameters_2d.h"
-#include "navigation/navigation_path_query_parameters_3d.h"
-#include "navigation/navigation_path_query_result_2d.h"
-#include "navigation/navigation_path_query_result_3d.h"
-#include "navigation_2d_server.h"
-#include "navigation_server.h"
 #include "physics_2d/physics_2d_server_sw.h"
 #include "physics_2d/physics_2d_server_wrap_mt.h"
 #include "rendering/shader_types.h"
@@ -109,16 +102,6 @@ void register_server_types() {
 	ClassDB::register_class<AudioServer>();
 
 	ClassDB::register_virtual_class<Physics2DServer>();
-
-	ClassDB::register_virtual_class<NavigationServer>();
-	ClassDB::register_virtual_class<Navigation2DServer>();
-	//ClassDB::register_class<NavigationMeshGeneratorManager>();
-	ClassDB::register_virtual_class<NavigationMeshGenerator>();
-
-	ClassDB::register_class<NavigationPathQueryParameters2D>();
-	ClassDB::register_class<NavigationPathQueryParameters3D>();
-	ClassDB::register_class<NavigationPathQueryResult2D>();
-	ClassDB::register_class<NavigationPathQueryResult3D>();
 
 	shader_types = memnew(ShaderTypes);
 
@@ -186,18 +169,6 @@ void register_server_types() {
 
 	Physics2DServerManager::register_server("PandemoniumPhysics", &_createPandemoniumPhysics2DCallback);
 	Physics2DServerManager::set_default_server("PandemoniumPhysics");
-
-	// Navigation
-	GLOBAL_DEF(NavigationMeshGeneratorManager::setting_property_name, "DEFAULT");
-	ProjectSettings::get_singleton()->set_custom_property_info(NavigationMeshGeneratorManager::setting_property_name, PropertyInfo(Variant::STRING, NavigationMeshGeneratorManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"));
-
-	// Navigation 2D
-	GLOBAL_DEF(Navigation2DServerManager::setting_property_name, "DEFAULT");
-	ProjectSettings::get_singleton()->set_custom_property_info(Navigation2DServerManager::setting_property_name, PropertyInfo(Variant::STRING, Navigation2DServerManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"));
-
-	// Navigation 3D
-	GLOBAL_DEF(NavigationServerManager::setting_property_name, "DEFAULT");
-	ProjectSettings::get_singleton()->set_custom_property_info(NavigationServerManager::setting_property_name, PropertyInfo(Variant::STRING, NavigationServerManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"));
 }
 
 void unregister_server_types() {
@@ -208,6 +179,4 @@ void register_server_singletons() {
 	Engine::get_singleton()->add_singleton(Engine::Singleton("RenderingServer", RenderingServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("Physics2DServer", Physics2DServer::get_singleton()));
 	Engine::get_singleton()->add_singleton(Engine::Singleton("AudioServer", AudioServer::get_singleton()));
-	Engine::get_singleton()->add_singleton(Engine::Singleton("NavigationServer", NavigationServer::get_singleton()));
-	Engine::get_singleton()->add_singleton(Engine::Singleton("Navigation2DServer", Navigation2DServer::get_singleton()));
 }

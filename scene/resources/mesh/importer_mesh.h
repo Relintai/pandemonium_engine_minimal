@@ -34,7 +34,6 @@
 #include "core/object/resource.h"
 #include "core/containers/local_vector.h"
 #include "scene/resources/mesh/mesh.h"
-#include "scene/resources/navigation/navigation_mesh.h"
 
 #include <cstdint>
 
@@ -114,7 +113,6 @@ public:
 	void set_surface_material(int p_surface, const Ref<Material> &p_material);
 
 	Vector<Face3> get_faces() const;
-	Ref<NavigationMesh> create_navigation_mesh();
 
 	bool has_mesh() const;
 	Ref<ArrayMesh> get_mesh(const Ref<ArrayMesh> &p_base = Ref<ArrayMesh>());

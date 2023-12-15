@@ -49,12 +49,6 @@
 #include "scene/2d/listener_2d.h"
 #include "scene/2d/mesh_instance_2d.h"
 #include "scene/2d/multimesh_instance_2d.h"
-#include "scene/2d/navigation_2d.h"
-#include "scene/2d/navigation_agent_2d.h"
-#include "scene/2d/navigation_geometry_parser_2d.h"
-#include "scene/2d/navigation_link_2d.h"
-#include "scene/2d/navigation_obstacle_2d.h"
-#include "scene/2d/navigation_polygon_instance.h"
 #include "scene/2d/parallax_background.h"
 #include "scene/2d/parallax_layer.h"
 #include "scene/2d/path_2d.h"
@@ -148,9 +142,6 @@
 #include "scene/resources/mesh/mesh.h"
 #include "scene/resources/mesh/mesh_data_tool.h"
 #include "scene/resources/mesh/multimesh.h"
-#include "scene/resources/navigation/navigation_mesh.h"
-#include "scene/resources/navigation_2d/navigation_mesh_source_geometry_data_2d.h"
-#include "scene/resources/navigation_2d/navigation_polygon.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/mesh/polygon_path_finder.h"
 #include "scene/resources/mesh/primitive_meshes.h"
@@ -366,16 +357,10 @@ void register_scene_types() {
 	OS::get_singleton()->yield(); //may take time to init
 
 #ifndef _3D_DISABLED
-	ClassDB::register_class<NavigationMesh>();
-
-	OS::get_singleton()->yield(); //may take time to init
-
 	ClassDB::register_class<Curve3D>();
 
 	OS::get_singleton()->yield(); //may take time to init
-
 #endif
-	ClassDB::register_class<NavigationMesh>();
 
 	AcceptDialog::set_swap_ok_cancel(GLOBAL_DEF_NOVAL("gui/common/swap_ok_cancel", bool(OS::get_singleton()->get_swap_ok_cancel())));
 
@@ -521,16 +506,6 @@ void register_scene_types() {
 	ClassDB::register_class<Path2D>();
 	ClassDB::register_class<PathFollow2D>();
 
-	ClassDB::register_class<Navigation2D>();
-	ClassDB::register_class<NavigationPolygon>();
-	ClassDB::register_class<NavigationPolygonInstance>();
-	ClassDB::register_class<NavigationAgent2D>();
-	ClassDB::register_class<NavigationObstacle2D>();
-	ClassDB::register_class<NavigationLink2D>();
-
-	ClassDB::register_class<NavigationMeshSourceGeometryData2D>();
-	ClassDB::register_class<NavigationGeometryParser2D>();
-
 	OS::get_singleton()->yield(); //may take time to init
 
 	ClassDB::register_virtual_class<SceneState>();
@@ -547,14 +522,6 @@ void register_scene_types() {
 
 	for (int i = 0; i < 32; i++) {
 		GLOBAL_DEF("layer_names/2d_physics/layer_" + itos(i + 1), "");
-	}
-
-	for (int i = 0; i < 32; i++) {
-		GLOBAL_DEF("layer_names/2d_navigation/layer_" + itos(i + 1), "");
-	}
-
-	for (int i = 0; i < 32; i++) {
-		GLOBAL_DEF("layer_names/avoidance/layer_" + itos(i + 1), "");
 	}
 }
 

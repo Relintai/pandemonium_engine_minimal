@@ -61,10 +61,6 @@
 #include "scene/register_scene_types.h"
 #include "scene/resources/packed_scene.h"
 #include "servers/audio_server.h"
-#include "servers/navigation/navigation_mesh_generator.h"
-#include "servers/navigation/navigation_mesh_generator_dummy.h"
-#include "servers/navigation_2d_server.h"
-#include "servers/navigation_server.h"
 #include "servers/physics_2d_server.h"
 #include "servers/register_server_types.h"
 
@@ -110,10 +106,6 @@ static MessageQueue *message_queue = nullptr;
 // Initialized in setup2()
 static AudioServer *audio_server = nullptr;
 static Physics2DServer *physics_2d_server = nullptr;
-static NavigationMeshGeneratorManager *navigation_mesh_generator_manager = nullptr;
-static NavigationMeshGenerator *navigation_mesh_generator = nullptr;
-static NavigationServer *navigation_server = nullptr;
-static Navigation2DServer *navigation_2d_server = nullptr;
 
 // We error out if setup2() doesn't turn this true
 static bool _start_success = false;
@@ -206,78 +198,6 @@ void initialize_physics() {
 void finalize_physics() {
 	physics_2d_server->finish();
 	memdelete(physics_2d_server);
-}
-
-void initialize_navigation_mesh_generator() {
-	ERR_FAIL_COND(navigation_mesh_generator != NULL);
-
-	// Init chosen NavigationMeshGenerator
-	const String &server_name = GLOBAL_GET(NavigationMeshGeneratorManager::setting_property_name);
-	navigation_mesh_generator = NavigationMeshGeneratorManager::get_singleton()->new_server(server_name);
-
-	// Fall back to default if not found
-	if (!navigation_mesh_generator) {
-		// Navigation server not found, so use the default.
-		navigation_mesh_generator = NavigationMeshGeneratorManager::get_singleton()->new_default_server();
-	}
-
-	// Fall back to dummy if no default server has been registered.
-	if (!navigation_mesh_generator) {
-		ERR_PRINT("No NavigationMeshGenerator implementation has been registered! Falling back to a dummy implementation: navigation mesh baking features will be unavailable.");
-		navigation_mesh_generator = memnew(NavigationMeshGeneratorDummy);
-	}
-
-	if (navigation_mesh_generator) {
-		navigation_mesh_generator->init();
-
-		// need to register singleton earlier so modules / extensions / addons can use it on SCENE / SERVER init level
-		Engine::get_singleton()->add_singleton(Engine::Singleton("NavigationMeshGenerator", NavigationMeshGenerator::get_singleton()));
-	}
-
-	ERR_FAIL_NULL_MSG(navigation_mesh_generator, "Failed to initialize NavigationMeshGenerator.");
-}
-
-void finalize_navigation_mesh_generator() {
-	ERR_FAIL_COND(!navigation_mesh_generator);
-
-	navigation_mesh_generator->finish();
-
-	memdelete(navigation_mesh_generator);
-	navigation_mesh_generator = nullptr;
-}
-
-void initialize_navigation_server() {
-	ERR_FAIL_COND(navigation_server != nullptr);
-	ERR_FAIL_COND(navigation_2d_server != nullptr);
-
-	/// 3D Navigation Server
-	navigation_server = NavigationServerManager::new_server(ProjectSettings::get_singleton()->get(NavigationServerManager::setting_property_name));
-	if (!navigation_server) {
-		// Navigation server not found, Use the default physics
-		navigation_server = NavigationServerManager::new_default_server();
-	}
-	ERR_FAIL_COND(!navigation_server);
-	navigation_server->init();
-
-	/// 2D Navigation server
-	navigation_2d_server = Navigation2DServerManager::new_server(ProjectSettings::get_singleton()->get(Navigation2DServerManager::setting_property_name));
-	if (!navigation_2d_server) {
-		// Navigation server not found, Use the default physics
-		navigation_2d_server = Navigation2DServerManager::new_default_server();
-	}
-	ERR_FAIL_COND(!navigation_2d_server);
-	navigation_2d_server->init();
-}
-
-void finalize_navigation_server() {
-	navigation_2d_server->finish();
-	navigation_server->finish();
-
-	memdelete(navigation_2d_server);
-	navigation_2d_server = nullptr;
-
-	memdelete(navigation_server);
-	navigation_server = nullptr;
 }
 
 //#define DEBUG_INIT
@@ -454,8 +374,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	register_core_settings(); //here globals is present
 
 	translation_server = memnew(TranslationServer);
-
-	navigation_mesh_generator_manager = memnew(NavigationMeshGeneratorManager);
 
 	performance = memnew(Performance);
 	ClassDB::register_class<Performance>();
@@ -1360,9 +1278,6 @@ error:
 	if (translation_server) {
 		memdelete(translation_server);
 	}
-	if (navigation_mesh_generator_manager) {
-		memdelete(navigation_mesh_generator_manager);
-	}
 	if (globals) {
 		memdelete(globals);
 	}
@@ -1533,8 +1448,6 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 	register_module_types(ModuleRegistrationLevel::MODULE_REGISTRATION_LEVEL_SERVER);
 
 	initialize_physics();
-	initialize_navigation_mesh_generator();
-	initialize_navigation_server();
 
 	register_server_singletons();
 
@@ -1833,19 +1746,8 @@ bool Main::start() {
 		if (debug_collisions) {
 			sml->set_debug_collisions_hint(true);
 		}
-		if (debug_navigation) {
-			sml->set_debug_navigation_hint(true);
-			NavigationServer::get_singleton()->set_debug_navigation_enabled(true);
-		}
-		if (debug_avoidance) {
-			NavigationServer::get_singleton()->set_debug_avoidance_enabled(true);
-		}
 		if (debug_paths) {
 			sml->set_debug_paths_hint(true);
-		}
-		if (debug_navigation || debug_avoidance) {
-			NavigationServer::get_singleton()->set_active(true);
-			NavigationServer::get_singleton()->set_debug_enabled(true);
 		}
 #endif
 
@@ -2273,8 +2175,6 @@ bool Main::iteration() {
 
 		uint64_t navigation_begin = OS::get_singleton()->get_ticks_usec();
 
-		NavigationServer::get_singleton()->process(frame_slice * time_scale);
-
 		navigation_process_ticks = MAX(navigation_process_ticks, OS::get_singleton()->get_ticks_usec() - navigation_begin); // keep the largest one for reference
 		navigation_process_max = MAX(OS::get_singleton()->get_ticks_usec() - navigation_begin, navigation_process_max);
 
@@ -2305,8 +2205,6 @@ bool Main::iteration() {
 	}
 
 	message_queue->flush();
-
-	NavigationMeshGenerator::get_singleton()->process();
 
 	RenderingServer::get_singleton()->sync(); //sync if still drawing from previous frames.
 
@@ -2488,8 +2386,6 @@ void Main::cleanup(bool p_force) {
 		memdelete(audio_server);
 	}
 
-	finalize_navigation_server();
-	finalize_navigation_mesh_generator();
 	OS::get_singleton()->finalize();
 	finalize_physics();
 
@@ -2510,9 +2406,6 @@ void Main::cleanup(bool p_force) {
 	}
 	if (translation_server) {
 		memdelete(translation_server);
-	}
-	if (navigation_mesh_generator_manager) {
-		memdelete(navigation_mesh_generator_manager);
 	}
 	if (globals) {
 		memdelete(globals);
