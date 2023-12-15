@@ -168,12 +168,6 @@ def configure(env):
             env.Append(CCFLAGS=["-fsanitize=thread"])
             env.Append(LINKFLAGS=["-fsanitize=thread"])
 
-    ## Dependencies
-
-    if env["builtin_libtheora"]:
-        if env["arch"] != "arm64":
-            env["x86_libtheora_opt_gcc"] = True
-
     ## Flags
 
     env.Prepend(CPPPATH=["#platform/osx"])

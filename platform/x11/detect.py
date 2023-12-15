@@ -284,50 +284,15 @@ def configure(env):
     if not env["builtin_enet"]:
         env.ParseConfig("pkg-config libenet --cflags --libs")
 
-    if not env["builtin_squish"]:
-        env.ParseConfig("pkg-config libsquish --cflags --libs")
-
     if not env["builtin_zstd"]:
         env.ParseConfig("pkg-config libzstd --cflags --libs")
 
     # Sound and video libraries
     # Keep the order as it triggers chained dependencies (ogg needed by others, etc.)
 
-    if not env["builtin_libtheora"]:
-        env["builtin_libogg"] = False  # Needed to link against system libtheora
-        env["builtin_libvorbis"] = False  # Needed to link against system libtheora
-        env.ParseConfig("pkg-config theora theoradec --cflags --libs")
-    else:
-        list_of_x86 = ["x86_64", "x86", "i386", "i586"]
-        if env["arch"] == "":
-            if any(platform.machine() in s for s in list_of_x86):
-                env["x86_libtheora_opt_gcc"] = True
-        else:
-            if any(env["arch"] in s for s in list_of_x86):
-                env["x86_libtheora_opt_gcc"] = True
-
-    if not env["builtin_libvorbis"]:
-        env["builtin_libogg"] = False  # Needed to link against system libvorbis
-        env.ParseConfig("pkg-config vorbis vorbisfile --cflags --libs")
-
-    if not env["builtin_opus"]:
-        env["builtin_libogg"] = False  # Needed to link against system opus
-        env.ParseConfig("pkg-config opus opusfile --cflags --libs")
-
-    if not env["builtin_libogg"]:
-        env.ParseConfig("pkg-config ogg --cflags --libs")
-
     if not env["builtin_mbedtls"]:
         # mbedTLS does not provide a pkgconfig config yet. See https://github.com/ARMmbed/mbedtls/issues/228
         env.Append(LIBS=["mbedtls", "mbedcrypto", "mbedx509"])
-
-    if not env["builtin_wslay"]:
-        env.ParseConfig("pkg-config libwslay --cflags --libs")
-
-    if not env["builtin_miniupnpc"]:
-        # No pkgconfig file so far, hardcode default paths.
-        env.Prepend(CPPPATH=["/usr/include/miniupnpc"])
-        env.Append(LIBS=["miniupnpc"])
 
     # On Linux wchar_t should be 32-bits
     # 16-bit library shouldn't be required due to compiler optimisations
