@@ -65,7 +65,7 @@ static Transform2D _canvas_get_transform(RenderingServerViewport::Viewport *p_vi
 }
 
 void RenderingServerViewport::_draw_3d(Viewport *p_viewport) {
-	RSG::scene->render_camera(p_viewport->camera, p_viewport->scenario, p_viewport->size, p_viewport->shadow_atlas);
+	RSG::scene->render_camera(p_viewport->camera, p_viewport->scenario, p_viewport->size);
 }
 
 void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
@@ -103,7 +103,7 @@ void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 
 		if (scenario_draw_canvas_bg && canvas_map.front() && canvas_map.front()->key().get_layer() > scenario_canvas_max_layer) {
 			if (!can_draw_3d) {
-				RSG::scene->render_empty_scene(p_viewport->scenario, p_viewport->shadow_atlas);
+				RSG::scene->render_empty_scene(p_viewport->scenario);
 			} else {
 				_draw_3d(p_viewport);
 			}
@@ -121,7 +121,7 @@ void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 
 			if (scenario_draw_canvas_bg && E->key().get_layer() >= scenario_canvas_max_layer) {
 				if (!can_draw_3d) {
-					RSG::scene->render_empty_scene(p_viewport->scenario, p_viewport->shadow_atlas);
+					RSG::scene->render_empty_scene(p_viewport->scenario);
 				} else {
 					_draw_3d(p_viewport);
 				}
@@ -132,7 +132,7 @@ void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 
 		if (scenario_draw_canvas_bg) {
 			if (!can_draw_3d) {
-				RSG::scene->render_empty_scene(p_viewport->scenario, p_viewport->shadow_atlas);
+				RSG::scene->render_empty_scene(p_viewport->scenario);
 			} else {
 				_draw_3d(p_viewport);
 			}
@@ -210,7 +210,6 @@ RID RenderingServerViewport::viewport_create() {
 	viewport->hide_scenario = false;
 	viewport->hide_canvas = false;
 	viewport->render_target = RSG::storage->render_target_create();
-	viewport->shadow_atlas = RSG::scene_render->shadow_atlas_create();
 	viewport->viewport_render_direct_to_screen = false;
 
 	return rid;
@@ -427,22 +426,6 @@ void RenderingServerViewport::viewport_set_canvas_stacking(RID p_viewport, RID p
 	ERR_FAIL_COND(!viewport->canvas_map.has(p_canvas));
 	viewport->canvas_map[p_canvas].layer = p_layer;
 	viewport->canvas_map[p_canvas].sublayer = p_sublayer;
-}
-
-void RenderingServerViewport::viewport_set_shadow_atlas_size(RID p_viewport, int p_size) {
-	Viewport *viewport = viewport_owner.getornull(p_viewport);
-	ERR_FAIL_COND(!viewport);
-
-	viewport->shadow_atlas_size = p_size;
-
-	RSG::scene_render->shadow_atlas_set_size(viewport->shadow_atlas, viewport->shadow_atlas_size);
-}
-
-void RenderingServerViewport::viewport_set_shadow_atlas_quadrant_subdivision(RID p_viewport, int p_quadrant, int p_subdiv) {
-	Viewport *viewport = viewport_owner.getornull(p_viewport);
-	ERR_FAIL_COND(!viewport);
-
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(viewport->shadow_atlas, p_quadrant, p_subdiv);
 }
 
 void RenderingServerViewport::viewport_set_msaa(RID p_viewport, RS::ViewportMSAA p_msaa) {

@@ -270,11 +270,6 @@ public:
 
 		SpatialPartitioningScene *sps;
 
-		List<Instance *> directional_lights;
-		RID environment;
-		RID fallback_environment;
-		RID shadow_atlas;
-
 		SelfList<Instance>::List instances;
 
 		Scenario();
@@ -289,9 +284,6 @@ public:
 	virtual RID scenario_create();
 
 	virtual void scenario_set_debug(RID p_scenario, RS::ScenarioDebugMode p_debug_mode);
-	virtual void scenario_set_environment(RID p_scenario, RID p_environment);
-	virtual void scenario_set_fallback_environment(RID p_scenario, RID p_environment);
-	virtual void scenario_set_reflection_atlas_size(RID p_scenario, int p_size, int p_subdiv);
 
 	/* INSTANCING API */
 
@@ -416,45 +408,16 @@ public:
 	struct InstanceGeometryData : public InstanceBaseData {
 		List<Instance *> lighting;
 		bool lighting_dirty;
-		bool can_cast_shadows;
 		bool material_is_animated;
 
 		InstanceGeometryData() {
 			lighting_dirty = true;
-			can_cast_shadows = true;
 			material_is_animated = true;
-		}
-	};
-
-	struct InstanceReflectionProbeData : public InstanceBaseData {
-		Instance *owner;
-
-		struct PairInfo {
-			List<Instance *>::Element *L; //reflection iterator in geometry
-			Instance *geometry;
-		};
-		List<PairInfo> geometries;
-
-		RID instance;
-		SelfList<InstanceReflectionProbeData> update_list;
-
-		int render_step;
-		int32_t previous_room_id_hint;
-
-		InstanceReflectionProbeData() :
-				update_list(this) {
-			render_step = -1;
-			previous_room_id_hint = -1;
 		}
 	};
 
 	int instance_cull_count;
 	Instance *instance_cull_result[MAX_INSTANCE_CULL];
-	Instance *instance_shadow_cull_result[MAX_INSTANCE_CULL]; //used for generating shadowmaps
-	Instance *light_cull_result[MAX_LIGHTS_CULLED];
-	RID light_instance_cull_result[MAX_LIGHTS_CULLED];
-	int light_cull_count;
-	int directional_light_count;
 
 	RID_Owner<Instance> instance_owner;
 
@@ -491,7 +454,6 @@ public:
 	virtual Vector<ObjectID> instances_cull_convex(const Vector<Plane> &p_convex, RID p_scenario = RID()) const;
 
 	virtual void instance_geometry_set_flag(RID p_instance, RS::InstanceFlags p_flags, bool p_enabled);
-	virtual void instance_geometry_set_cast_shadows_setting(RID p_instance, RS::ShadowCastingSetting p_shadow_casting_setting);
 	virtual void instance_geometry_set_material_override(RID p_instance, RID p_material);
 	virtual void instance_geometry_set_material_overlay(RID p_instance, RID p_material);
 
@@ -502,11 +464,11 @@ public:
 	_FORCE_INLINE_ void _update_instance_aabb(Instance *p_instance);
 	_FORCE_INLINE_ void _update_dirty_instance(Instance *p_instance);
 
-	void _prepare_scene(const Transform p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, RID p_force_environment, uint32_t p_visible_layers, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, int32_t &r_previous_room_id_hint);
-	void _render_scene(const Transform p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_orthogonal, RID p_force_environment, RID p_scenario, RID p_shadow_atlas);
-	void render_empty_scene(RID p_scenario, RID p_shadow_atlas);
+	void _prepare_scene(const Transform p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, RID p_force_environment, uint32_t p_visible_layers, RID p_scenario, int32_t &r_previous_room_id_hint);
+	void _render_scene(const Transform p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_orthogonal, RID p_force_environment, RID p_scenario);
+	void render_empty_scene(RID p_scenario);
 
-	void render_camera(RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas);
+	void render_camera(RID p_camera, RID p_scenario, Size2 p_viewport_size);
 	void update_dirty_instances();
 
 	// interpolation

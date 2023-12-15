@@ -258,8 +258,6 @@ public:
 
 	FUNC2(viewport_set_global_canvas_transform, RID, const Transform2D &)
 	FUNC4(viewport_set_canvas_stacking, RID, RID, int, int)
-	FUNC2(viewport_set_shadow_atlas_size, RID, int)
-	FUNC3(viewport_set_shadow_atlas_quadrant_subdivision, RID, int, int)
 	FUNC2(viewport_set_msaa, RID, ViewportMSAA)
 	FUNC2(viewport_set_use_fxaa, RID, bool)
 	FUNC2(viewport_set_use_debanding, RID, bool)
@@ -280,9 +278,6 @@ public:
 	FUNCRID(scenario)
 
 	FUNC2(scenario_set_debug, RID, ScenarioDebugMode)
-	FUNC2(scenario_set_environment, RID, RID)
-	FUNC3(scenario_set_reflection_atlas_size, RID, int, int)
-	FUNC2(scenario_set_fallback_environment, RID, RID)
 
 	/* INSTANCING API */
 	FUNCRID(instance)
@@ -315,7 +310,6 @@ public:
 	FUNC2RC(Vector<ObjectID>, instances_cull_convex, const Vector<Plane> &, RID)
 
 	FUNC3(instance_geometry_set_flag, RID, InstanceFlags, bool)
-	FUNC2(instance_geometry_set_cast_shadows_setting, RID, ShadowCastingSetting)
 	FUNC2(instance_geometry_set_material_override, RID, RID)
 	FUNC2(instance_geometry_set_material_overlay, RID, RID)
 

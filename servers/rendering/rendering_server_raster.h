@@ -339,8 +339,6 @@ public:
 
 	BIND2(viewport_set_global_canvas_transform, RID, const Transform2D &)
 	BIND4(viewport_set_canvas_stacking, RID, RID, int, int)
-	BIND2(viewport_set_shadow_atlas_size, RID, int)
-	BIND3(viewport_set_shadow_atlas_quadrant_subdivision, RID, int, int)
 	BIND2(viewport_set_msaa, RID, ViewportMSAA)
 	BIND2(viewport_set_use_fxaa, RID, bool)
 	BIND2(viewport_set_use_debanding, RID, bool)
@@ -362,9 +360,6 @@ public:
 	BIND0R(RID, scenario_create)
 
 	BIND2(scenario_set_debug, RID, ScenarioDebugMode)
-	BIND2(scenario_set_environment, RID, RID)
-	BIND3(scenario_set_reflection_atlas_size, RID, int, int)
-	BIND2(scenario_set_fallback_environment, RID, RID)
 
 	/* INSTANCING API */
 
@@ -398,7 +393,6 @@ public:
 	BIND2RC(Vector<ObjectID>, instances_cull_convex, const Vector<Plane> &, RID)
 
 	BIND3(instance_geometry_set_flag, RID, InstanceFlags, bool)
-	BIND2(instance_geometry_set_cast_shadows_setting, RID, ShadowCastingSetting)
 	BIND2(instance_geometry_set_material_override, RID, RID)
 	BIND2(instance_geometry_set_material_overlay, RID, RID)
 

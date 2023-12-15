@@ -97,18 +97,6 @@ public:
 		UPDATE_ALWAYS
 	};
 
-	enum ShadowAtlasQuadrantSubdiv {
-		SHADOW_ATLAS_QUADRANT_SUBDIV_DISABLED,
-		SHADOW_ATLAS_QUADRANT_SUBDIV_1,
-		SHADOW_ATLAS_QUADRANT_SUBDIV_4,
-		SHADOW_ATLAS_QUADRANT_SUBDIV_16,
-		SHADOW_ATLAS_QUADRANT_SUBDIV_64,
-		SHADOW_ATLAS_QUADRANT_SUBDIV_256,
-		SHADOW_ATLAS_QUADRANT_SUBDIV_1024,
-		SHADOW_ATLAS_QUADRANT_SUBDIV_MAX,
-
-	};
-
 	enum MSAA {
 		MSAA_DISABLED,
 		MSAA_2X,
@@ -201,12 +189,6 @@ public:
 	void set_update_mode(UpdateMode p_mode);
 	UpdateMode get_update_mode() const;
 	Ref<ViewportTexture> get_texture() const;
-
-	void set_shadow_atlas_size(int p_size);
-	int get_shadow_atlas_size() const;
-
-	void set_shadow_atlas_quadrant_subdiv(int p_quadrant, ShadowAtlasQuadrantSubdiv p_subdiv);
-	ShadowAtlasQuadrantSubdiv get_shadow_atlas_quadrant_subdiv(int p_quadrant) const;
 
 	void set_msaa(MSAA p_msaa);
 	MSAA get_msaa() const;
@@ -391,9 +373,6 @@ private:
 
 	Usage usage;
 
-	int shadow_atlas_size;
-	ShadowAtlasQuadrantSubdiv shadow_atlas_quadrant_subdiv[4];
-
 	MSAA msaa;
 	bool use_fxaa;
 	bool use_debanding;
@@ -524,7 +503,6 @@ private:
 };
 
 VARIANT_ENUM_CAST(Viewport::UpdateMode);
-VARIANT_ENUM_CAST(Viewport::ShadowAtlasQuadrantSubdiv);
 VARIANT_ENUM_CAST(Viewport::MSAA);
 VARIANT_ENUM_CAST(Viewport::Usage);
 VARIANT_ENUM_CAST(Viewport::DebugDraw);

@@ -458,9 +458,6 @@ public:
 	virtual void viewport_set_global_canvas_transform(RID p_viewport, const Transform2D &p_transform) = 0;
 	virtual void viewport_set_canvas_stacking(RID p_viewport, RID p_canvas, int p_layer, int p_sublayer) = 0;
 
-	virtual void viewport_set_shadow_atlas_size(RID p_viewport, int p_size) = 0;
-	virtual void viewport_set_shadow_atlas_quadrant_subdivision(RID p_viewport, int p_quadrant, int p_subdiv) = 0;
-
 	enum ViewportMSAA {
 		VIEWPORT_MSAA_DISABLED,
 		VIEWPORT_MSAA_2X,
@@ -528,9 +525,6 @@ public:
 	};
 
 	virtual void scenario_set_debug(RID p_scenario, ScenarioDebugMode p_debug_mode) = 0;
-	virtual void scenario_set_environment(RID p_scenario, RID p_environment) = 0;
-	virtual void scenario_set_reflection_atlas_size(RID p_scenario, int p_size, int p_subdiv) = 0;
-	virtual void scenario_set_fallback_environment(RID p_scenario, RID p_environment) = 0;
 
 	/* INSTANCING API */
 
@@ -584,15 +578,7 @@ public:
 		INSTANCE_FLAG_MAX
 	};
 
-	enum ShadowCastingSetting {
-		SHADOW_CASTING_SETTING_OFF,
-		SHADOW_CASTING_SETTING_ON,
-		SHADOW_CASTING_SETTING_DOUBLE_SIDED,
-		SHADOW_CASTING_SETTING_SHADOWS_ONLY,
-	};
-
 	virtual void instance_geometry_set_flag(RID p_instance, InstanceFlags p_flags, bool p_enabled) = 0;
-	virtual void instance_geometry_set_cast_shadows_setting(RID p_instance, ShadowCastingSetting p_shadow_casting_setting) = 0;
 	virtual void instance_geometry_set_material_override(RID p_instance, RID p_material) = 0;
 	virtual void instance_geometry_set_material_overlay(RID p_instance, RID p_material) = 0;
 
@@ -795,7 +781,6 @@ VARIANT_ENUM_CAST(RenderingServer::MultimeshColorFormat);
 VARIANT_ENUM_CAST(RenderingServer::MultimeshCustomDataFormat);
 VARIANT_ENUM_CAST(RenderingServer::MultimeshPhysicsInterpolationQuality);
 VARIANT_ENUM_CAST(RenderingServer::InstanceFlags);
-VARIANT_ENUM_CAST(RenderingServer::ShadowCastingSetting);
 VARIANT_ENUM_CAST(RenderingServer::TextureType);
 VARIANT_ENUM_CAST(RenderingServer::ChangedPriority);
 

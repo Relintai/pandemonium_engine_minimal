@@ -38,18 +38,7 @@
 
 class RasterizerSceneDummy : public RasterizerScene {
 public:
-	/* SHADOW ATLAS API */
-
-	RID shadow_atlas_create() { return RID(); }
-	void shadow_atlas_set_size(RID p_atlas, int p_size) {}
-	void shadow_atlas_set_quadrant_subdivision(RID p_atlas, int p_quadrant, int p_subdivision) {}
-	bool shadow_atlas_update_light(RID p_atlas, RID p_light_intance, float p_coverage, uint64_t p_light_version) { return false; }
-
-	int get_directional_light_shadow_size(RID p_light_intance) { return 0; }
-	void set_directional_shadow_count(int p_count) {}
-
-	void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_environment, RID p_shadow_atlas) {}
-	void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) {}
+	void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count) {}
 
 	void set_scene_pass(uint64_t p_pass) {}
 	void set_debug_draw_mode(RS::ViewportDebugDraw p_debug_draw) {}

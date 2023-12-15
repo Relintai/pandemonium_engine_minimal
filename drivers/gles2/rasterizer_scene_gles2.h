@@ -53,18 +53,10 @@
 
 class RasterizerSceneGLES2 : public RasterizerScene {
 public:
-	enum ShadowFilterMode {
-		SHADOW_FILTER_NEAREST,
-		SHADOW_FILTER_PCF5,
-		SHADOW_FILTER_PCF13,
-	};
-
 	enum {
 		INSTANCE_ATTRIB_BASE = 8,
 		INSTANCE_BONE_BASE = 13,
 	};
-
-	ShadowFilterMode shadow_filter_mode;
 
 	RID default_material;
 	RID default_material_twosided;
@@ -84,7 +76,6 @@ public:
 	uint32_t current_material_index;
 	uint32_t current_geometry_index;
 	uint32_t current_light_index;
-	uint32_t current_refprobe_index;
 	uint32_t current_shader_index;
 
 private:
@@ -127,83 +118,6 @@ public:
 
 		Vector2 screen_pixel_size;
 	} state;
-
-	/* SHADOW ATLAS API */
-
-	uint64_t shadow_atlas_realloc_tolerance_msec;
-
-	struct ShadowAtlas : public RID_Data {
-		enum {
-			QUADRANT_SHIFT = 27,
-			SHADOW_INDEX_MASK = (1 << QUADRANT_SHIFT) - 1,
-			SHADOW_INVALID = 0xFFFFFFFF,
-		};
-
-		struct Quadrant {
-			uint32_t subdivision;
-
-			struct Shadow {
-				RID owner;
-				uint64_t version;
-				uint64_t alloc_tick;
-
-				Shadow() {
-					version = 0;
-					alloc_tick = 0;
-				}
-			};
-
-			Vector<Shadow> shadows;
-
-			Quadrant() {
-				subdivision = 0;
-			}
-		} quadrants[4];
-
-		int size_order[4];
-		uint32_t smallest_subdiv;
-
-		int size;
-
-		GLuint fbo;
-		GLuint depth;
-		GLuint color;
-
-		RBMap<RID, uint32_t> shadow_owners;
-	};
-
-	struct ShadowCubeMap {
-		GLuint fbo[6];
-		GLuint cubemap;
-		uint32_t size;
-	};
-
-	Vector<ShadowCubeMap> shadow_cubemaps;
-
-	RID_Owner<ShadowAtlas> shadow_atlas_owner;
-
-	int directional_shadow_size;
-
-	void directional_shadow_create();
-
-	RID shadow_atlas_create();
-	void shadow_atlas_set_size(RID p_atlas, int p_size);
-	void shadow_atlas_set_quadrant_subdivision(RID p_atlas, int p_quadrant, int p_subdivision);
-	bool _shadow_atlas_find_shadow(ShadowAtlas *shadow_atlas, int *p_in_quadrants, int p_quadrant_count, int p_current_subdiv, uint64_t p_tick, int &r_quadrant, int &r_shadow);
-	bool shadow_atlas_update_light(RID p_atlas, RID p_light_intance, float p_coverage, uint64_t p_light_version);
-
-	struct DirectionalShadow {
-		GLuint fbo = 0;
-		GLuint depth = 0;
-		GLuint color = 0;
-
-		int light_count = 0;
-		int size = 0;
-		int current_light = 0;
-	} directional_shadow;
-
-	virtual int get_directional_light_shadow_size(RID p_light_intance);
-	virtual void set_directional_shadow_count(int p_count);
 
 	/* RENDER LIST */
 
@@ -377,21 +291,17 @@ public:
 
 	RenderList render_list;
 
-	void _add_geometry(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, int p_material, bool p_depth_pass, bool p_shadow_pass);
-	void _add_geometry_with_material(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, RasterizerStorageGLES2::Material *p_material, bool p_depth_pass, bool p_shadow_pass);
+	void _add_geometry(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, int p_material, bool p_depth_pass);
+	void _add_geometry_with_material(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, RasterizerStorageGLES2::Material *p_material, bool p_depth_pass);
 
 	void _copy_texture_to_buffer(GLuint p_texture, GLuint p_buffer);
-	void _fill_render_list(InstanceBase **p_cull_result, int p_cull_count, bool p_depth_pass, bool p_shadow_pass);
+	void _fill_render_list(InstanceBase **p_cull_result, int p_cull_count, bool p_depth_pass);
 	void _render_render_list(RenderList::Element **p_elements, int p_element_count,
 			const Transform &p_view_transform,
 			const Projection &p_projection,
 			const int p_eye,
-			RID p_shadow_atlas,
-			float p_shadow_bias,
-			float p_shadow_normal_bias,
 			bool p_reverse_cull,
-			bool p_alpha_pass,
-			bool p_shadow);
+			bool p_alpha_pass);
 
 	_FORCE_INLINE_ void _set_cull(bool p_front, bool p_disabled, bool p_reverse_cull);
 	_FORCE_INLINE_ bool _setup_material(RasterizerStorageGLES2::Material *p_material, bool p_alpha_pass, Size2i p_skeleton_tex_size = Size2i(0, 0));
@@ -400,8 +310,7 @@ public:
 
 	void _post_process(const Projection &p_cam_projection);
 
-	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_shadow_atlas);
-	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count);
+	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count);
 	virtual bool free(RID p_rid);
 
 	virtual void set_scene_pass(uint64_t p_pass);

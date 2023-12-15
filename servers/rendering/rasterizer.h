@@ -38,16 +38,6 @@
 
 class RasterizerScene {
 public:
-	/* SHADOW ATLAS API */
-
-	virtual RID shadow_atlas_create() = 0;
-	virtual void shadow_atlas_set_size(RID p_atlas, int p_size) = 0;
-	virtual void shadow_atlas_set_quadrant_subdivision(RID p_atlas, int p_quadrant, int p_subdivision) = 0;
-	virtual bool shadow_atlas_update_light(RID p_atlas, RID p_light_intance, float p_coverage, uint64_t p_light_version) = 0;
-
-	virtual int get_directional_light_shadow_size(RID p_light_intance) = 0;
-	virtual void set_directional_shadow_count(int p_count) = 0;
-
 	struct InstanceBase : RID_Data {
 		RS::InstanceType base_type;
 		RID base;
@@ -76,8 +66,6 @@ public:
 
 		PoolVector<float> blend_values;
 
-		RS::ShadowCastingSetting cast_shadows;
-
 		//fit in 32 bits
 		bool mirror : 1;
 		bool receive_shadows : 1;
@@ -103,7 +91,6 @@ public:
 		InstanceBase() :
 				dependency_item(this) {
 			base_type = RS::INSTANCE_NONE;
-			cast_shadows = RS::SHADOW_CASTING_SETTING_ON;
 			receive_shadows = true;
 			visible = true;
 			depth_layer = 0;
@@ -118,9 +105,8 @@ public:
 		}
 	};
 
-	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_shadow_atlas) = 0;
-	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) = 0;
-
+	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count) = 0;
+	
 	virtual void set_scene_pass(uint64_t p_pass) = 0;
 	virtual void set_debug_draw_mode(RS::ViewportDebugDraw p_debug_draw) = 0;
 

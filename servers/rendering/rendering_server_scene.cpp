@@ -328,13 +328,6 @@ RID RenderingServerScene::scenario_create() {
 	scenario->sps->set_pair_callback(_instance_pair, this);
 	scenario->sps->set_unpair_callback(_instance_unpair, this);
 
-	scenario->shadow_atlas = RSG::scene_render->shadow_atlas_create();
-	RSG::scene_render->shadow_atlas_set_size(scenario->shadow_atlas, 1024); //make enough shadows for close distance, don't bother with rest
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->shadow_atlas, 0, 4);
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->shadow_atlas, 1, 4);
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->shadow_atlas, 2, 4);
-	RSG::scene_render->shadow_atlas_set_quadrant_subdivision(scenario->shadow_atlas, 3, 8);
-
 	return scenario_rid;
 }
 
@@ -361,21 +354,6 @@ void RenderingServerScene::scenario_set_debug(RID p_scenario, RS::ScenarioDebugM
 	Scenario *scenario = scenario_owner.get(p_scenario);
 	ERR_FAIL_COND(!scenario);
 	scenario->debug = p_debug_mode;
-}
-
-void RenderingServerScene::scenario_set_environment(RID p_scenario, RID p_environment) {
-	Scenario *scenario = scenario_owner.get(p_scenario);
-	ERR_FAIL_COND(!scenario);
-	scenario->environment = p_environment;
-}
-
-void RenderingServerScene::scenario_set_fallback_environment(RID p_scenario, RID p_environment) {
-	Scenario *scenario = scenario_owner.get(p_scenario);
-	ERR_FAIL_COND(!scenario);
-	scenario->fallback_environment = p_environment;
-}
-
-void RenderingServerScene::scenario_set_reflection_atlas_size(RID p_scenario, int p_size, int p_subdiv) {
 }
 
 /* INSTANCING API */
@@ -1019,13 +997,6 @@ void RenderingServerScene::instance_geometry_set_flag(RID p_instance, RS::Instan
 		}
 	}
 }
-void RenderingServerScene::instance_geometry_set_cast_shadows_setting(RID p_instance, RS::ShadowCastingSetting p_shadow_casting_setting) {
-	Instance *instance = instance_owner.get(p_instance);
-	ERR_FAIL_COND(!instance);
-
-	instance->cast_shadows = p_shadow_casting_setting;
-	instance->base_changed(false, true); // to actually compute if shadows are visible or not
-}
 void RenderingServerScene::instance_geometry_set_material_override(RID p_instance, RID p_material) {
 	Instance *instance = instance_owner.get(p_instance);
 	ERR_FAIL_COND(!instance);
@@ -1176,78 +1147,45 @@ void RenderingServerScene::_update_dirty_instance(Instance *p_instance) {
 		if ((1 << p_instance->base_type) & RS::INSTANCE_GEOMETRY_MASK) {
 			InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(p_instance->base_data);
 
-			bool can_cast_shadows = true;
 			bool is_animated = false;
 
-			if (p_instance->cast_shadows == RS::SHADOW_CASTING_SETTING_OFF) {
-				can_cast_shadows = false;
-			} else if (p_instance->material_override.is_valid()) {
-				can_cast_shadows = RSG::storage->material_casts_shadows(p_instance->material_override);
+			 if (p_instance->material_override.is_valid()) {
 				is_animated = RSG::storage->material_is_animated(p_instance->material_override);
 			} else {
 				if (p_instance->base_type == RS::INSTANCE_MESH) {
 					RID mesh = p_instance->base;
 
 					if (mesh.is_valid()) {
-						bool cast_shadows = false;
-
 						for (int i = 0; i < p_instance->materials.size(); i++) {
 							RID mat = p_instance->materials[i].is_valid() ? p_instance->materials[i] : RSG::storage->mesh_surface_get_material(mesh, i);
 
-							if (!mat.is_valid()) {
-								cast_shadows = true;
-							} else {
-								if (RSG::storage->material_casts_shadows(mat)) {
-									cast_shadows = true;
-								}
-
+							if (mat.is_valid()) {
 								if (RSG::storage->material_is_animated(mat)) {
 									is_animated = true;
 								}
 							}
-						}
-
-						if (!cast_shadows) {
-							can_cast_shadows = false;
 						}
 					}
 
 				} else if (p_instance->base_type == RS::INSTANCE_MULTIMESH) {
 					RID mesh = RSG::storage->multimesh_get_mesh(p_instance->base);
 					if (mesh.is_valid()) {
-						bool cast_shadows = false;
-
 						int sc = RSG::storage->mesh_get_surface_count(mesh);
 						for (int i = 0; i < sc; i++) {
 							RID mat = RSG::storage->mesh_surface_get_material(mesh, i);
 
-							if (!mat.is_valid()) {
-								cast_shadows = true;
-
-							} else {
-								if (RSG::storage->material_casts_shadows(mat)) {
-									cast_shadows = true;
-								}
+							if (mat.is_valid()) {
 								if (RSG::storage->material_is_animated(mat)) {
 									is_animated = true;
 								}
 							}
-						}
-
-						if (!cast_shadows) {
-							can_cast_shadows = false;
 						}
 					}
 				}
 			}
 
 			if (p_instance->material_overlay.is_valid()) {
-				can_cast_shadows = can_cast_shadows || RSG::storage->material_casts_shadows(p_instance->material_overlay);
 				is_animated = is_animated || RSG::storage->material_is_animated(p_instance->material_overlay);
-			}
-
-			if (can_cast_shadows != geom->can_cast_shadows) {
-				geom->can_cast_shadows = can_cast_shadows;
 			}
 
 			geom->material_is_animated = is_animated;
@@ -1262,7 +1200,7 @@ void RenderingServerScene::_update_dirty_instance(Instance *p_instance) {
 	p_instance->update_materials = false;
 }
 
-void RenderingServerScene::render_camera(RID p_camera, RID p_scenario, Size2 p_viewport_size, RID p_shadow_atlas) {
+void RenderingServerScene::render_camera(RID p_camera, RID p_scenario, Size2 p_viewport_size) {
 // render to mono camera
 #ifndef _3D_DISABLED
 
@@ -1307,17 +1245,15 @@ void RenderingServerScene::render_camera(RID p_camera, RID p_scenario, Size2 p_v
 
 	Transform camera_transform = _interpolation_data.interpolation_enabled ? camera->get_transform_interpolated() : camera->transform;
 
-	_prepare_scene(camera_transform, camera_matrix, ortho, camera->env, camera->visible_layers, p_scenario, p_shadow_atlas, RID(), camera->previous_room_id_hint);
-	_render_scene(camera_transform, camera_matrix, 0, ortho, camera->env, p_scenario, p_shadow_atlas);
+	_prepare_scene(camera_transform, camera_matrix, ortho, camera->env, camera->visible_layers, p_scenario, camera->previous_room_id_hint);
+	_render_scene(camera_transform, camera_matrix, 0, ortho, camera->env, p_scenario);
 #endif
 }
 
-void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, RID p_force_environment, uint32_t p_visible_layers, RID p_scenario, RID p_shadow_atlas, RID p_reflection_probe, int32_t &r_previous_room_id_hint) {
+void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, RID p_force_environment, uint32_t p_visible_layers, RID p_scenario, int32_t &r_previous_room_id_hint) {
 	// Note, in stereo rendering:
 	// - p_cam_transform will be a transform in the middle of our two eyes
 	// - p_cam_projection is a wider frustrum that encompasses both eyes
-
-	Scenario *scenario = scenario_owner.getornull(p_scenario);
 
 	render_pass++;
 	uint32_t camera_layer_mask = p_visible_layers;
@@ -1333,7 +1269,6 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 
 	/* STEP 2 - CULL */
 	instance_cull_count = 0;
-	light_cull_count = 0;
 
 	//light_samplers_culled=0;
 
@@ -1356,7 +1291,7 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 
 		if ((camera_layer_mask & ins->layer_mask) == 0) {
 			//failure
-		} else if (((1 << ins->base_type) & RS::INSTANCE_GEOMETRY_MASK) && ins->visible && ins->cast_shadows != RS::SHADOW_CASTING_SETTING_SHADOWS_ONLY) {
+		} else if (((1 << ins->base_type) & RS::INSTANCE_GEOMETRY_MASK) && ins->visible) {
 			keep = true;
 
 			InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(ins->base_data);
@@ -1366,7 +1301,6 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 			}
 
 			if (geom->lighting_dirty) {
-				int l = 0;
 				//only called when lights AABB enter/exit this geometry
 				ins->light_instances.resize(geom->lighting.size());
 				geom->lighting_dirty = false;
@@ -1387,14 +1321,11 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 
 	/* STEP 5 - PROCESS LIGHTS */
 
-	RID *directional_light_ptr = &light_instance_cull_result[light_cull_count];
-	directional_light_count = 0;
-
 	// Calculate instance->depth from the camera, after shadow calculation has stopped overwriting instance->depth
 	for (int i = 0; i < instance_cull_count; i++) {
 		Instance *ins = instance_cull_result[i];
 
-		if (((1 << ins->base_type) & RS::INSTANCE_GEOMETRY_MASK) && ins->visible && ins->cast_shadows != RS::SHADOW_CASTING_SETTING_SHADOWS_ONLY) {
+		if (((1 << ins->base_type) & RS::INSTANCE_GEOMETRY_MASK) && ins->visible) {
 			Vector3 center = ins->transform.origin;
 			if (ins->use_aabb_center) {
 				center = ins->transformed_aabb.position + (ins->transformed_aabb.size * 0.5);
@@ -1409,37 +1340,15 @@ void RenderingServerScene::_prepare_scene(const Transform p_cam_transform, const
 	}
 }
 
-void RenderingServerScene::_render_scene(const Transform p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_orthogonal, RID p_force_environment, RID p_scenario, RID p_shadow_atlas) {
-	Scenario *scenario = scenario_owner.getornull(p_scenario);
-
-	/* ENVIRONMENT */
-
-	RID environment;
-	if (p_force_environment.is_valid()) { //camera has more environment priority
-		environment = p_force_environment;
-	} else if (scenario->environment.is_valid()) {
-		environment = scenario->environment;
-	} else {
-		environment = scenario->fallback_environment;
-	}
-
+void RenderingServerScene::_render_scene(const Transform p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_orthogonal, RID p_force_environment, RID p_scenario) {
 	/* PROCESS GEOMETRY AND DRAW SCENE */
 
-	RSG::scene_render->render_scene(p_cam_transform, p_cam_projection, p_eye, p_cam_orthogonal, (RasterizerScene::InstanceBase **)instance_cull_result, instance_cull_count, light_instance_cull_result, light_cull_count + directional_light_count, p_shadow_atlas);
+	RSG::scene_render->render_scene(p_cam_transform, p_cam_projection, p_eye, p_cam_orthogonal, (RasterizerScene::InstanceBase **)instance_cull_result, instance_cull_count);
 }
 
-void RenderingServerScene::render_empty_scene(RID p_scenario, RID p_shadow_atlas) {
+void RenderingServerScene::render_empty_scene(RID p_scenario) {
 #ifndef _3D_DISABLED
-
-	Scenario *scenario = scenario_owner.getornull(p_scenario);
-
-	RID environment;
-	if (scenario->environment.is_valid()) {
-		environment = scenario->environment;
-	} else {
-		environment = scenario->fallback_environment;
-	}
-	RSG::scene_render->render_scene(Transform(), Projection(), 0, true, nullptr, 0, nullptr, 0, p_shadow_atlas);
+	RSG::scene_render->render_scene(Transform(), Projection(), 0, true, nullptr, 0);
 #endif
 }
 
@@ -1475,7 +1384,7 @@ bool RenderingServerScene::free(RID p_rid) {
 		while (scenario->instances.first()) {
 			instance_set_scenario(scenario->instances.first()->self()->self, RID());
 		}
-		RSG::scene_render->free(scenario->shadow_atlas);
+
 		scenario_owner.free(p_rid);
 		memdelete(scenario);
 

@@ -52,416 +52,9 @@
 #endif
 #endif
 
-const GLenum RasterizerSceneGLES2::_cube_side_enum[6] = {
-
-	GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-	GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-	GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-	GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-
-};
-
-void RasterizerSceneGLES2::directional_shadow_create() {
-	if (directional_shadow.fbo) {
-		// Erase existing directional shadow texture to recreate it.
-		glDeleteTextures(1, &directional_shadow.depth);
-		glDeleteFramebuffers(1, &directional_shadow.fbo);
-
-		directional_shadow.depth = 0;
-		directional_shadow.fbo = 0;
-	}
-
-	directional_shadow.light_count = 0;
-	directional_shadow.size = next_power_of_2(directional_shadow_size);
-
-	if (directional_shadow.size > storage->config.max_viewport_dimensions[0] || directional_shadow.size > storage->config.max_viewport_dimensions[1]) {
-		WARN_PRINT("Cannot set directional shadow size larger than maximum hardware supported size of (" + itos(storage->config.max_viewport_dimensions[0]) + ", " + itos(storage->config.max_viewport_dimensions[1]) + "). Setting size to maximum.");
-		directional_shadow.size = MIN(directional_shadow.size, storage->config.max_viewport_dimensions[0]);
-		directional_shadow.size = MIN(directional_shadow.size, storage->config.max_viewport_dimensions[1]);
-	}
-
-	glGenFramebuffers(1, &directional_shadow.fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, directional_shadow.fbo);
-
-	if (storage->config.use_rgba_3d_shadows) {
-		//maximum compatibility, renderbuffer and RGBA shadow
-		glGenRenderbuffers(1, &directional_shadow.depth);
-		glBindRenderbuffer(GL_RENDERBUFFER, directional_shadow.depth);
-		glRenderbufferStorage(GL_RENDERBUFFER, storage->config.depth_buffer_internalformat, directional_shadow.size, directional_shadow.size);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, directional_shadow.depth);
-
-		glGenTextures(1, &directional_shadow.color);
-		glBindTexture(GL_TEXTURE_2D, directional_shadow.color);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, directional_shadow.size, directional_shadow.size, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, directional_shadow.color, 0);
-	} else {
-		//just a depth buffer
-		glGenTextures(1, &directional_shadow.depth);
-		glBindTexture(GL_TEXTURE_2D, directional_shadow.depth);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, storage->config.depth_internalformat, directional_shadow.size, directional_shadow.size, 0, GL_DEPTH_COMPONENT, storage->config.depth_type, nullptr);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, directional_shadow.depth, 0);
-	}
-
-	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		ERR_PRINT("Directional shadow framebuffer status invalid");
-	}
-}
-
-/* SHADOW ATLAS API */
-
-RID RasterizerSceneGLES2::shadow_atlas_create() {
-	ShadowAtlas *shadow_atlas = memnew(ShadowAtlas);
-	shadow_atlas->fbo = 0;
-	shadow_atlas->depth = 0;
-	shadow_atlas->color = 0;
-	shadow_atlas->size = 0;
-	shadow_atlas->smallest_subdiv = 0;
-
-	for (int i = 0; i < 4; i++) {
-		shadow_atlas->size_order[i] = i;
-	}
-
-	return shadow_atlas_owner.make_rid(shadow_atlas);
-}
-
-void RasterizerSceneGLES2::shadow_atlas_set_size(RID p_atlas, int p_size) {
-	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_atlas);
-	ERR_FAIL_COND(!shadow_atlas);
-	ERR_FAIL_COND(p_size < 0);
-
-	p_size = next_power_of_2(p_size);
-
-	if (p_size == shadow_atlas->size) {
-		return;
-	}
-
-	// erase the old atlast
-	if (shadow_atlas->fbo) {
-		if (storage->config.use_rgba_3d_shadows) {
-			glDeleteRenderbuffers(1, &shadow_atlas->depth);
-		} else {
-			glDeleteTextures(1, &shadow_atlas->depth);
-		}
-		glDeleteFramebuffers(1, &shadow_atlas->fbo);
-		if (shadow_atlas->color) {
-			glDeleteTextures(1, &shadow_atlas->color);
-		}
-
-		shadow_atlas->fbo = 0;
-		shadow_atlas->depth = 0;
-		shadow_atlas->color = 0;
-	}
-
-	shadow_atlas->shadow_owners.clear();
-
-	shadow_atlas->size = p_size;
-
-	if (shadow_atlas->size) {
-		glGenFramebuffers(1, &shadow_atlas->fbo);
-		glBindFramebuffer(GL_FRAMEBUFFER, shadow_atlas->fbo);
-
-		if (shadow_atlas->size > storage->config.max_viewport_dimensions[0] || shadow_atlas->size > storage->config.max_viewport_dimensions[1]) {
-			WARN_PRINT("Cannot set shadow atlas size larger than maximum hardware supported size of (" + itos(storage->config.max_viewport_dimensions[0]) + ", " + itos(storage->config.max_viewport_dimensions[1]) + "). Setting size to maximum.");
-			shadow_atlas->size = MIN(shadow_atlas->size, storage->config.max_viewport_dimensions[0]);
-			shadow_atlas->size = MIN(shadow_atlas->size, storage->config.max_viewport_dimensions[1]);
-		}
-
-		// create a depth texture
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-
-		if (storage->config.use_rgba_3d_shadows) {
-			//maximum compatibility, renderbuffer and RGBA shadow
-			glGenRenderbuffers(1, &shadow_atlas->depth);
-			glBindRenderbuffer(GL_RENDERBUFFER, shadow_atlas->depth);
-			glRenderbufferStorage(GL_RENDERBUFFER, storage->config.depth_buffer_internalformat, shadow_atlas->size, shadow_atlas->size);
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, shadow_atlas->depth);
-
-			glGenTextures(1, &shadow_atlas->color);
-			glBindTexture(GL_TEXTURE_2D, shadow_atlas->color);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, shadow_atlas->size, shadow_atlas->size, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadow_atlas->color, 0);
-		} else {
-			//just depth texture
-			glGenTextures(1, &shadow_atlas->depth);
-			glBindTexture(GL_TEXTURE_2D, shadow_atlas->depth);
-			glTexImage2D(GL_TEXTURE_2D, 0, storage->config.depth_internalformat, shadow_atlas->size, shadow_atlas->size, 0, GL_DEPTH_COMPONENT, storage->config.depth_type, nullptr);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_atlas->depth, 0);
-		}
-		glViewport(0, 0, shadow_atlas->size, shadow_atlas->size);
-
-		glDepthMask(GL_TRUE);
-
-		glClearDepth(0.0f);
-		glClear(GL_DEPTH_BUFFER_BIT);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-}
-
-void RasterizerSceneGLES2::shadow_atlas_set_quadrant_subdivision(RID p_atlas, int p_quadrant, int p_subdivision) {
-	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_atlas);
-	ERR_FAIL_COND(!shadow_atlas);
-	ERR_FAIL_INDEX(p_quadrant, 4);
-	ERR_FAIL_INDEX(p_subdivision, 16384);
-
-	uint32_t subdiv = next_power_of_2(p_subdivision);
-	if (subdiv & 0xaaaaaaaa) { // sqrt(subdiv) must be integer
-		subdiv <<= 1;
-	}
-
-	subdiv = int(Math::sqrt((float)subdiv));
-
-	if (shadow_atlas->quadrants[p_quadrant].shadows.size() == (int)subdiv) {
-		return;
-	}
-
-	shadow_atlas->quadrants[p_quadrant].shadows.resize(0);
-	shadow_atlas->quadrants[p_quadrant].shadows.resize(subdiv);
-	shadow_atlas->quadrants[p_quadrant].subdivision = subdiv;
-
-	// cache the smallest subdivision for faster allocations
-
-	shadow_atlas->smallest_subdiv = 1 << 30;
-
-	for (int i = 0; i < 4; i++) {
-		if (shadow_atlas->quadrants[i].subdivision) {
-			shadow_atlas->smallest_subdiv = MIN(shadow_atlas->smallest_subdiv, shadow_atlas->quadrants[i].subdivision);
-		}
-	}
-
-	if (shadow_atlas->smallest_subdiv == 1 << 30) {
-		shadow_atlas->smallest_subdiv = 0;
-	}
-
-	// re-sort the quadrants
-
-	int swaps = 0;
-	do {
-		swaps = 0;
-
-		for (int i = 0; i < 3; i++) {
-			if (shadow_atlas->quadrants[shadow_atlas->size_order[i]].subdivision < shadow_atlas->quadrants[shadow_atlas->size_order[i + 1]].subdivision) {
-				SWAP(shadow_atlas->size_order[i], shadow_atlas->size_order[i + 1]);
-				swaps++;
-			}
-		}
-
-	} while (swaps > 0);
-}
-
-bool RasterizerSceneGLES2::_shadow_atlas_find_shadow(ShadowAtlas *shadow_atlas, int *p_in_quadrants, int p_quadrant_count, int p_current_subdiv, uint64_t p_tick, int &r_quadrant, int &r_shadow) {
-	for (int i = p_quadrant_count - 1; i >= 0; i--) {
-		int qidx = p_in_quadrants[i];
-
-		if (shadow_atlas->quadrants[qidx].subdivision == (uint32_t)p_current_subdiv) {
-			return false;
-		}
-
-		// look for an empty space
-
-		int sc = shadow_atlas->quadrants[qidx].shadows.size();
-
-		ShadowAtlas::Quadrant::Shadow *sarr = shadow_atlas->quadrants[qidx].shadows.ptrw();
-
-		int found_free_idx = -1; // found a free one
-		int found_used_idx = -1; // found an existing one, must steal it
-		uint64_t min_pass = 0; // pass of the existing one, try to use the least recently
-
-		if (found_free_idx == -1 && found_used_idx == -1) {
-			continue; // nothing found
-		}
-
-		if (found_free_idx == -1 && found_used_idx != -1) {
-			found_free_idx = found_used_idx;
-		}
-
-		r_quadrant = qidx;
-		r_shadow = found_free_idx;
-
-		return true;
-	}
-
-	return false;
-}
-
-bool RasterizerSceneGLES2::shadow_atlas_update_light(RID p_atlas, RID p_light_intance, float p_coverage, uint64_t p_light_version) {
-	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_atlas);
-	ERR_FAIL_COND_V(!shadow_atlas, false);
-
-	if (shadow_atlas->size == 0 || shadow_atlas->smallest_subdiv == 0) {
-		return false;
-	}
-
-	uint32_t quad_size = shadow_atlas->size >> 1;
-	int desired_fit = MIN(quad_size / shadow_atlas->smallest_subdiv, next_power_of_2(quad_size * p_coverage));
-
-	int valid_quadrants[4];
-	int valid_quadrant_count = 0;
-	int best_size = -1;
-	int best_subdiv = -1;
-
-	for (int i = 0; i < 4; i++) {
-		int q = shadow_atlas->size_order[i];
-		int sd = shadow_atlas->quadrants[q].subdivision;
-
-		if (sd == 0) {
-			continue;
-		}
-
-		int max_fit = quad_size / sd;
-
-		if (best_size != -1 && max_fit > best_size) {
-			break; // what we asked for is bigger than this.
-		}
-
-		valid_quadrants[valid_quadrant_count] = q;
-		valid_quadrant_count++;
-
-		best_subdiv = sd;
-
-		if (max_fit >= desired_fit) {
-			best_size = max_fit;
-		}
-	}
-
-	ERR_FAIL_COND_V(valid_quadrant_count == 0, false); // no suitable block available
-
-	uint64_t tick = OS::get_singleton()->get_ticks_msec();
-
-	if (shadow_atlas->shadow_owners.has(p_light_intance)) {
-		// light was already known!
-
-		uint32_t key = shadow_atlas->shadow_owners[p_light_intance];
-		uint32_t q = (key >> ShadowAtlas::QUADRANT_SHIFT) & 0x3;
-		uint32_t s = key & ShadowAtlas::SHADOW_INDEX_MASK;
-
-		bool should_realloc = shadow_atlas->quadrants[q].subdivision != (uint32_t)best_subdiv && (shadow_atlas->quadrants[q].shadows[s].alloc_tick - tick > shadow_atlas_realloc_tolerance_msec);
-
-		bool should_redraw = shadow_atlas->quadrants[q].shadows[s].version != p_light_version;
-
-		if (!should_realloc) {
-			shadow_atlas->quadrants[q].shadows.write[s].version = p_light_version;
-			return should_redraw;
-		}
-
-		int new_quadrant;
-		int new_shadow;
-
-		// find a better place
-
-		if (_shadow_atlas_find_shadow(shadow_atlas, valid_quadrants, valid_quadrant_count, shadow_atlas->quadrants[q].subdivision, tick, new_quadrant, new_shadow)) {
-			// found a better place
-
-			ShadowAtlas::Quadrant::Shadow *sh = &shadow_atlas->quadrants[new_quadrant].shadows.write[new_shadow];
-			if (sh->owner.is_valid()) {
-				// it is take but invalid, so we can take it
-
-				shadow_atlas->shadow_owners.erase(sh->owner);
-			}
-
-			// erase previous
-			shadow_atlas->quadrants[q].shadows.write[s].version = 0;
-			shadow_atlas->quadrants[q].shadows.write[s].owner = RID();
-
-			sh->owner = p_light_intance;
-			sh->alloc_tick = tick;
-			sh->version = p_light_version;
-
-			// make a new key
-			key = new_quadrant << ShadowAtlas::QUADRANT_SHIFT;
-			key |= new_shadow;
-
-			// update it in the map
-			shadow_atlas->shadow_owners[p_light_intance] = key;
-
-			// make it dirty, so we redraw
-			return true;
-		}
-
-		// no better place found, so we keep the current place
-
-		shadow_atlas->quadrants[q].shadows.write[s].version = p_light_version;
-
-		return should_redraw;
-	}
-
-	int new_quadrant;
-	int new_shadow;
-
-	if (_shadow_atlas_find_shadow(shadow_atlas, valid_quadrants, valid_quadrant_count, -1, tick, new_quadrant, new_shadow)) {
-		// found a better place
-
-		ShadowAtlas::Quadrant::Shadow *sh = &shadow_atlas->quadrants[new_quadrant].shadows.write[new_shadow];
-		if (sh->owner.is_valid()) {
-			// it is take but invalid, so we can take it
-
-			shadow_atlas->shadow_owners.erase(sh->owner);
-		}
-
-		sh->owner = p_light_intance;
-		sh->alloc_tick = tick;
-		sh->version = p_light_version;
-
-		// make a new key
-		uint32_t key = new_quadrant << ShadowAtlas::QUADRANT_SHIFT;
-		key |= new_shadow;
-
-		// update it in the map
-		shadow_atlas->shadow_owners[p_light_intance] = key;
-
-		// make it dirty, so we redraw
-		return true;
-	}
-
-	return false;
-}
-
-void RasterizerSceneGLES2::set_directional_shadow_count(int p_count) {
-	directional_shadow.light_count = p_count;
-	directional_shadow.current_light = 0;
-}
-
-int RasterizerSceneGLES2::get_directional_light_shadow_size(RID p_light_intance) {
-	ERR_FAIL_COND_V(directional_shadow.light_count == 0, 0);
-
-	int shadow_size;
-
-	if (directional_shadow.light_count == 1) {
-		shadow_size = directional_shadow.size;
-	} else {
-		shadow_size = directional_shadow.size / 2; //more than 4 not supported anyway
-	}
-
-	return shadow_size;
-}
-
 ////////////////////////////
 
-void RasterizerSceneGLES2::_add_geometry(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, int p_material, bool p_depth_pass, bool p_shadow_pass) {
+void RasterizerSceneGLES2::_add_geometry(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, int p_material, bool p_depth_pass) {
 	RasterizerStorageGLES2::Material *material = nullptr;
 	RID material_src;
 
@@ -487,7 +80,7 @@ void RasterizerSceneGLES2::_add_geometry(RasterizerStorageGLES2::Geometry *p_geo
 
 	ERR_FAIL_COND(!material);
 
-	_add_geometry_with_material(p_geometry, p_instance, p_owner, material, p_depth_pass, p_shadow_pass);
+	_add_geometry_with_material(p_geometry, p_instance, p_owner, material, p_depth_pass);
 
 	while (material->next_pass.is_valid()) {
 		material = storage->material_owner.getornull(material->next_pass);
@@ -496,7 +89,7 @@ void RasterizerSceneGLES2::_add_geometry(RasterizerStorageGLES2::Geometry *p_geo
 			break;
 		}
 
-		_add_geometry_with_material(p_geometry, p_instance, p_owner, material, p_depth_pass, p_shadow_pass);
+		_add_geometry_with_material(p_geometry, p_instance, p_owner, material, p_depth_pass);
 	}
 
 	// Repeat the "nested chain" logic also for the overlay
@@ -507,7 +100,7 @@ void RasterizerSceneGLES2::_add_geometry(RasterizerStorageGLES2::Geometry *p_geo
 			return;
 		}
 
-		_add_geometry_with_material(p_geometry, p_instance, p_owner, material, p_depth_pass, p_shadow_pass);
+		_add_geometry_with_material(p_geometry, p_instance, p_owner, material, p_depth_pass);
 
 		while (material->next_pass.is_valid()) {
 			material = storage->material_owner.getornull(material->next_pass);
@@ -516,11 +109,11 @@ void RasterizerSceneGLES2::_add_geometry(RasterizerStorageGLES2::Geometry *p_geo
 				break;
 			}
 
-			_add_geometry_with_material(p_geometry, p_instance, p_owner, material, p_depth_pass, p_shadow_pass);
+			_add_geometry_with_material(p_geometry, p_instance, p_owner, material, p_depth_pass);
 		}
 	}
 }
-void RasterizerSceneGLES2::_add_geometry_with_material(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, RasterizerStorageGLES2::Material *p_material, bool p_depth_pass, bool p_shadow_pass) {
+void RasterizerSceneGLES2::_add_geometry_with_material(RasterizerStorageGLES2::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES2::GeometryOwner *p_owner, RasterizerStorageGLES2::Material *p_material, bool p_depth_pass) {
 	bool has_base_alpha = (p_material->shader->spatial.uses_alpha && !p_material->shader->spatial.uses_alpha_scissor) || p_material->shader->spatial.uses_screen_texture || p_material->shader->spatial.uses_depth_texture;
 	bool has_blend_alpha = p_material->shader->spatial.blend_mode != RasterizerStorageGLES2::Shader::Spatial::BLEND_MODE_MIX;
 	bool has_alpha = has_base_alpha || has_blend_alpha;
@@ -548,12 +141,7 @@ void RasterizerSceneGLES2::_add_geometry_with_material(RasterizerStorageGLES2::G
 
 		if (!p_material->shader->spatial.uses_alpha_scissor && !p_material->shader->spatial.writes_modelview_or_projection && !p_material->shader->spatial.uses_vertex && !p_material->shader->spatial.uses_discard && p_material->shader->spatial.depth_draw_mode != RasterizerStorageGLES2::Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS) {
 			//shader does not use discard and does not write a vertex position, use generic material
-			if (p_instance->cast_shadows == RS::SHADOW_CASTING_SETTING_DOUBLE_SIDED) {
-				p_material = storage->material_owner.getptr(!p_shadow_pass && p_material->shader->spatial.uses_world_coordinates ? default_worldcoord_material_twosided : default_material_twosided);
-				mirror = false;
-			} else {
-				p_material = storage->material_owner.getptr(!p_shadow_pass && p_material->shader->spatial.uses_world_coordinates ? default_worldcoord_material : default_material);
-			}
+			p_material = storage->material_owner.getptr(p_material->shader->spatial.uses_world_coordinates ? default_worldcoord_material : default_material);
 		}
 
 		has_alpha = false;
@@ -613,7 +201,6 @@ void RasterizerSceneGLES2::_add_geometry_with_material(RasterizerStorageGLES2::G
 		//add directional lights
 
 		e->light_mode = LIGHTMODE_UNSHADED;
-
 	}
 
 	// do not add anything here, as lights are duplicated elements..
@@ -646,12 +233,10 @@ void RasterizerSceneGLES2::_copy_texture_to_buffer(GLuint p_texture, GLuint p_bu
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void RasterizerSceneGLES2::_fill_render_list(InstanceBase **p_cull_result, int p_cull_count, bool p_depth_pass, bool p_shadow_pass) {
+void RasterizerSceneGLES2::_fill_render_list(InstanceBase **p_cull_result, int p_cull_count, bool p_depth_pass) {
 	render_pass++;
 	current_material_index = 0;
 	current_geometry_index = 0;
-	current_light_index = 0;
-	current_refprobe_index = 0;
 	current_shader_index = 0;
 
 	for (int i = 0; i < p_cull_count; i++) {
@@ -669,7 +254,7 @@ void RasterizerSceneGLES2::_fill_render_list(InstanceBase **p_cull_result, int p
 
 					RasterizerStorageGLES2::Surface *surface = mesh->surfaces[j];
 
-					_add_geometry(surface, instance, nullptr, material_index, p_depth_pass, p_shadow_pass);
+					_add_geometry(surface, instance, nullptr, material_index, p_depth_pass);
 				}
 
 			} break;
@@ -691,7 +276,7 @@ void RasterizerSceneGLES2::_fill_render_list(InstanceBase **p_cull_result, int p
 
 				for (int j = 0; j < ssize; j++) {
 					RasterizerStorageGLES2::Surface *s = mesh->surfaces[j];
-					_add_geometry(s, instance, multi_mesh, -1, p_depth_pass, p_shadow_pass);
+					_add_geometry(s, instance, multi_mesh, -1, p_depth_pass);
 				}
 			} break;
 
@@ -1033,9 +618,7 @@ void RasterizerSceneGLES2::_render_geometry(RenderList::Element *p_element) {
 	}
 }
 
-void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements, int p_element_count, const Transform &p_view_transform, const Projection &p_projection, const int p_eye, RID p_shadow_atlas, float p_shadow_bias, float p_shadow_normal_bias, bool p_reverse_cull, bool p_alpha_pass, bool p_shadow) {
-	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_shadow_atlas);
-
+void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements, int p_element_count, const Transform &p_view_transform, const Projection &p_projection, const int p_eye, bool p_reverse_cull, bool p_alpha_pass) {
 	Vector2 viewport_size = state.viewport_size;
 
 	Vector2 screen_pixel_size = state.screen_pixel_size;
@@ -1083,9 +666,8 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 		bool rebind = false;
 		bool accum_pass = *e->use_accum_ptr;
 		*e->use_accum_ptr = true; //set to accum for next time this is found
-		bool rebind_light = false;
 
-		if (!p_shadow && material->shader) {
+		if (material->shader) {
 			bool unshaded = material->shader->spatial.unshaded;
 
 			if (unshaded != prev_unshaded) {
@@ -1213,29 +795,16 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 		_set_cull(e->front_facing, material->shader->spatial.cull_mode == RasterizerStorageGLES2::Shader::Spatial::CULL_MODE_DISABLED, p_reverse_cull);
 
 		if (i == 0 || shader_rebind) { //first time must rebind
-
-			if (p_shadow) {
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_BIAS, p_shadow_bias);
-				state.scene_shader.set_uniform(SceneShaderGLES2::LIGHT_NORMAL_BIAS, p_shadow_normal_bias);
-				if (state.shadow_is_dual_parabolloid) {
-					state.scene_shader.set_uniform(SceneShaderGLES2::SHADOW_DUAL_PARABOLOID_RENDER_SIDE, state.dual_parbolloid_direction);
-					state.scene_shader.set_uniform(SceneShaderGLES2::SHADOW_DUAL_PARABOLOID_RENDER_ZFAR, state.dual_parbolloid_zfar);
-				}
-			} else {
-				if (use_radiance_map) {
-					// would be a bit weird if we don't have this...
-					state.scene_shader.set_uniform(SceneShaderGLES2::RADIANCE_INVERSE_XFORM, p_view_transform);
-				}
-
-				state.scene_shader.set_uniform(SceneShaderGLES2::BG_ENERGY, 1.0);
-				state.scene_shader.set_uniform(SceneShaderGLES2::BG_COLOR, state.default_bg);
-				state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_SKY_CONTRIBUTION, 1.0);
-				state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_COLOR, state.default_ambient);
-				state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_ENERGY, 1.0);
-
-				//rebind all these
-				rebind_light = true;
+			if (use_radiance_map) {
+				// would be a bit weird if we don't have this...
+				state.scene_shader.set_uniform(SceneShaderGLES2::RADIANCE_INVERSE_XFORM, p_view_transform);
 			}
+
+			state.scene_shader.set_uniform(SceneShaderGLES2::BG_ENERGY, 1.0);
+			state.scene_shader.set_uniform(SceneShaderGLES2::BG_COLOR, state.default_bg);
+			state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_SKY_CONTRIBUTION, 1.0);
+			state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_COLOR, state.default_ambient);
+			state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_ENERGY, 1.0);
 
 			state.scene_shader.set_uniform(SceneShaderGLES2::CAMERA_MATRIX, p_view_transform);
 			state.scene_shader.set_uniform(SceneShaderGLES2::CAMERA_INVERSE_MATRIX, view_transform_inverse);
@@ -1376,7 +945,7 @@ void RasterizerSceneGLES2::_post_process(const Projection &p_cam_projection) {
 	state.tonemap_shader.set_conditional(TonemapShaderGLES2::DISABLE_ALPHA, false);
 }
 
-void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID p_shadow_atlas) {
+void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count) {
 	Transform cam_transform = p_cam_transform;
 
 	storage->info.render.object_count += p_cull_count;
@@ -1422,7 +991,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	// render list stuff
 
 	render_list.clear();
-	_fill_render_list(p_cull_result, p_cull_count, false, false);
+	_fill_render_list(p_cull_result, p_cull_count, false);
 
 	// other stuff
 
@@ -1478,7 +1047,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 
 	// render opaque things first
 	render_list.sort_by_key(false);
-	_render_render_list(render_list.elements, render_list.element_count, cam_transform, p_cam_projection, p_eye, p_shadow_atlas, 0.0, 0.0, reverse_cull, false, false);
+	_render_render_list(render_list.elements, render_list.element_count, cam_transform, p_cam_projection, p_eye, reverse_cull, false);
 
 	if (storage->frame.current_rt && state.used_screen_texture) {
 		//copy screen texture
@@ -1524,124 +1093,13 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 
 	render_list.sort_by_reverse_depth_and_priority(true);
 
-	_render_render_list(&render_list.elements[render_list.max_elements - render_list.alpha_element_count], render_list.alpha_element_count, cam_transform, p_cam_projection, p_eye, p_shadow_atlas, 0.0, 0.0, reverse_cull, true, false);
+	_render_render_list(&render_list.elements[render_list.max_elements - render_list.alpha_element_count], render_list.alpha_element_count, cam_transform, p_cam_projection, p_eye, reverse_cull, true);
 
 	//post process
 	_post_process(p_cam_projection);
 
-	//#define GLES2_SHADOW_ATLAS_DEBUG_VIEW
-
-#ifdef GLES2_SHADOW_ATLAS_DEBUG_VIEW
-	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_shadow_atlas);
-	if (shadow_atlas) {
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, shadow_atlas->depth);
-
-		glViewport(0, 0, storage->frame.current_rt->width / 4, storage->frame.current_rt->height / 4);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_CUBEMAP, false);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_COPY_SECTION, false);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_CUSTOM_ALPHA, false);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_MULTIPLIER, false);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_PANORAMA, false);
-		storage->shaders.copy.bind();
-
-		storage->_copy_screen();
-	}
-#endif
-
-	//#define GLES2_SHADOW_DIRECTIONAL_DEBUG_VIEW
-
-#ifdef GLES2_SHADOW_DIRECTIONAL_DEBUG_VIEW
-	if (true) {
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, directional_shadow.depth);
-
-		glViewport(0, 0, storage->frame.current_rt->width / 4, storage->frame.current_rt->height / 4);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_CUBEMAP, false);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_COPY_SECTION, false);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_CUSTOM_ALPHA, false);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_MULTIPLIER, false);
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_PANORAMA, false);
-		storage->shaders.copy.bind();
-
-		storage->_copy_screen();
-	}
-#endif
-
 	// return to default
 	state.scene_shader.set_conditional(SceneShaderGLES2::OUTPUT_LINEAR, false);
-}
-
-void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) {
-	state.render_no_shadows = false;
-
-	uint32_t x;
-	uint32_t y;
-	uint32_t width;
-	uint32_t height;
-
-	float zfar = 0;
-	bool flip_facing = false;
-	int custom_vp_size = 0;
-	GLuint fbo = 0;
-	state.shadow_is_dual_parabolloid = false;
-	state.dual_parbolloid_direction = 0.0;
-
-	int current_cubemap = -1;
-	float bias = 0;
-	float normal_bias = 0;
-
-	Projection light_projection;
-	Transform light_transform;
-
-	render_list.clear();
-
-	_fill_render_list(p_cull_result, p_cull_count, true, true);
-
-	render_list.sort_by_depth(false);
-
-	glDisable(GL_BLEND);
-	glDisable(GL_DITHER);
-	glEnable(GL_DEPTH_TEST);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-	glDepthMask(GL_TRUE);
-	if (!storage->config.use_rgba_3d_shadows) {
-		glColorMask(0, 0, 0, 0);
-	}
-
-	if (custom_vp_size) {
-		glViewport(0, 0, custom_vp_size, custom_vp_size);
-		glScissor(0, 0, custom_vp_size, custom_vp_size);
-	} else {
-		glViewport(x, y, width, height);
-		glScissor(x, y, width, height);
-	}
-
-	glEnable(GL_SCISSOR_TEST);
-	glClearDepth(1.0f);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	if (storage->config.use_rgba_3d_shadows) {
-		glClearColor(1.0, 1.0, 1.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
-	}
-	glDisable(GL_SCISSOR_TEST);
-
-	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH, true);
-	state.scene_shader.set_conditional(SceneShaderGLES2::OUTPUT_LINEAR, false); // just in case, should be false already
-
-	_render_render_list(render_list.elements, render_list.element_count, light_transform, light_projection, 0, RID(), bias, normal_bias, flip_facing, false, true);
-
-	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH, false);
-	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH_DUAL_PARABOLOID, false);
-
-	if (storage->frame.current_rt) {
-		glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
-	}
-	if (!storage->config.use_rgba_3d_shadows) {
-		glColorMask(1, 1, 1, 1);
-	}
 }
 
 void RasterizerSceneGLES2::set_scene_pass(uint64_t p_pass) {
@@ -1649,17 +1107,7 @@ void RasterizerSceneGLES2::set_scene_pass(uint64_t p_pass) {
 }
 
 bool RasterizerSceneGLES2::free(RID p_rid) {
-	if (shadow_atlas_owner.owns(p_rid)) {
-		ShadowAtlas *shadow_atlas = shadow_atlas_owner.get(p_rid);
-		shadow_atlas_set_size(p_rid, 0);
-		shadow_atlas_owner.free(p_rid);
-		memdelete(shadow_atlas);
-
-	} else {
-		return false;
-	}
-
-	return true;
+	return false;
 }
 
 void RasterizerSceneGLES2::set_debug_draw_mode(RS::ViewportDebugDraw p_debug_draw) {
@@ -1676,8 +1124,6 @@ void RasterizerSceneGLES2::initialize() {
 	render_list.init();
 
 	render_pass = 1;
-
-	shadow_atlas_realloc_tolerance_msec = 500;
 
 	{
 		//default material and shader
@@ -1732,67 +1178,16 @@ void RasterizerSceneGLES2::initialize() {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	// cubemaps for shadows
-	if (storage->config.support_shadow_cubemaps) { //not going to be used
-		int max_shadow_cubemap_sampler_size = MIN(int(GLOBAL_GET("rendering/quality/shadow_atlas/cubemap_size")), storage->config.max_cubemap_texture_size);
-
-		int cube_size = max_shadow_cubemap_sampler_size;
-
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-
-		while (cube_size >= 32) {
-			ShadowCubeMap cube;
-
-			cube.size = cube_size;
-
-			glGenTextures(1, &cube.cubemap);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cube.cubemap);
-
-			for (int i = 0; i < 6; i++) {
-				glTexImage2D(_cube_side_enum[i], 0, storage->config.depth_internalformat, cube_size, cube_size, 0, GL_DEPTH_COMPONENT, storage->config.depth_type, nullptr);
-			}
-
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-			glGenFramebuffers(6, cube.fbo);
-			for (int i = 0; i < 6; i++) {
-				glBindFramebuffer(GL_FRAMEBUFFER, cube.fbo[i]);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _cube_side_enum[i], cube.cubemap, 0);
-			}
-
-			shadow_cubemaps.push_back(cube);
-
-			cube_size >>= 1;
-		}
-	}
-
-	directional_shadow_create();
-
-	shadow_filter_mode = SHADOW_FILTER_NEAREST;
-
 	glFrontFace(GL_CW);
 }
 
 void RasterizerSceneGLES2::iteration() {
-	shadow_filter_mode = ShadowFilterMode(int(GLOBAL_GET("rendering/quality/shadows/filter_mode")));
-
-	const int directional_shadow_size_new = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));
-	if (directional_shadow_size != directional_shadow_size_new) {
-		directional_shadow_size = directional_shadow_size_new;
-		directional_shadow_create();
-	}
 }
 
 void RasterizerSceneGLES2::finalize() {
 }
 
 RasterizerSceneGLES2::RasterizerSceneGLES2() {
-	_light_counter = 0;
-	directional_shadow_size = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));
 }
 
 RasterizerSceneGLES2::~RasterizerSceneGLES2() {

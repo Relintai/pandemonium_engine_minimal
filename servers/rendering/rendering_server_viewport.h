@@ -175,9 +175,6 @@ public:
 	void viewport_set_global_canvas_transform(RID p_viewport, const Transform2D &p_transform);
 	void viewport_set_canvas_stacking(RID p_viewport, RID p_canvas, int p_layer, int p_sublayer);
 
-	void viewport_set_shadow_atlas_size(RID p_viewport, int p_size);
-	void viewport_set_shadow_atlas_quadrant_subdivision(RID p_viewport, int p_quadrant, int p_subdiv);
-
 	void viewport_set_msaa(RID p_viewport, RS::ViewportMSAA p_msaa);
 	void viewport_set_use_fxaa(RID p_viewport, bool p_fxaa);
 	void viewport_set_use_debanding(RID p_viewport, bool p_debanding);
