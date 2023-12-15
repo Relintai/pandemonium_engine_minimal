@@ -74,16 +74,6 @@ void RenderingServerViewport::_draw_viewport(Viewport *p_viewport) {
 	bool scenario_draw_canvas_bg = false; //draw canvas, or some layer of it, as BG for 3D instead of in front
 	int scenario_canvas_max_layer = 0;
 
-	if (!p_viewport->hide_canvas && !p_viewport->disable_environment && RSG::scene->scenario_owner.owns(p_viewport->scenario)) {
-		RenderingServerScene::Scenario *scenario = RSG::scene->scenario_owner.get(p_viewport->scenario);
-		ERR_FAIL_COND(!scenario);
-		if (RSG::scene_render->is_environment(scenario->environment)) {
-			scenario_draw_canvas_bg = RSG::scene_render->environment_get_background(scenario->environment) == RS::ENV_BG_CANVAS;
-
-			scenario_canvas_max_layer = RSG::scene_render->environment_get_canvas_max_layer(scenario->environment);
-		}
-	}
-
 	bool can_draw_3d = !p_viewport->disable_3d && !p_viewport->disable_3d_by_usage && RSG::scene->camera_owner.owns(p_viewport->camera);
 
 	if (p_viewport->clear_mode != RS::VIEWPORT_CLEAR_NEVER) {

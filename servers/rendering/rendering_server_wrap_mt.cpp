@@ -153,7 +153,6 @@ void RenderingServerWrapMT::finish() {
 	reflection_probe_free_cached_ids();
 	camera_free_cached_ids();
 	viewport_free_cached_ids();
-	environment_free_cached_ids();
 	scenario_free_cached_ids();
 	instance_free_cached_ids();
 	canvas_free_cached_ids();

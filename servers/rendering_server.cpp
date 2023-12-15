@@ -2036,28 +2036,6 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("viewport_get_render_info", "viewport", "info"), &RenderingServer::viewport_get_render_info);
 	ClassDB::bind_method(D_METHOD("viewport_set_debug_draw", "viewport", "draw"), &RenderingServer::viewport_set_debug_draw);
 
-	ClassDB::bind_method(D_METHOD("environment_create"), &RenderingServer::environment_create);
-	ClassDB::bind_method(D_METHOD("environment_set_background", "env", "bg"), &RenderingServer::environment_set_background);
-	ClassDB::bind_method(D_METHOD("environment_set_sky", "env", "sky"), &RenderingServer::environment_set_sky);
-	ClassDB::bind_method(D_METHOD("environment_set_sky_custom_fov", "env", "scale"), &RenderingServer::environment_set_sky_custom_fov);
-	ClassDB::bind_method(D_METHOD("environment_set_sky_orientation", "env", "orientation"), &RenderingServer::environment_set_sky_orientation);
-	ClassDB::bind_method(D_METHOD("environment_set_bg_color", "env", "color"), &RenderingServer::environment_set_bg_color);
-	ClassDB::bind_method(D_METHOD("environment_set_bg_energy", "env", "energy"), &RenderingServer::environment_set_bg_energy);
-	ClassDB::bind_method(D_METHOD("environment_set_canvas_max_layer", "env", "max_layer"), &RenderingServer::environment_set_canvas_max_layer);
-	ClassDB::bind_method(D_METHOD("environment_set_ambient_light", "env", "color", "energy", "sky_contibution"), &RenderingServer::environment_set_ambient_light, DEFVAL(1.0), DEFVAL(0.0));
-	ClassDB::bind_method(D_METHOD("environment_set_dof_blur_near", "env", "enable", "distance", "transition", "far_amount", "quality"), &RenderingServer::environment_set_dof_blur_near);
-	ClassDB::bind_method(D_METHOD("environment_set_dof_blur_far", "env", "enable", "distance", "transition", "far_amount", "quality"), &RenderingServer::environment_set_dof_blur_far);
-	ClassDB::bind_method(D_METHOD("environment_set_glow", "env", "enable", "level_flags", "intensity", "strength", "bloom_threshold", "blend_mode", "hdr_bleed_threshold", "hdr_bleed_scale", "hdr_luminance_cap", "bicubic_upscale", "high_quality"), &RenderingServer::environment_set_glow);
-	ClassDB::bind_method(D_METHOD("environment_set_tonemap", "env", "tone_mapper", "exposure", "white", "auto_exposure", "min_luminance", "max_luminance", "auto_exp_speed", "auto_exp_grey"), &RenderingServer::environment_set_tonemap);
-	ClassDB::bind_method(D_METHOD("environment_set_adjustment", "env", "enable", "brightness", "contrast", "saturation", "ramp"), &RenderingServer::environment_set_adjustment);
-	ClassDB::bind_method(D_METHOD("environment_set_ssr", "env", "enable", "max_steps", "fade_in", "fade_out", "depth_tolerance", "roughness"), &RenderingServer::environment_set_ssr);
-	ClassDB::bind_method(D_METHOD("environment_set_ssao", "env", "enable", "radius", "intensity", "radius2", "intensity2", "bias", "light_affect", "ao_channel_affect", "color", "quality", "blur", "bilateral_sharpness"), &RenderingServer::environment_set_ssao);
-	ClassDB::bind_method(D_METHOD("environment_set_fog", "env", "enable", "color", "sun_color", "sun_amount"), &RenderingServer::environment_set_fog);
-
-	ClassDB::bind_method(D_METHOD("environment_set_fog_depth", "env", "enable", "depth_begin", "depth_end", "depth_curve", "transmit", "transmit_curve"), &RenderingServer::environment_set_fog_depth);
-
-	ClassDB::bind_method(D_METHOD("environment_set_fog_height", "env", "enable", "min_height", "max_height", "height_curve"), &RenderingServer::environment_set_fog_height);
-
 	ClassDB::bind_method(D_METHOD("scenario_create"), &RenderingServer::scenario_create);
 	ClassDB::bind_method(D_METHOD("scenario_set_debug", "scenario", "debug_mode"), &RenderingServer::scenario_set_debug);
 	ClassDB::bind_method(D_METHOD("scenario_set_environment", "scenario", "environment"), &RenderingServer::scenario_set_environment);
@@ -2431,37 +2409,6 @@ void RenderingServer::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_ONCE);
 	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_ALWAYS);
-
-	BIND_ENUM_CONSTANT(ENV_BG_CLEAR_COLOR);
-	BIND_ENUM_CONSTANT(ENV_BG_COLOR);
-	BIND_ENUM_CONSTANT(ENV_BG_COLOR_SKY);
-	BIND_ENUM_CONSTANT(ENV_BG_CANVAS);
-	BIND_ENUM_CONSTANT(ENV_BG_KEEP);
-	BIND_ENUM_CONSTANT(ENV_BG_MAX);
-
-	BIND_ENUM_CONSTANT(ENV_DOF_BLUR_QUALITY_LOW);
-	BIND_ENUM_CONSTANT(ENV_DOF_BLUR_QUALITY_MEDIUM);
-	BIND_ENUM_CONSTANT(ENV_DOF_BLUR_QUALITY_HIGH);
-
-	BIND_ENUM_CONSTANT(GLOW_BLEND_MODE_ADDITIVE);
-	BIND_ENUM_CONSTANT(GLOW_BLEND_MODE_SCREEN);
-	BIND_ENUM_CONSTANT(GLOW_BLEND_MODE_SOFTLIGHT);
-	BIND_ENUM_CONSTANT(GLOW_BLEND_MODE_REPLACE);
-
-	BIND_ENUM_CONSTANT(ENV_TONE_MAPPER_LINEAR);
-	BIND_ENUM_CONSTANT(ENV_TONE_MAPPER_REINHARD);
-	BIND_ENUM_CONSTANT(ENV_TONE_MAPPER_FILMIC);
-	BIND_ENUM_CONSTANT(ENV_TONE_MAPPER_ACES);
-	BIND_ENUM_CONSTANT(ENV_TONE_MAPPER_ACES_FITTED);
-
-	BIND_ENUM_CONSTANT(ENV_SSAO_QUALITY_LOW);
-	BIND_ENUM_CONSTANT(ENV_SSAO_QUALITY_MEDIUM);
-	BIND_ENUM_CONSTANT(ENV_SSAO_QUALITY_HIGH);
-
-	BIND_ENUM_CONSTANT(ENV_SSAO_BLUR_DISABLED);
-	BIND_ENUM_CONSTANT(ENV_SSAO_BLUR_1x1);
-	BIND_ENUM_CONSTANT(ENV_SSAO_BLUR_2x2);
-	BIND_ENUM_CONSTANT(ENV_SSAO_BLUR_3x3);
 
 	BIND_ENUM_CONSTANT(CHANGED_PRIORITY_ANY);
 	BIND_ENUM_CONSTANT(CHANGED_PRIORITY_LOW);

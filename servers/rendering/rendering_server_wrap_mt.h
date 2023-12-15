@@ -342,33 +342,6 @@ public:
 
 	FUNC2(viewport_set_debug_draw, RID, ViewportDebugDraw)
 
-	/* ENVIRONMENT API */
-
-	FUNCRID(environment)
-
-	FUNC2(environment_set_background, RID, Environment3DBG)
-	FUNC2(environment_set_sky, RID, RID)
-	FUNC2(environment_set_sky_custom_fov, RID, float)
-	FUNC2(environment_set_sky_orientation, RID, const Basis &)
-	FUNC2(environment_set_bg_color, RID, const Color &)
-	FUNC2(environment_set_bg_energy, RID, float)
-	FUNC2(environment_set_canvas_max_layer, RID, int)
-	FUNC4(environment_set_ambient_light, RID, const Color &, float, float)
-	FUNC7(environment_set_ssr, RID, bool, int, float, float, float, bool)
-	FUNC13(environment_set_ssao, RID, bool, float, float, float, float, float, float, float, const Color &, Environment3DSSAOQuality, Environment3DSSAOBlur, float)
-
-	FUNC6(environment_set_dof_blur_near, RID, bool, float, float, float, Environment3DDOFBlurQuality)
-	FUNC6(environment_set_dof_blur_far, RID, bool, float, float, float, Environment3DDOFBlurQuality)
-	FUNC12(environment_set_glow, RID, bool, int, float, float, float, Environment3DGlowBlendMode, float, float, float, bool, bool)
-
-	FUNC9(environment_set_tonemap, RID, Environment3DToneMapper, float, float, bool, float, float, float, float)
-
-	FUNC6(environment_set_adjustment, RID, bool, float, float, float, RID)
-
-	FUNC5(environment_set_fog, RID, bool, const Color &, const Color &, float)
-	FUNC7(environment_set_fog_depth, RID, bool, float, float, float, bool, float)
-	FUNC5(environment_set_fog_height, RID, bool, float, float, float)
-
 	/* SCENARIO API */
 
 	FUNCRID(scenario)

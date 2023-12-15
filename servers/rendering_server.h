@@ -640,83 +640,6 @@ public:
 
 	virtual void viewport_set_debug_draw(RID p_viewport, ViewportDebugDraw p_draw) = 0;
 
-	/* ENVIRONMENT API */
-
-	virtual RID environment_create() = 0;
-
-	enum Environment3DBG {
-
-		ENV_BG_CLEAR_COLOR,
-		ENV_BG_COLOR,
-		ENV_BG_COLOR_SKY,
-		ENV_BG_CANVAS,
-		ENV_BG_KEEP,
-		ENV_BG_CAMERA_FEED,
-		ENV_BG_MAX
-	};
-
-	virtual void environment_set_background(RID p_env, Environment3DBG p_bg) = 0;
-	virtual void environment_set_sky(RID p_env, RID p_sky) = 0;
-	virtual void environment_set_sky_custom_fov(RID p_env, float p_scale) = 0;
-	virtual void environment_set_sky_orientation(RID p_env, const Basis &p_orientation) = 0;
-	virtual void environment_set_bg_color(RID p_env, const Color &p_color) = 0;
-	virtual void environment_set_bg_energy(RID p_env, float p_energy) = 0;
-	virtual void environment_set_canvas_max_layer(RID p_env, int p_max_layer) = 0;
-	virtual void environment_set_ambient_light(RID p_env, const Color &p_color, float p_energy = 1.0, float p_sky_contribution = 0.0) = 0;
-
-	//set default SSAO options
-	//set default SSR options
-	//set default SSSSS options
-
-	enum Environment3DDOFBlurQuality {
-		ENV_DOF_BLUR_QUALITY_LOW,
-		ENV_DOF_BLUR_QUALITY_MEDIUM,
-		ENV_DOF_BLUR_QUALITY_HIGH,
-	};
-
-	virtual void environment_set_dof_blur_near(RID p_env, bool p_enable, float p_distance, float p_transition, float p_far_amount, Environment3DDOFBlurQuality p_quality) = 0;
-	virtual void environment_set_dof_blur_far(RID p_env, bool p_enable, float p_distance, float p_transition, float p_far_amount, Environment3DDOFBlurQuality p_quality) = 0;
-
-	enum Environment3DGlowBlendMode {
-		GLOW_BLEND_MODE_ADDITIVE,
-		GLOW_BLEND_MODE_SCREEN,
-		GLOW_BLEND_MODE_SOFTLIGHT,
-		GLOW_BLEND_MODE_REPLACE,
-	};
-	virtual void environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_bloom_threshold, Environment3DGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap, bool p_bicubic_upscale, bool p_high_quality) = 0;
-
-	enum Environment3DToneMapper {
-		ENV_TONE_MAPPER_LINEAR,
-		ENV_TONE_MAPPER_REINHARD,
-		ENV_TONE_MAPPER_FILMIC,
-		ENV_TONE_MAPPER_ACES,
-		ENV_TONE_MAPPER_ACES_FITTED
-	};
-
-	virtual void environment_set_tonemap(RID p_env, Environment3DToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_grey) = 0;
-	virtual void environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, RID p_ramp) = 0;
-
-	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness) = 0;
-
-	enum Environment3DSSAOQuality {
-		ENV_SSAO_QUALITY_LOW,
-		ENV_SSAO_QUALITY_MEDIUM,
-		ENV_SSAO_QUALITY_HIGH,
-	};
-
-	enum Environment3DSSAOBlur {
-		ENV_SSAO_BLUR_DISABLED,
-		ENV_SSAO_BLUR_1x1,
-		ENV_SSAO_BLUR_2x2,
-		ENV_SSAO_BLUR_3x3,
-	};
-
-	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_radius2, float p_intensity2, float p_bias, float p_light_affect, float p_ao_channel_affect, const Color &p_color, Environment3DSSAOQuality p_quality, Environment3DSSAOBlur p_blur, float p_bilateral_sharpness) = 0;
-
-	virtual void environment_set_fog(RID p_env, bool p_enable, const Color &p_color, const Color &p_sun_color, float p_sun_amount) = 0;
-	virtual void environment_set_fog_depth(RID p_env, bool p_enable, float p_depth_begin, float p_depth_end, float p_depth_curve, bool p_transmit, float p_transmit_curve) = 0;
-	virtual void environment_set_fog_height(RID p_env, bool p_enable, float p_min_height, float p_max_height, float p_height_curve) = 0;
-
 	/* INTERPOLATION API */
 
 	virtual void set_physics_interpolation_enabled(bool p_enabled) = 0;
@@ -1079,12 +1002,6 @@ VARIANT_ENUM_CAST(RenderingServer::LightOmniShadowDetail);
 VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowMode);
 VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowDepthRangeMode);
 VARIANT_ENUM_CAST(RenderingServer::ReflectionProbeUpdateMode);
-VARIANT_ENUM_CAST(RenderingServer::Environment3DBG);
-VARIANT_ENUM_CAST(RenderingServer::Environment3DDOFBlurQuality);
-VARIANT_ENUM_CAST(RenderingServer::Environment3DGlowBlendMode);
-VARIANT_ENUM_CAST(RenderingServer::Environment3DToneMapper);
-VARIANT_ENUM_CAST(RenderingServer::Environment3DSSAOQuality);
-VARIANT_ENUM_CAST(RenderingServer::Environment3DSSAOBlur);
 VARIANT_ENUM_CAST(RenderingServer::InstanceFlags);
 VARIANT_ENUM_CAST(RenderingServer::ShadowCastingSetting);
 VARIANT_ENUM_CAST(RenderingServer::TextureType);

@@ -350,156 +350,6 @@ public:
 	virtual bool reflection_probe_instance_begin_render(RID p_instance, RID p_reflection_atlas);
 	virtual bool reflection_probe_instance_postprocess_step(RID p_instance);
 
-	/* ENVIRONMENT API */
-
-	struct Environment3D : public RID_Data {
-		RS::Environment3DBG bg_mode;
-
-		RID sky;
-		float sky_custom_fov;
-		Basis sky_orientation;
-
-		Color bg_color;
-		float bg_energy;
-		float sky_ambient;
-
-		Color ambient_color;
-		float ambient_energy;
-		float ambient_sky_contribution;
-
-		int canvas_max_layer;
-
-		bool glow_enabled;
-		int glow_levels;
-		float glow_intensity;
-		float glow_strength;
-		float glow_bloom;
-		RS::Environment3DGlowBlendMode glow_blend_mode;
-		float glow_hdr_bleed_threshold;
-		float glow_hdr_bleed_scale;
-		float glow_hdr_luminance_cap;
-		bool glow_bicubic_upscale;
-		bool glow_high_quality;
-
-		bool dof_blur_far_enabled;
-		float dof_blur_far_distance;
-		float dof_blur_far_transition;
-		float dof_blur_far_amount;
-		RS::Environment3DDOFBlurQuality dof_blur_far_quality;
-
-		bool dof_blur_near_enabled;
-		float dof_blur_near_distance;
-		float dof_blur_near_transition;
-		float dof_blur_near_amount;
-		RS::Environment3DDOFBlurQuality dof_blur_near_quality;
-
-		bool adjustments_enabled;
-		float adjustments_brightness;
-		float adjustments_contrast;
-		float adjustments_saturation;
-		RID color_correction;
-
-		bool fog_enabled;
-		Color fog_color;
-		Color fog_sun_color;
-		float fog_sun_amount;
-
-		bool fog_depth_enabled;
-		float fog_depth_begin;
-		float fog_depth_end;
-		float fog_depth_curve;
-		bool fog_transmit_enabled;
-		float fog_transmit_curve;
-		bool fog_height_enabled;
-		float fog_height_min;
-		float fog_height_max;
-		float fog_height_curve;
-
-		Environment3D() :
-				bg_mode(RS::ENV_BG_CLEAR_COLOR),
-				sky_custom_fov(0.0),
-				bg_energy(1.0),
-				sky_ambient(0),
-				ambient_energy(1.0),
-				ambient_sky_contribution(0.0),
-				canvas_max_layer(0),
-				glow_enabled(false),
-				glow_levels((1 << 2) | (1 << 4)),
-				glow_intensity(0.8),
-				glow_strength(1.0),
-				glow_bloom(0.0),
-				glow_blend_mode(RS::GLOW_BLEND_MODE_SOFTLIGHT),
-				glow_hdr_bleed_threshold(1.0),
-				glow_hdr_bleed_scale(2.0),
-				glow_hdr_luminance_cap(12.0),
-				glow_bicubic_upscale(false),
-				glow_high_quality(false),
-				dof_blur_far_enabled(false),
-				dof_blur_far_distance(10),
-				dof_blur_far_transition(5),
-				dof_blur_far_amount(0.1),
-				dof_blur_far_quality(RS::ENV_DOF_BLUR_QUALITY_MEDIUM),
-				dof_blur_near_enabled(false),
-				dof_blur_near_distance(2),
-				dof_blur_near_transition(1),
-				dof_blur_near_amount(0.1),
-				dof_blur_near_quality(RS::ENV_DOF_BLUR_QUALITY_MEDIUM),
-				adjustments_enabled(false),
-				adjustments_brightness(1.0),
-				adjustments_contrast(1.0),
-				adjustments_saturation(1.0),
-				fog_enabled(false),
-				fog_color(Color(0.5, 0.5, 0.5)),
-				fog_sun_color(Color(0.8, 0.8, 0.0)),
-				fog_sun_amount(0),
-				fog_depth_enabled(true),
-				fog_depth_begin(10),
-				fog_depth_end(0),
-				fog_depth_curve(1),
-				fog_transmit_enabled(true),
-				fog_transmit_curve(1),
-				fog_height_enabled(false),
-				fog_height_min(10),
-				fog_height_max(0),
-				fog_height_curve(1) {
-		}
-	};
-
-	mutable RID_Owner<Environment3D> environment_owner;
-
-	virtual RID environment_create();
-
-	virtual void environment_set_background(RID p_env, RS::Environment3DBG p_bg);
-	virtual void environment_set_sky(RID p_env, RID p_sky);
-	virtual void environment_set_sky_custom_fov(RID p_env, float p_scale);
-	virtual void environment_set_sky_orientation(RID p_env, const Basis &p_orientation);
-	virtual void environment_set_bg_color(RID p_env, const Color &p_color);
-	virtual void environment_set_bg_energy(RID p_env, float p_energy);
-	virtual void environment_set_canvas_max_layer(RID p_env, int p_max_layer);
-	virtual void environment_set_ambient_light(RID p_env, const Color &p_color, float p_energy = 1.0, float p_sky_contribution = 0.0);
-
-	virtual void environment_set_dof_blur_near(RID p_env, bool p_enable, float p_distance, float p_transition, float p_amount, RS::Environment3DDOFBlurQuality p_quality);
-	virtual void environment_set_dof_blur_far(RID p_env, bool p_enable, float p_distance, float p_transition, float p_amount, RS::Environment3DDOFBlurQuality p_quality);
-
-	virtual void environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_bloom_threshold, RS::Environment3DGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap, bool p_bicubic_upscale, bool p_high_quality);
-	virtual void environment_set_fog(RID p_env, bool p_enable, float p_begin, float p_end, RID p_gradient_texture);
-
-	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness);
-	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_radius2, float p_intensity2, float p_bias, float p_light_affect, float p_ao_channel_affect, const Color &p_color, RS::Environment3DSSAOQuality p_quality, RS::Environment3DSSAOBlur p_blur, float p_bilateral_sharpness);
-
-	virtual void environment_set_tonemap(RID p_env, RS::Environment3DToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_scale);
-
-	virtual void environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, RID p_ramp);
-
-	virtual void environment_set_fog(RID p_env, bool p_enable, const Color &p_color, const Color &p_sun_color, float p_sun_amount);
-	virtual void environment_set_fog_depth(RID p_env, bool p_enable, float p_depth_begin, float p_depth_end, float p_depth_curve, bool p_transmit, float p_transmit_curve);
-	virtual void environment_set_fog_height(RID p_env, bool p_enable, float p_min_height, float p_max_height, float p_height_curve);
-
-	virtual bool is_environment(RID p_env);
-
-	virtual RS::Environment3DBG environment_get_background(RID p_env);
-	virtual int environment_get_canvas_max_layer(RID p_env);
-
 	/* LIGHT INSTANCE */
 
 	struct LightInstance : public RID_Data {
@@ -734,8 +584,6 @@ public:
 			const Projection &p_projection,
 			const int p_eye,
 			RID p_shadow_atlas,
-			Environment3D *p_env,
-			GLuint p_base_env,
 			float p_shadow_bias,
 			float p_shadow_normal_bias,
 			bool p_reverse_cull,
@@ -747,10 +595,10 @@ public:
 	_FORCE_INLINE_ void _setup_geometry(RenderList::Element *p_element, RasterizerStorageGLES2::Skeleton *p_skeleton);
 	_FORCE_INLINE_ void _setup_light_type(LightInstance *p_light, ShadowAtlas *shadow_atlas);
 	_FORCE_INLINE_ void _setup_light(LightInstance *p_light, ShadowAtlas *shadow_atlas, const Transform &p_view_transform, bool accum_pass);
-	_FORCE_INLINE_ void _setup_refprobes(ReflectionProbeInstance *p_refprobe1, ReflectionProbeInstance *p_refprobe2, const Transform &p_view_transform, Environment3D *p_env);
+	_FORCE_INLINE_ void _setup_refprobes(ReflectionProbeInstance *p_refprobe1, ReflectionProbeInstance *p_refprobe2, const Transform &p_view_transform);
 	_FORCE_INLINE_ void _render_geometry(RenderList::Element *p_element);
 
-	void _post_process(Environment3D *env, const Projection &p_cam_projection);
+	void _post_process(const Projection &p_cam_projection);
 
 	virtual void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, RID p_environment, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass);
 	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count);

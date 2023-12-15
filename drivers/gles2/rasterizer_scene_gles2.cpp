@@ -30,11 +30,11 @@
 
 #include "rasterizer_scene_gles2.h"
 
+#include "core/config/project_settings.h"
+#include "core/containers/vmap.h"
 #include "core/math/math_funcs.h"
 #include "core/math/transform.h"
 #include "core/os/os.h"
-#include "core/config/project_settings.h"
-#include "core/containers/vmap.h"
 #include "rasterizer_canvas_gles2.h"
 #include "servers/rendering/rendering_server_raster.h"
 
@@ -734,190 +734,6 @@ bool RasterizerSceneGLES2::reflection_probe_instance_postprocess_step(RID p_inst
 	glBindFramebuffer(GL_FRAMEBUFFER, RasterizerStorageGLES2::system_fbo);
 
 	return true;
-}
-
-/* ENVIRONMENT API */
-
-RID RasterizerSceneGLES2::environment_create() {
-	Environment3D *env = memnew(Environment3D);
-
-	return environment_owner.make_rid(env);
-}
-
-void RasterizerSceneGLES2::environment_set_background(RID p_env, RS::Environment3DBG p_bg) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-	env->bg_mode = p_bg;
-}
-
-void RasterizerSceneGLES2::environment_set_sky(RID p_env, RID p_sky) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->sky = p_sky;
-}
-
-void RasterizerSceneGLES2::environment_set_sky_custom_fov(RID p_env, float p_scale) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->sky_custom_fov = p_scale;
-}
-
-void RasterizerSceneGLES2::environment_set_sky_orientation(RID p_env, const Basis &p_orientation) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->sky_orientation = p_orientation;
-}
-
-void RasterizerSceneGLES2::environment_set_bg_color(RID p_env, const Color &p_color) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->bg_color = p_color;
-}
-
-void RasterizerSceneGLES2::environment_set_bg_energy(RID p_env, float p_energy) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->bg_energy = p_energy;
-}
-
-void RasterizerSceneGLES2::environment_set_canvas_max_layer(RID p_env, int p_max_layer) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->canvas_max_layer = p_max_layer;
-}
-
-void RasterizerSceneGLES2::environment_set_ambient_light(RID p_env, const Color &p_color, float p_energy, float p_sky_contribution) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->ambient_color = p_color;
-	env->ambient_energy = p_energy;
-	env->ambient_sky_contribution = p_sky_contribution;
-}
-
-void RasterizerSceneGLES2::environment_set_dof_blur_far(RID p_env, bool p_enable, float p_distance, float p_transition, float p_amount, RS::Environment3DDOFBlurQuality p_quality) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->dof_blur_far_enabled = p_enable;
-	env->dof_blur_far_distance = p_distance;
-	env->dof_blur_far_transition = p_transition;
-	env->dof_blur_far_amount = p_amount;
-	env->dof_blur_far_quality = p_quality;
-}
-
-void RasterizerSceneGLES2::environment_set_dof_blur_near(RID p_env, bool p_enable, float p_distance, float p_transition, float p_amount, RS::Environment3DDOFBlurQuality p_quality) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->dof_blur_near_enabled = p_enable;
-	env->dof_blur_near_distance = p_distance;
-	env->dof_blur_near_transition = p_transition;
-	env->dof_blur_near_amount = p_amount;
-	env->dof_blur_near_quality = p_quality;
-}
-
-void RasterizerSceneGLES2::environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_bloom_threshold, RS::Environment3DGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap, bool p_bicubic_upscale, bool p_high_quality) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->glow_enabled = p_enable;
-	env->glow_levels = p_level_flags;
-	env->glow_intensity = p_intensity;
-	env->glow_strength = p_strength;
-	env->glow_bloom = p_bloom_threshold;
-	env->glow_blend_mode = p_blend_mode;
-	env->glow_hdr_bleed_threshold = p_hdr_bleed_threshold;
-	env->glow_hdr_bleed_scale = p_hdr_bleed_scale;
-	env->glow_hdr_luminance_cap = p_hdr_luminance_cap;
-	env->glow_bicubic_upscale = p_bicubic_upscale;
-	env->glow_high_quality = p_high_quality;
-}
-
-void RasterizerSceneGLES2::environment_set_fog(RID p_env, bool p_enable, float p_begin, float p_end, RID p_gradient_texture) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-}
-
-void RasterizerSceneGLES2::environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-}
-
-void RasterizerSceneGLES2::environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_radius2, float p_intensity2, float p_bias, float p_light_affect, float p_ao_channel_affect, const Color &p_color, RS::Environment3DSSAOQuality p_quality, RenderingServer::Environment3DSSAOBlur p_blur, float p_bilateral_sharpness) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-}
-
-void RasterizerSceneGLES2::environment_set_tonemap(RID p_env, RS::Environment3DToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_scale) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-}
-
-void RasterizerSceneGLES2::environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, RID p_ramp) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->adjustments_enabled = p_enable;
-	env->adjustments_brightness = p_brightness;
-	env->adjustments_contrast = p_contrast;
-	env->adjustments_saturation = p_saturation;
-	env->color_correction = p_ramp;
-}
-
-void RasterizerSceneGLES2::environment_set_fog(RID p_env, bool p_enable, const Color &p_color, const Color &p_sun_color, float p_sun_amount) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->fog_enabled = p_enable;
-	env->fog_color = p_color;
-	env->fog_sun_color = p_sun_color;
-	env->fog_sun_amount = p_sun_amount;
-}
-
-void RasterizerSceneGLES2::environment_set_fog_depth(RID p_env, bool p_enable, float p_depth_begin, float p_depth_end, float p_depth_curve, bool p_transmit, float p_transmit_curve) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->fog_depth_enabled = p_enable;
-	env->fog_depth_begin = p_depth_begin;
-	env->fog_depth_end = p_depth_end;
-	env->fog_depth_curve = p_depth_curve;
-	env->fog_transmit_enabled = p_transmit;
-	env->fog_transmit_curve = p_transmit_curve;
-}
-
-void RasterizerSceneGLES2::environment_set_fog_height(RID p_env, bool p_enable, float p_min_height, float p_max_height, float p_height_curve) {
-	Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND(!env);
-
-	env->fog_height_enabled = p_enable;
-	env->fog_height_min = p_min_height;
-	env->fog_height_max = p_max_height;
-	env->fog_height_curve = p_height_curve;
-}
-bool RasterizerSceneGLES2::is_environment(RID p_env) {
-	return environment_owner.owns(p_env);
-}
-
-RS::Environment3DBG RasterizerSceneGLES2::environment_get_background(RID p_env) {
-	const Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND_V(!env, RS::ENV_BG_MAX);
-
-	return env->bg_mode;
-}
-
-int RasterizerSceneGLES2::environment_get_canvas_max_layer(RID p_env) {
-	const Environment3D *env = environment_owner.getornull(p_env);
-	ERR_FAIL_COND_V(!env, -1);
-
-	return env->canvas_max_layer;
 }
 
 RID RasterizerSceneGLES2::light_instance_create(RID p_light) {
@@ -2013,7 +1829,7 @@ void RasterizerSceneGLES2::_setup_light(LightInstance *light, ShadowAtlas *shado
 					uint32_t width = light->directional_rect.size.x;
 					uint32_t height = light->directional_rect.size.y;
 
-					if (light_ptr->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS || 
+					if (light_ptr->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS ||
 							light_ptr->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS) {
 						width /= 2;
 						height /= 2;
@@ -2184,7 +2000,7 @@ void RasterizerSceneGLES2::_setup_light(LightInstance *light, ShadowAtlas *shado
 	}
 }
 
-void RasterizerSceneGLES2::_setup_refprobes(ReflectionProbeInstance *p_refprobe1, ReflectionProbeInstance *p_refprobe2, const Transform &p_view_transform, Environment3D *p_env) {
+void RasterizerSceneGLES2::_setup_refprobes(ReflectionProbeInstance *p_refprobe1, ReflectionProbeInstance *p_refprobe2, const Transform &p_view_transform) {
 	if (p_refprobe1) {
 		state.scene_shader.set_uniform(SceneShaderGLES2::REFPROBE1_USE_BOX_PROJECT, p_refprobe1->probe_ptr->box_projection);
 		state.scene_shader.set_uniform(SceneShaderGLES2::REFPROBE1_BOX_EXTENTS, p_refprobe1->probe_ptr->extents);
@@ -2196,9 +2012,6 @@ void RasterizerSceneGLES2::_setup_refprobes(ReflectionProbeInstance *p_refprobe1
 		if (p_refprobe1->probe_ptr->interior) {
 			ambient = p_refprobe1->probe_ptr->interior_ambient * p_refprobe1->probe_ptr->interior_ambient_energy;
 			ambient.a = p_refprobe1->probe_ptr->interior_ambient_probe_contrib;
-		} else if (p_env) {
-			ambient = p_env->ambient_color * p_env->ambient_energy;
-			ambient.a = p_env->ambient_sky_contribution;
 		}
 
 		state.scene_shader.set_uniform(SceneShaderGLES2::REFPROBE1_AMBIENT, ambient);
@@ -2219,9 +2032,6 @@ void RasterizerSceneGLES2::_setup_refprobes(ReflectionProbeInstance *p_refprobe1
 		if (p_refprobe2->probe_ptr->interior) {
 			ambient = p_refprobe2->probe_ptr->interior_ambient * p_refprobe2->probe_ptr->interior_ambient_energy;
 			ambient.a = p_refprobe2->probe_ptr->interior_ambient_probe_contrib;
-		} else if (p_env) {
-			ambient = p_env->ambient_color * p_env->ambient_energy;
-			ambient.a = p_env->ambient_sky_contribution;
 		}
 
 		state.scene_shader.set_uniform(SceneShaderGLES2::REFPROBE2_AMBIENT, ambient);
@@ -2232,7 +2042,7 @@ void RasterizerSceneGLES2::_setup_refprobes(ReflectionProbeInstance *p_refprobe1
 	}
 }
 
-void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements, int p_element_count, const Transform &p_view_transform, const Projection &p_projection, const int p_eye, RID p_shadow_atlas, Environment3D *p_env, GLuint p_base_env, float p_shadow_bias, float p_shadow_normal_bias, bool p_reverse_cull, bool p_alpha_pass, bool p_shadow) {
+void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements, int p_element_count, const Transform &p_view_transform, const Projection &p_projection, const int p_eye, RID p_shadow_atlas, float p_shadow_bias, float p_shadow_normal_bias, bool p_reverse_cull, bool p_alpha_pass, bool p_shadow) {
 	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_shadow_atlas);
 
 	Vector2 viewport_size = state.viewport_size;
@@ -2240,12 +2050,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 	Vector2 screen_pixel_size = state.screen_pixel_size;
 
 	bool use_radiance_map = false;
-	if (!p_shadow && p_base_env) {
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0 + storage->config.max_texture_image_units - 2);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, p_base_env);
-		use_radiance_map = true;
-		state.scene_shader.set_conditional(SceneShaderGLES2::USE_RADIANCE_MAP, true); //since prev unshaded is false, this needs to be true if exists
-	}
 
 	bool prev_unshaded = false;
 	bool prev_instancing = false;
@@ -2280,18 +2084,7 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 		glDisable(GL_BLEND);
 	}
 
-	float fog_max_distance = 0;
 	bool using_fog = false;
-	if (p_env && !p_shadow && p_env->fog_enabled && (p_env->fog_depth_enabled || p_env->fog_height_enabled)) {
-		state.scene_shader.set_conditional(SceneShaderGLES2::FOG_DEPTH_ENABLED, p_env->fog_depth_enabled);
-		state.scene_shader.set_conditional(SceneShaderGLES2::FOG_HEIGHT_ENABLED, p_env->fog_height_enabled);
-		if (p_env->fog_depth_end > 0) {
-			fog_max_distance = p_env->fog_depth_end;
-		} else {
-			fog_max_distance = p_projection.get_z_far();
-		}
-		using_fog = true;
-	}
 
 	storage->info.render.draw_call_count += p_element_count;
 
@@ -2307,7 +2100,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 		ReflectionProbeInstance *refprobe_1 = nullptr;
 		ReflectionProbeInstance *refprobe_2 = nullptr;
 		bool rebind_light = false;
-		bool rebind_reflection = false;
 
 		if (!p_shadow && material->shader) {
 			bool unshaded = material->shader->spatial.unshaded;
@@ -2429,7 +2221,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 					glBindTexture(GL_TEXTURE_CUBE_MAP, refprobe_2->cubemap);
 				}
 				rebind = true;
-				rebind_reflection = true;
 			}
 		}
 
@@ -2504,57 +2295,18 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 				}
 			} else {
 				if (use_radiance_map) {
-					if (p_env) {
-						Transform sky_orientation(p_env->sky_orientation, Vector3(0.0, 0.0, 0.0));
-						state.scene_shader.set_uniform(SceneShaderGLES2::RADIANCE_INVERSE_XFORM, sky_orientation.affine_inverse() * p_view_transform);
-					} else {
-						// would be a bit weird if we don't have this...
-						state.scene_shader.set_uniform(SceneShaderGLES2::RADIANCE_INVERSE_XFORM, p_view_transform);
-					}
+					// would be a bit weird if we don't have this...
+					state.scene_shader.set_uniform(SceneShaderGLES2::RADIANCE_INVERSE_XFORM, p_view_transform);
 				}
 
-				if (p_env) {
-					state.scene_shader.set_uniform(SceneShaderGLES2::BG_ENERGY, p_env->bg_energy);
-					state.scene_shader.set_uniform(SceneShaderGLES2::BG_COLOR, p_env->bg_color);
-					state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_SKY_CONTRIBUTION, p_env->ambient_sky_contribution);
-
-					state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_COLOR, p_env->ambient_color);
-					state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_ENERGY, p_env->ambient_energy);
-
-				} else {
-					state.scene_shader.set_uniform(SceneShaderGLES2::BG_ENERGY, 1.0);
-					state.scene_shader.set_uniform(SceneShaderGLES2::BG_COLOR, state.default_bg);
-					state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_SKY_CONTRIBUTION, 1.0);
-					state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_COLOR, state.default_ambient);
-					state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_ENERGY, 1.0);
-				}
+				state.scene_shader.set_uniform(SceneShaderGLES2::BG_ENERGY, 1.0);
+				state.scene_shader.set_uniform(SceneShaderGLES2::BG_COLOR, state.default_bg);
+				state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_SKY_CONTRIBUTION, 1.0);
+				state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_COLOR, state.default_ambient);
+				state.scene_shader.set_uniform(SceneShaderGLES2::AMBIENT_ENERGY, 1.0);
 
 				//rebind all these
 				rebind_light = true;
-				rebind_reflection = true;
-
-				if (using_fog) {
-					state.scene_shader.set_uniform(SceneShaderGLES2::FOG_COLOR_BASE, p_env->fog_color);
-					Color sun_color_amount = p_env->fog_sun_color;
-					sun_color_amount.a = p_env->fog_sun_amount;
-
-					state.scene_shader.set_uniform(SceneShaderGLES2::FOG_SUN_COLOR_AMOUNT, sun_color_amount);
-					state.scene_shader.set_uniform(SceneShaderGLES2::FOG_TRANSMIT_ENABLED, p_env->fog_transmit_enabled);
-					state.scene_shader.set_uniform(SceneShaderGLES2::FOG_TRANSMIT_CURVE, p_env->fog_transmit_curve);
-
-					if (p_env->fog_depth_enabled) {
-						state.scene_shader.set_uniform(SceneShaderGLES2::FOG_DEPTH_BEGIN, p_env->fog_depth_begin);
-						state.scene_shader.set_uniform(SceneShaderGLES2::FOG_DEPTH_CURVE, p_env->fog_depth_curve);
-						state.scene_shader.set_uniform(SceneShaderGLES2::FOG_MAX_DISTANCE, fog_max_distance);
-					}
-
-					if (p_env->fog_height_enabled) {
-						state.scene_shader.set_uniform(SceneShaderGLES2::FOG_HEIGHT_MIN, p_env->fog_height_min);
-						state.scene_shader.set_uniform(SceneShaderGLES2::FOG_HEIGHT_MAX, p_env->fog_height_max);
-						state.scene_shader.set_uniform(SceneShaderGLES2::FOG_HEIGHT_MAX, p_env->fog_height_max);
-						state.scene_shader.set_uniform(SceneShaderGLES2::FOG_HEIGHT_CURVE, p_env->fog_height_curve);
-					}
-				}
 			}
 
 			state.scene_shader.set_uniform(SceneShaderGLES2::CAMERA_MATRIX, p_view_transform);
@@ -2572,10 +2324,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 
 		if (rebind_light && light) {
 			_setup_light(light, shadow_atlas, p_view_transform, accum_pass);
-		}
-
-		if (rebind_reflection && (refprobe_1 || refprobe_2)) {
-			_setup_refprobes(refprobe_1, refprobe_2, p_view_transform, p_env);
 		}
 
 		state.scene_shader.set_uniform(SceneShaderGLES2::WORLD_TRANSFORM, e->instance->transform);
@@ -2612,7 +2360,7 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 	state.scene_shader.set_conditional(SceneShaderGLES2::USE_DEPTH_PREPASS, false);
 }
 
-void RasterizerSceneGLES2::_post_process(Environment3D *env, const Projection &p_cam_projection) {
+void RasterizerSceneGLES2::_post_process(const Projection &p_cam_projection) {
 	//copy to front buffer
 
 	glDepthMask(GL_FALSE);
@@ -2623,13 +2371,7 @@ void RasterizerSceneGLES2::_post_process(Environment3D *env, const Projection &p
 	glColorMask(1, 1, 1, 1);
 
 	//no post process on small or render targets without an env
-	bool use_post_process = env && storage->frame.current_rt->width >= 4 && storage->frame.current_rt->height >= 4;
-	use_post_process = use_post_process && storage->frame.current_rt->mip_maps_allocated;
-
-	if (env) {
-		use_post_process = use_post_process && (env->adjustments_enabled || env->glow_enabled || env->dof_blur_far_enabled || env->dof_blur_near_enabled);
-	}
-	use_post_process = use_post_process || storage->frame.current_rt->use_fxaa;
+	bool use_post_process = false;
 
 	// If using multisample buffer, resolve to post_process_effect buffer or to front buffer
 	if (storage->frame.current_rt && storage->frame.current_rt->multisample_active) {
@@ -2685,357 +2427,12 @@ void RasterizerSceneGLES2::_post_process(Environment3D *env, const Projection &p
 	//3) Bloom (Glow) //only on desktop
 	//4) Adjustments
 
-	// DOF Blur
 
-	if (env && env->dof_blur_far_enabled) {
-		int vp_h = storage->frame.current_rt->height;
-		int vp_w = storage->frame.current_rt->width;
-
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::USE_ORTHOGONAL_PROJECTION, p_cam_projection.is_orthogonal());
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_FAR_BLUR, true);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_LOW, env->dof_blur_far_quality == RS::ENV_DOF_BLUR_QUALITY_LOW);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_MEDIUM, env->dof_blur_far_quality == RS::ENV_DOF_BLUR_QUALITY_MEDIUM);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_HIGH, env->dof_blur_far_quality == RS::ENV_DOF_BLUR_QUALITY_HIGH);
-
-		state.effect_blur_shader.bind();
-		int qsteps[3] = { 4, 10, 20 };
-
-		float radius = (env->dof_blur_far_amount * env->dof_blur_far_amount) / qsteps[env->dof_blur_far_quality];
-
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_BEGIN, env->dof_blur_far_distance);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_END, env->dof_blur_far_distance + env->dof_blur_far_transition);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_DIR, Vector2(1, 0));
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_RADIUS, radius);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::PIXEL_SIZE, Vector2(1.0 / vp_w, 1.0 / vp_h));
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::CAMERA_Z_NEAR, p_cam_projection.get_z_near());
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::CAMERA_Z_FAR, p_cam_projection.get_z_far());
-
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->depth);
-
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-
-		if (storage->frame.current_rt->mip_maps[0].color) {
-			glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].color);
-		} else {
-			glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].sizes[0].color);
-		}
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo); //copy to front first
-
-		storage->_copy_screen();
-
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->color);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_DIR, Vector2(0, 1));
-		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->mip_maps[0].sizes[0].fbo); // copy to base level
-		storage->_copy_screen();
-
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_FAR_BLUR, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_LOW, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_MEDIUM, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_HIGH, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::USE_ORTHOGONAL_PROJECTION, false);
-	}
-
-	if (env && env->dof_blur_near_enabled) {
-		//convert texture to RGBA format if not already
-		if (!storage->frame.current_rt->used_dof_blur_near) {
-			WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->color);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, storage->frame.current_rt->width, storage->frame.current_rt->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		}
-
-		int vp_h = storage->frame.current_rt->height;
-		int vp_w = storage->frame.current_rt->width;
-
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::USE_ORTHOGONAL_PROJECTION, p_cam_projection.is_orthogonal());
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_NEAR_BLUR, true);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_NEAR_FIRST_TAP, true);
-
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_LOW, env->dof_blur_near_quality == RS::ENV_DOF_BLUR_QUALITY_LOW);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_MEDIUM, env->dof_blur_near_quality == RS::ENV_DOF_BLUR_QUALITY_MEDIUM);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_HIGH, env->dof_blur_near_quality == RS::ENV_DOF_BLUR_QUALITY_HIGH);
-
-		state.effect_blur_shader.bind();
-		int qsteps[3] = { 4, 10, 20 };
-
-		float radius = (env->dof_blur_near_amount * env->dof_blur_near_amount) / qsteps[env->dof_blur_near_quality];
-
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_BEGIN, env->dof_blur_near_distance);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_END, env->dof_blur_near_distance - env->dof_blur_near_transition);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_DIR, Vector2(1, 0));
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_RADIUS, radius);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::PIXEL_SIZE, Vector2(1.0 / vp_w, 1.0 / vp_h));
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::CAMERA_Z_NEAR, p_cam_projection.get_z_near());
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::CAMERA_Z_FAR, p_cam_projection.get_z_far());
-
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->depth);
-
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-		if (storage->frame.current_rt->mip_maps[0].color) {
-			glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].color);
-		} else {
-			glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].sizes[0].color);
-		}
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo); //copy to front first
-
-		storage->_copy_screen();
-
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_NEAR_FIRST_TAP, false);
-		state.effect_blur_shader.bind();
-
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_BEGIN, env->dof_blur_near_distance);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_END, env->dof_blur_near_distance - env->dof_blur_near_transition);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_DIR, Vector2(0, 1));
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::DOF_RADIUS, radius);
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::PIXEL_SIZE, Vector2(1.0 / vp_w, 1.0 / vp_h));
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::CAMERA_Z_NEAR, p_cam_projection.get_z_near());
-		state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::CAMERA_Z_FAR, p_cam_projection.get_z_far());
-
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->color);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->mip_maps[0].sizes[0].fbo); // copy to base level
-
-		glEnable(GL_BLEND);
-		glBlendEquation(GL_FUNC_ADD);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		storage->_copy_screen();
-
-		glDisable(GL_BLEND);
-
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_NEAR_BLUR, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_NEAR_FIRST_TAP, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_LOW, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_MEDIUM, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::DOF_QUALITY_HIGH, false);
-		state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::USE_ORTHOGONAL_PROJECTION, false);
-		storage->frame.current_rt->used_dof_blur_near = true;
-	}
-
-	if (env && (env->dof_blur_near_enabled || env->dof_blur_far_enabled)) {
-		//these needed to disable filtering, reenamble
-		WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-		if (storage->frame.current_rt->mip_maps[0].color) {
-			glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].color);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		} else {
-			glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].sizes[0].color);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		}
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	}
-
-	//glow
-
-	int max_glow_level = -1;
-	int glow_mask = 0;
-
-	if (env && env->glow_enabled) {
-		for (int i = 0; i < RS::MAX_GLOW_LEVELS; i++) {
-			if (env->glow_levels & (1 << i)) {
-				if (i >= storage->frame.current_rt->mip_maps[1].sizes.size()) {
-					max_glow_level = storage->frame.current_rt->mip_maps[1].sizes.size() - 1;
-					glow_mask |= 1 << max_glow_level;
-
-				} else {
-					max_glow_level = i;
-					glow_mask |= (1 << i);
-				}
-			}
-		}
-
-		// If max_texture_image_units is 8, our max glow level is 5, which allows 6 layers of glow
-		max_glow_level = MIN(max_glow_level, storage->config.max_texture_image_units - 3);
-
-		for (int i = 0; i < (max_glow_level + 1); i++) {
-			int vp_w = storage->frame.current_rt->mip_maps[1].sizes[i].width;
-			int vp_h = storage->frame.current_rt->mip_maps[1].sizes[i].height;
-			glViewport(0, 0, vp_w, vp_h);
-			//horizontal pass
-			if (i == 0) {
-				state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::GLOW_FIRST_PASS, true);
-			}
-
-			state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::GLOW_GAUSSIAN_HORIZONTAL, true);
-			state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::USE_GLOW_HIGH_QUALITY, env->glow_high_quality);
-			state.effect_blur_shader.bind();
-			state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::PIXEL_SIZE, Vector2(1.0 / vp_w, 1.0 / vp_h));
-			state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::LOD, storage->frame.current_rt->mip_maps[0].color ? float(i) : 0.0);
-			state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::GLOW_STRENGTH, env->glow_strength);
-			state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::LUMINANCE_CAP, env->glow_hdr_luminance_cap);
-
-			WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-
-			if (storage->frame.current_rt->mip_maps[0].color) {
-				glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].color);
-			} else {
-				glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].sizes[i].color);
-			}
-
-			if (i == 0) {
-				state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::GLOW_BLOOM, env->glow_bloom);
-				state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::GLOW_HDR_THRESHOLD, env->glow_hdr_bleed_threshold);
-				state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::GLOW_HDR_SCALE, env->glow_hdr_bleed_scale);
-			}
-
-			glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->mip_maps[1].sizes[i].fbo);
-			storage->_copy_screen();
-			state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::GLOW_GAUSSIAN_HORIZONTAL, false);
-			state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::GLOW_FIRST_PASS, false);
-
-			//vertical pass
-			state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::GLOW_GAUSSIAN_VERTICAL, true);
-			state.effect_blur_shader.bind();
-			state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::PIXEL_SIZE, Vector2(1.0 / vp_w, 1.0 / vp_h));
-			state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::LOD, storage->frame.current_rt->mip_maps[0].color ? float(i) : 0.0);
-			state.effect_blur_shader.set_uniform(EffectBlurShaderGLES2::GLOW_STRENGTH, env->glow_strength);
-			WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-
-			if (storage->frame.current_rt->mip_maps[0].color) {
-				glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[1].color);
-			} else {
-				glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[1].sizes[i].color);
-			}
-
-			glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->mip_maps[0].sizes[i + 1].fbo); //next level, since mipmaps[0] starts one level bigger
-			storage->_copy_screen();
-			state.effect_blur_shader.set_conditional(EffectBlurShaderGLES2::GLOW_GAUSSIAN_VERTICAL, false);
-		}
-
-		glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
-	}
-
-	if (storage->frame.current_rt->external.fbo != 0) {
-		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->external.fbo);
-	} else {
-		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo);
-	}
-
-	WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-	if (storage->frame.current_rt->mip_maps[0].color) {
-		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].color);
-	} else {
-		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].sizes[0].color);
-	}
-
-	state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_FXAA, storage->frame.current_rt->use_fxaa);
-
-	if (env) {
-		state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_FILTER_BICUBIC, env->glow_bicubic_upscale);
-
-		if (max_glow_level >= 0) {
-			if (storage->frame.current_rt->mip_maps[0].color) {
-				for (int i = 0; i < (max_glow_level + 1); i++) {
-					if (glow_mask & (1 << i)) {
-						if (i == 0) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL1, true);
-						}
-						if (i == 1) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL2, true);
-						}
-						if (i == 2) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL3, true);
-						}
-						if (i == 3) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL4, true);
-						}
-						if (i == 4) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL5, true);
-						}
-						if (i == 5) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL6, true);
-						}
-						if (i == 6) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL7, true);
-						}
-					}
-				}
-				WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].color);
-			} else {
-				state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_MULTI_TEXTURE_GLOW, true);
-				int active_glow_level = 0;
-				for (int i = 0; i < (max_glow_level + 1); i++) {
-					if (glow_mask & (1 << i)) {
-						active_glow_level++;
-						WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE1 + active_glow_level);
-						glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->mip_maps[0].sizes[i + 1].color);
-						if (active_glow_level == 1) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL1, true);
-						}
-						if (active_glow_level == 2) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL2, true);
-						}
-						if (active_glow_level == 3) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL3, true);
-						}
-						if (active_glow_level == 4) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL4, true);
-						}
-						if (active_glow_level == 5) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL5, true);
-						}
-						if (active_glow_level == 6) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL6, true);
-						}
-						if (active_glow_level == 7) {
-							state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_LEVEL7, true);
-						}
-					}
-				}
-			}
-
-			state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_SCREEN, env->glow_blend_mode == RS::GLOW_BLEND_MODE_SCREEN);
-			state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_SOFTLIGHT, env->glow_blend_mode == RS::GLOW_BLEND_MODE_SOFTLIGHT);
-			state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_GLOW_REPLACE, env->glow_blend_mode == RS::GLOW_BLEND_MODE_REPLACE);
-		}
-	}
 
 	//Adjustments
-	if (env && env->adjustments_enabled) {
-		state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_BCS, true);
-		RasterizerStorageGLES2::Texture *tex = storage->texture_owner.getornull(env->color_correction);
-		if (tex) {
-			state.tonemap_shader.set_conditional(TonemapShaderGLES2::USE_COLOR_CORRECTION, true);
-			WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE1);
-			glBindTexture(tex->target, tex->tex_id);
-		}
-	}
 
 	state.tonemap_shader.set_conditional(TonemapShaderGLES2::DISABLE_ALPHA, !storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT]);
 	state.tonemap_shader.bind();
-	if (env) {
-		if (max_glow_level >= 0) {
-			state.tonemap_shader.set_uniform(TonemapShaderGLES2::GLOW_INTENSITY, env->glow_intensity);
-			int ss[2] = {
-				storage->frame.current_rt->width,
-				storage->frame.current_rt->height,
-			};
-			glUniform2iv(state.tonemap_shader.get_uniform(TonemapShaderGLES2::GLOW_TEXTURE_SIZE), 1, ss);
-		}
-
-		if (env->adjustments_enabled) {
-			state.tonemap_shader.set_uniform(TonemapShaderGLES2::BCS, Vector3(env->adjustments_brightness, env->adjustments_contrast, env->adjustments_saturation));
-		}
-	}
 
 	if (storage->frame.current_rt->use_fxaa) {
 		state.tonemap_shader.set_uniform(TonemapShaderGLES2::PIXEL_SIZE, Vector2(1.0 / storage->frame.current_rt->width, 1.0 / storage->frame.current_rt->height));
@@ -3068,7 +2465,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	storage->info.render.object_count += p_cull_count;
 
 	GLuint current_fb = 0;
-	Environment3D *env = nullptr;
 
 	int viewport_width, viewport_height;
 	int viewport_x = 0;
@@ -3086,10 +2482,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 		ERR_FAIL_COND(!probe);
 		state.render_no_shadows = !probe->probe_ptr->enable_shadows;
 
-		if (!probe->probe_ptr->interior) { //use env only if not interior
-			env = environment_owner.getornull(p_environment);
-		}
-
 		current_fb = probe->fbo[p_reflection_probe_pass];
 
 		viewport_width = probe->probe_ptr->resolution;
@@ -3106,7 +2498,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 		} else {
 			current_fb = storage->frame.current_rt->fbo;
 		}
-		env = environment_owner.getornull(p_environment);
 
 		viewport_width = storage->frame.current_rt->width;
 		viewport_height = storage->frame.current_rt->height;
@@ -3151,28 +2542,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 			index++;
 		}
 
-		// for fog transmission, we want some kind of consistent ordering of lights
-		// add any more conditions here in which we need consistent light ordering
-		// (perhaps we always should have it, but don't know yet)
-		if (env && env->fog_transmit_enabled) {
-			struct _LightSort {
-				bool operator()(LightInstance *A, LightInstance *B) const {
-					return A->light_counter > B->light_counter;
-				}
-			};
-
-			int num_lights_to_sort = render_light_instance_count - render_directional_lights;
-
-			if (num_lights_to_sort) {
-				SortArray<LightInstance *, _LightSort> sorter;
-				sorter.sort(&render_light_instances[render_directional_lights], num_lights_to_sort);
-				// rejig indices
-				for (int i = render_directional_lights; i < render_light_instance_count; i++) {
-					render_light_instances[i]->light_index = i;
-				}
-			}
-		}
-
 	} else {
 		render_light_instances = nullptr;
 		render_directional_lights = 0;
@@ -3193,12 +2562,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	} else {
 		reflection_probe_instances = nullptr;
 		reflection_probe_count = 0;
-	}
-
-	if (env && env->bg_mode == RS::ENV_BG_CANVAS) {
-		// If using canvas background, copy 2d to screen copy texture
-		// TODO: When GLES2 renders to current_rt->mip_maps[], this copy will no longer be needed
-		_copy_texture_to_buffer(storage->frame.current_rt->color, storage->frame.current_rt->copy_screen_effect.fbo);
 	}
 
 	// render list stuff
@@ -3229,31 +2592,8 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	if (storage->frame.current_rt && storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT]) {
 		clear_color = Color(0, 0, 0, 0);
 		storage->frame.clear_request = false;
-	} else if (!env || env->bg_mode == RS::ENV_BG_CLEAR_COLOR) {
-		if (storage->frame.clear_request) {
-			clear_color = storage->frame.clear_request_color;
-			storage->frame.clear_request = false;
-		}
-	} else if (env->bg_mode == RS::ENV_BG_CANVAS || env->bg_mode == RS::ENV_BG_COLOR || env->bg_mode == RS::ENV_BG_COLOR_SKY) {
-		clear_color = env->bg_color;
-		storage->frame.clear_request = false;
-	} else if (env->bg_mode == RS::ENV_BG_CAMERA_FEED) {
-		storage->frame.clear_request = false;
 	} else {
 		storage->frame.clear_request = false;
-	}
-
-	if (!env || env->bg_mode != RS::ENV_BG_KEEP) {
-		if (storage->frame.current_rt && storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_KEEP_3D_LINEAR]) {
-			// convert to linear here
-			Color linear_color = clear_color.to_linear();
-			glClearColor(linear_color.r, linear_color.g, linear_color.b, linear_color.a);
-
-			// leave clear_color in sRGB as most of the render pipeline remains in sRGB color space until writing out to frag_color
-		} else {
-			glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
-		}
-		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
 	state.default_ambient = Color(clear_color.r, clear_color.g, clear_color.b, 1.0);
@@ -3269,22 +2609,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// render sky
-	GLuint env_radiance_tex = 0;
-	if (env) {
-		switch (env->bg_mode) {
-			case RS::ENV_BG_COLOR_SKY: {
-			} break;
-			case RS::ENV_BG_CANVAS: {
-				// use screen copy as background
-				_copy_texture_to_buffer(storage->frame.current_rt->copy_screen_effect.color, current_fb);
-			} break;
-			default: {
-			} break;
-		}
-	}
-
 	if (probe_interior) {
-		env_radiance_tex = 0; //do not use radiance texture on interiors
 		state.default_ambient = Color(0, 0, 0, 1); //black as default ambient for interior
 		state.default_bg = Color(0, 0, 0, 1); //black as default background for interior
 	}
@@ -3298,7 +2623,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 
 	// render opaque things first
 	render_list.sort_by_key(false);
-	_render_render_list(render_list.elements, render_list.element_count, cam_transform, p_cam_projection, p_eye, p_shadow_atlas, env, env_radiance_tex, 0.0, 0.0, reverse_cull, false, false);
+	_render_render_list(render_list.elements, render_list.element_count, cam_transform, p_cam_projection, p_eye, p_shadow_atlas, 0.0, 0.0, reverse_cull, false, false);
 
 	if (storage->frame.current_rt && state.used_screen_texture) {
 		//copy screen texture
@@ -3344,7 +2669,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 
 	render_list.sort_by_reverse_depth_and_priority(true);
 
-	_render_render_list(&render_list.elements[render_list.max_elements - render_list.alpha_element_count], render_list.alpha_element_count, cam_transform, p_cam_projection, p_eye, p_shadow_atlas, env, env_radiance_tex, 0.0, 0.0, reverse_cull, true, false);
+	_render_render_list(&render_list.elements[render_list.max_elements - render_list.alpha_element_count], render_list.alpha_element_count, cam_transform, p_cam_projection, p_eye, p_shadow_atlas, 0.0, 0.0, reverse_cull, true, false);
 
 	if (p_reflection_probe.is_valid()) {
 		// Rendering to a probe so no need for post_processing
@@ -3352,7 +2677,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	}
 
 	//post process
-	_post_process(env, p_cam_projection);
+	_post_process(p_cam_projection);
 
 	//#define GLES2_SHADOW_ATLAS_DEBUG_VIEW
 
@@ -3462,8 +2787,7 @@ void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 		width = light_instance->directional_rect.size.width;
 		height = light_instance->directional_rect.size.height;
 
-		if (light->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS 
-				|| light->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS) {
+		if (light->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS || light->directional_shadow_mode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS) {
 			width /= 2;
 			height /= 2;
 
@@ -3615,7 +2939,7 @@ void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH, true);
 	state.scene_shader.set_conditional(SceneShaderGLES2::OUTPUT_LINEAR, false); // just in case, should be false already
 
-	_render_render_list(render_list.elements, render_list.element_count, light_transform, light_projection, 0, RID(), nullptr, 0, bias, normal_bias, flip_facing, false, true);
+	_render_render_list(render_list.elements, render_list.element_count, light_transform, light_projection, 0, RID(), bias, normal_bias, flip_facing, false, true);
 
 	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH, false);
 	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH_DUAL_PARABOLOID, false);
@@ -3720,12 +3044,6 @@ bool RasterizerSceneGLES2::free(RID p_rid) {
 		reflection_probe_release_atlas_index(p_rid);
 		reflection_probe_instance_owner.free(p_rid);
 		memdelete(reflection_instance);
-
-	} else if (environment_owner.owns(p_rid)) {
-		Environment3D *environment = environment_owner.get(p_rid);
-
-		environment_owner.free(p_rid);
-		memdelete(environment);
 
 	} else {
 		return false;

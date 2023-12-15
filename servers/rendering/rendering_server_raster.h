@@ -423,35 +423,6 @@ public:
 	/* ENVIRONMENT API */
 
 #undef BINDBASE
-//from now on, calls forwarded to this singleton
-#define BINDBASE RSG::scene_render
-
-	BIND0R(RID, environment_create)
-
-	BIND2(environment_set_background, RID, Environment3DBG)
-	BIND2(environment_set_sky, RID, RID)
-	BIND2(environment_set_sky_custom_fov, RID, float)
-	BIND2(environment_set_sky_orientation, RID, const Basis &)
-	BIND2(environment_set_bg_color, RID, const Color &)
-	BIND2(environment_set_bg_energy, RID, float)
-	BIND2(environment_set_canvas_max_layer, RID, int)
-	BIND4(environment_set_ambient_light, RID, const Color &, float, float)
-	BIND7(environment_set_ssr, RID, bool, int, float, float, float, bool)
-	BIND13(environment_set_ssao, RID, bool, float, float, float, float, float, float, float, const Color &, Environment3DSSAOQuality, Environment3DSSAOBlur, float)
-
-	BIND6(environment_set_dof_blur_near, RID, bool, float, float, float, Environment3DDOFBlurQuality)
-	BIND6(environment_set_dof_blur_far, RID, bool, float, float, float, Environment3DDOFBlurQuality)
-	BIND12(environment_set_glow, RID, bool, int, float, float, float, Environment3DGlowBlendMode, float, float, float, bool, bool)
-
-	BIND9(environment_set_tonemap, RID, Environment3DToneMapper, float, float, bool, float, float, float, float)
-
-	BIND6(environment_set_adjustment, RID, bool, float, float, float, RID)
-
-	BIND5(environment_set_fog, RID, bool, const Color &, const Color &, float)
-	BIND7(environment_set_fog_depth, RID, bool, float, float, float, bool, float)
-	BIND5(environment_set_fog_height, RID, bool, float, float, float)
-
-#undef BINDBASE
 #define BINDBASE RSG::scene
 
 	/* SCENARIO API */
