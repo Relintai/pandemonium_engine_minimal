@@ -235,11 +235,6 @@ public:
 	virtual Size2 texture_size_with_proxy(RID p_texture) const = 0;
 	virtual void texture_set_force_redraw_if_visible(RID p_texture, bool p_enable) = 0;
 
-	/* SKY API */
-
-	virtual RID sky_create() = 0;
-	virtual void sky_set_texture(RID p_sky, RID p_cube_map, int p_radiance_size) = 0;
-
 	/* SHADER API */
 
 	virtual RID shader_create() = 0;

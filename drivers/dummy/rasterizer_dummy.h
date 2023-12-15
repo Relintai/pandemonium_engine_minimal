@@ -239,11 +239,6 @@ public:
 	virtual Size2 texture_size_with_proxy(RID p_texture) const { return Size2(); }
 	void texture_set_force_redraw_if_visible(RID p_texture, bool p_enable) {}
 
-	/* SKY API */
-
-	RID sky_create() { return RID(); }
-	void sky_set_texture(RID p_sky, RID p_cube_map, int p_radiance_size) {}
-
 	/* SHADER API */
 
 	RID shader_create() { return RID(); }

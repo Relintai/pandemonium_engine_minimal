@@ -108,11 +108,6 @@ public:
 
 	FUNC2(texture_set_force_redraw_if_visible, RID, bool)
 
-	/* SKY API */
-
-	FUNCRID(sky)
-	FUNC3(sky_set_texture, RID, RID, int)
-
 	/* SHADER API */
 
 	FUNCRID(shader)

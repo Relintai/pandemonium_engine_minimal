@@ -2612,115 +2612,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 	state.scene_shader.set_conditional(SceneShaderGLES2::USE_DEPTH_PREPASS, false);
 }
 
-void RasterizerSceneGLES2::_draw_sky(RasterizerStorageGLES2::Sky *p_sky, const Projection &p_projection, const Transform &p_transform, bool p_vflip, float p_custom_fov, float p_energy, const Basis &p_sky_orientation) {
-	ERR_FAIL_COND(!p_sky);
-
-	RasterizerStorageGLES2::Texture *tex = storage->texture_owner.getornull(p_sky->panorama);
-	ERR_FAIL_COND(!tex);
-
-	tex = tex->get_ptr(); //resolve for proxies
-
-	WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-	glBindTexture(tex->target, tex->tex_id);
-
-	glDepthMask(GL_TRUE);
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	glDepthFunc(GL_LEQUAL);
-
-	// Camera
-	Projection camera;
-
-	if (p_custom_fov) {
-		float near_plane = p_projection.get_z_near();
-		float far_plane = p_projection.get_z_far();
-		float aspect = p_projection.get_aspect();
-
-		camera.set_perspective(p_custom_fov, aspect, near_plane, far_plane);
-	} else {
-		camera = p_projection;
-	}
-
-	float flip_sign = p_vflip ? -1 : 1;
-
-	// If matrix[2][0] or matrix[2][1] we're dealing with an asymmetrical projection matrix. This is the case for stereoscopic rendering (i.e. VR).
-	// To ensure the image rendered is perspective correct we need to move some logic into the shader. For this the USE_ASYM_PANO option is introduced.
-	// It also means the uv coordinates are ignored in this mode and we don't need our loop.
-	bool asymmetrical = ((camera.matrix[2][0] != 0.0) || (camera.matrix[2][1] != 0.0));
-
-	Vector3 vertices[8] = {
-		Vector3(-1, -1 * flip_sign, 1),
-		Vector3(0, 1, 0),
-		Vector3(1, -1 * flip_sign, 1),
-		Vector3(1, 1, 0),
-		Vector3(1, 1 * flip_sign, 1),
-		Vector3(1, 0, 0),
-		Vector3(-1, 1 * flip_sign, 1),
-		Vector3(0, 0, 0),
-	};
-
-	if (!asymmetrical) {
-		Vector2 vp_he = camera.get_viewport_half_extents();
-		float zn;
-		zn = p_projection.get_z_near();
-
-		for (int i = 0; i < 4; i++) {
-			Vector3 uv = vertices[i * 2 + 1];
-			uv.x = (uv.x * 2.0 - 1.0) * vp_he.x;
-			uv.y = -(uv.y * 2.0 - 1.0) * vp_he.y;
-			uv.z = -zn;
-			vertices[i * 2 + 1] = p_transform.basis.xform(uv).normalized();
-			vertices[i * 2 + 1].z = -vertices[i * 2 + 1].z;
-		}
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, state.sky_verts);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vector3) * 8, vertices, GL_DYNAMIC_DRAW);
-
-	// bind sky vertex array....
-	glVertexAttribPointer(RS::ARRAY_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(Vector3) * 2, nullptr);
-	glVertexAttribPointer(RS::ARRAY_TEX_UV, 3, GL_FLOAT, GL_FALSE, sizeof(Vector3) * 2, CAST_INT_TO_UCHAR_PTR(sizeof(Vector3)));
-	glEnableVertexAttribArray(RS::ARRAY_VERTEX);
-	glEnableVertexAttribArray(RS::ARRAY_TEX_UV);
-
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_ASYM_PANO, asymmetrical);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_PANORAMA, !asymmetrical);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_MULTIPLIER, true);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_CUBEMAP, false);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_COPY_SECTION, false);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_CUSTOM_ALPHA, false);
-	if (storage->frame.current_rt) {
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::OUTPUT_LINEAR, storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_KEEP_3D_LINEAR]);
-	} else {
-		storage->shaders.copy.set_conditional(CopyShaderGLES2::OUTPUT_LINEAR, false);
-	}
-	storage->shaders.copy.bind();
-	storage->shaders.copy.set_uniform(CopyShaderGLES2::MULTIPLIER, p_energy);
-
-	// don't know why but I always have problems setting a uniform mat3, so we're using a transform
-	storage->shaders.copy.set_uniform(CopyShaderGLES2::SKY_TRANSFORM, Transform(p_sky_orientation, Vector3(0.0, 0.0, 0.0)).affine_inverse());
-
-	if (asymmetrical) {
-		// pack the bits we need from our projection matrix
-		storage->shaders.copy.set_uniform(CopyShaderGLES2::ASYM_PROJ, camera.matrix[2][0], camera.matrix[0][0], camera.matrix[2][1], camera.matrix[1][1]);
-		///@TODO I couldn't get mat3 + p_transform.basis to work, that would be better here.
-		storage->shaders.copy.set_uniform(CopyShaderGLES2::PANO_TRANSFORM, p_transform);
-	}
-
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-	glDisableVertexAttribArray(RS::ARRAY_VERTEX);
-	glDisableVertexAttribArray(RS::ARRAY_TEX_UV);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_ASYM_PANO, false);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_PANORAMA, false);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_MULTIPLIER, false);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_CUBEMAP, false);
-	storage->shaders.copy.set_conditional(CopyShaderGLES2::OUTPUT_LINEAR, false);
-}
-
 void RasterizerSceneGLES2::_post_process(Environment3D *env, const Projection &p_cam_projection) {
 	//copy to front buffer
 
@@ -3338,7 +3229,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	if (storage->frame.current_rt && storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT]) {
 		clear_color = Color(0, 0, 0, 0);
 		storage->frame.clear_request = false;
-	} else if (!env || env->bg_mode == RS::ENV_BG_CLEAR_COLOR || env->bg_mode == RS::ENV_BG_SKY) {
+	} else if (!env || env->bg_mode == RS::ENV_BG_CLEAR_COLOR) {
 		if (storage->frame.clear_request) {
 			clear_color = storage->frame.clear_request_color;
 			storage->frame.clear_request = false;
@@ -3378,17 +3269,10 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// render sky
-	RasterizerStorageGLES2::Sky *sky = nullptr;
 	GLuint env_radiance_tex = 0;
 	if (env) {
 		switch (env->bg_mode) {
-			case RS::ENV_BG_COLOR_SKY:
-			case RS::ENV_BG_SKY: {
-				sky = storage->sky_owner.getornull(env->sky);
-
-				if (sky) {
-					env_radiance_tex = sky->radiance;
-				}
+			case RS::ENV_BG_COLOR_SKY: {
 			} break;
 			case RS::ENV_BG_CANVAS: {
 				// use screen copy as background
@@ -3415,13 +3299,6 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	// render opaque things first
 	render_list.sort_by_key(false);
 	_render_render_list(render_list.elements, render_list.element_count, cam_transform, p_cam_projection, p_eye, p_shadow_atlas, env, env_radiance_tex, 0.0, 0.0, reverse_cull, false, false);
-
-	// then draw the sky after
-	if (env && env->bg_mode == RS::ENV_BG_SKY && (!storage->frame.current_rt || !storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT])) {
-		if (sky && sky->panorama.is_valid()) {
-			_draw_sky(sky, p_cam_projection, cam_transform, false, env->sky_custom_fov, env->bg_energy, env->sky_orientation);
-		}
-	}
 
 	if (storage->frame.current_rt && state.used_screen_texture) {
 		//copy screen texture

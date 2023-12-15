@@ -1862,10 +1862,7 @@ void RenderingServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("texture_debug_usage"), &RenderingServer::_texture_debug_usage_bind);
 	ClassDB::bind_method(D_METHOD("textures_keep_original", "enable"), &RenderingServer::textures_keep_original);
-#ifndef _3D_DISABLED
-	ClassDB::bind_method(D_METHOD("sky_create"), &RenderingServer::sky_create);
-	ClassDB::bind_method(D_METHOD("sky_set_texture", "sky", "cube_map", "radiance_size"), &RenderingServer::sky_set_texture);
-#endif
+
 	ClassDB::bind_method(D_METHOD("shader_create"), &RenderingServer::shader_create);
 	ClassDB::bind_method(D_METHOD("shader_set_code", "shader", "code"), &RenderingServer::shader_set_code);
 	ClassDB::bind_method(D_METHOD("shader_get_code", "shader"), &RenderingServer::shader_get_code);
@@ -2437,7 +2434,6 @@ void RenderingServer::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(ENV_BG_CLEAR_COLOR);
 	BIND_ENUM_CONSTANT(ENV_BG_COLOR);
-	BIND_ENUM_CONSTANT(ENV_BG_SKY);
 	BIND_ENUM_CONSTANT(ENV_BG_COLOR_SKY);
 	BIND_ENUM_CONSTANT(ENV_BG_CANVAS);
 	BIND_ENUM_CONSTANT(ENV_BG_KEEP);

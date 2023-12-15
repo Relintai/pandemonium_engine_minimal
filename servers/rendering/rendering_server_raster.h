@@ -182,11 +182,6 @@ public:
 
 	BIND2(texture_set_force_redraw_if_visible, RID, bool)
 
-	/* SKY API */
-
-	BIND0R(RID, sky_create)
-	BIND3(sky_set_texture, RID, RID, int)
-
 	/* SHADER API */
 
 	BIND0R(RID, shader_create)

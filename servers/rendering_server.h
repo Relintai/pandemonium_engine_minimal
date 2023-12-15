@@ -177,11 +177,6 @@ public:
 	virtual void texture_set_proxy(RID p_proxy, RID p_base) = 0;
 	virtual void texture_set_force_redraw_if_visible(RID p_texture, bool p_enable) = 0;
 
-	/* SKY API */
-
-	virtual RID sky_create() = 0;
-	virtual void sky_set_texture(RID p_sky, RID p_cube_map, int p_radiance_size) = 0;
-
 	/* SHADER API */
 
 	enum ShaderMode {
@@ -653,7 +648,6 @@ public:
 
 		ENV_BG_CLEAR_COLOR,
 		ENV_BG_COLOR,
-		ENV_BG_SKY,
 		ENV_BG_COLOR_SKY,
 		ENV_BG_CANVAS,
 		ENV_BG_KEEP,

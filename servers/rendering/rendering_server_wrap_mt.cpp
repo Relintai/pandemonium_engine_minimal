@@ -141,7 +141,6 @@ void RenderingServerWrapMT::finish() {
 	}
 
 	texture_free_cached_ids();
-	sky_free_cached_ids();
 	shader_free_cached_ids();
 	material_free_cached_ids();
 	mesh_free_cached_ids();

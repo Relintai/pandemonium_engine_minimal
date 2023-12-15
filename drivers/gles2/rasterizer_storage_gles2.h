@@ -381,19 +381,6 @@ public:
 
 	virtual void texture_set_force_redraw_if_visible(RID p_texture, bool p_enable);
 
-	/* SKY API */
-
-	struct Sky : public RID_Data {
-		RID panorama;
-		GLuint radiance;
-		int radiance_size;
-	};
-
-	mutable RID_Owner<Sky> sky_owner;
-
-	virtual RID sky_create();
-	virtual void sky_set_texture(RID p_sky, RID p_panorama, int p_radiance_size);
-
 	/* SHADER API */
 
 	struct Material;
