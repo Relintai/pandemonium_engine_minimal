@@ -41,7 +41,6 @@ AABB VisualInstance::get_transformed_aabb() const {
 }
 
 void VisualInstance::_refresh_portal_mode() {
-	RenderingServer::get_singleton()->instance_set_portal_mode(instance, (RenderingServer::InstancePortalMode)get_portal_mode());
 }
 
 void VisualInstance::_update_visibility() {

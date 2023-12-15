@@ -82,10 +82,6 @@ float Engine::get_time_scale() const {
 	return _time_scale;
 }
 
-void Engine::set_portals_active(bool p_active) {
-	_portals_active = p_active;
-}
-
 void Engine::add_global(const String &p_name, const Variant &p_global) {
 	ERR_FAIL_COND(_globals.has(p_name));
 
@@ -272,7 +268,6 @@ Engine::Engine() {
 	_frame_ticks = 0;
 	_frame_step = 0;
 	editor_hint = false;
-	_portals_active = false;
 }
 
 Engine::Singleton::Singleton(const StringName &p_name, Object *p_ptr) :

@@ -81,8 +81,6 @@ public:
 	Object *get_singleton_object(const String &p_name) const;
 
 	_FORCE_INLINE_ bool get_use_gpu_pixel_snap() const { return _gpu_pixel_snap; }
-	bool are_portals_active() const { return _portals_active; }
-	void set_portals_active(bool p_active);
 
 #ifdef TOOLS_ENABLED
 	_FORCE_INLINE_ void set_editor_hint(bool p_enabled) {
@@ -130,7 +128,6 @@ private:
 	bool _gpu_pixel_snap;
 	uint64_t _physics_frames;
 	float _physics_interpolation_fraction;
-	bool _portals_active;
 	bool _occlusion_culling_active;
 
 	uint64_t _idle_frames;

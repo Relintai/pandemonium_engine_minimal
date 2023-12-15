@@ -405,62 +405,6 @@ public:
 
 	FUNC2(instance_set_extra_visibility_margin, RID, real_t)
 
-	/* PORTALS API */
-
-	FUNC2(instance_set_portal_mode, RID, InstancePortalMode)
-
-	FUNCRID(ghost)
-	FUNC4(ghost_set_scenario, RID, RID, ObjectID, const AABB &)
-	FUNC2(ghost_update, RID, const AABB &)
-
-	FUNCRID(portal)
-	FUNC2(portal_set_scenario, RID, RID)
-	FUNC3(portal_set_geometry, RID, const Vector<Vector3> &, real_t)
-	FUNC4(portal_link, RID, RID, RID, bool)
-	FUNC2(portal_set_active, RID, bool)
-
-	/* ROOMGROUPS API */
-
-	FUNCRID(roomgroup)
-	FUNC2(roomgroup_prepare, RID, ObjectID)
-	FUNC2(roomgroup_set_scenario, RID, RID)
-	FUNC2(roomgroup_add_room, RID, RID)
-
-	/* OCCLUDERS API */
-
-	FUNCRID(occluder_instance)
-	FUNC2(occluder_instance_set_scenario, RID, RID)
-	FUNC2(occluder_instance_link_resource, RID, RID)
-	FUNC2(occluder_instance_set_transform, RID, const Transform &)
-	FUNC2(occluder_instance_set_active, RID, bool)
-
-	FUNCRID(occluder_resource)
-	FUNC2(occluder_resource_prepare, RID, OccluderType)
-	FUNC2(occluder_resource_spheres_update, RID, const Vector<Plane> &)
-	FUNC2(occluder_resource_mesh_update, RID, const Geometry::OccluderMeshData &)
-	FUNC1(set_use_occlusion_culling, bool)
-	FUNC1RC(Geometry::MeshData, occlusion_debug_get_current_polys, RID)
-
-	/* ROOMS API */
-
-	FUNCRID(room)
-	FUNC2(room_set_scenario, RID, RID)
-	FUNC4(room_add_instance, RID, RID, const AABB &, const Vector<Vector3> &)
-	FUNC3(room_add_ghost, RID, ObjectID, const AABB &)
-	FUNC5(room_set_bound, RID, ObjectID, const Vector<Plane> &, const AABB &, const Vector<Vector3> &)
-	FUNC2(room_prepare, RID, int32_t)
-	FUNC1(rooms_and_portals_clear, RID)
-	FUNC2(rooms_unload, RID, String)
-	FUNC8(rooms_finalize, RID, bool, bool, bool, bool, String, bool, bool)
-	FUNC4(rooms_override_camera, RID, bool, const Vector3 &, const Vector<Plane> *)
-	FUNC2(rooms_set_active, RID, bool)
-	FUNC3(rooms_set_params, RID, int, real_t)
-	FUNC3(rooms_set_debug_feature, RID, RoomsDebugFeature, bool)
-	FUNC2(rooms_update_gameplay_monitor, RID, const Vector<Vector3> &)
-
-	// don't use this in a game
-	FUNC1RC(bool, rooms_is_loaded, RID)
-
 	// Callbacks
 	FUNC1(callbacks_register, RenderingServerCallbacks *)
 

@@ -2205,7 +2205,6 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_feature", "feature"), &RenderingServer::has_feature);
 	ClassDB::bind_method(D_METHOD("has_os_feature", "feature"), &RenderingServer::has_os_feature);
 	ClassDB::bind_method(D_METHOD("set_debug_generate_wireframes", "generate"), &RenderingServer::set_debug_generate_wireframes);
-	ClassDB::bind_method(D_METHOD("set_use_occlusion_culling", "enable"), &RenderingServer::set_use_occlusion_culling);
 
 	ClassDB::bind_method(D_METHOD("is_render_loop_enabled"), &RenderingServer::is_render_loop_enabled);
 	ClassDB::bind_method(D_METHOD("set_render_loop_enabled", "enabled"), &RenderingServer::set_render_loop_enabled);
@@ -2524,10 +2523,6 @@ RID RenderingServer::instance_create2(RID p_base, RID p_scenario) {
 	instance_set_base(instance, p_base);
 	instance_set_scenario(instance, p_scenario);
 
-	// instance_create2 is used mainly by editor instances.
-	// These should not be culled by the portal system when it is active, so we set their mode to global,
-	// for frustum culling only.
-	instance_set_portal_mode(instance, RenderingServer::INSTANCE_PORTAL_MODE_GLOBAL);
 	return instance;
 }
 

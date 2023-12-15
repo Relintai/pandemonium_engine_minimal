@@ -782,82 +782,6 @@ public:
 
 	virtual void instance_set_extra_visibility_margin(RID p_instance, real_t p_margin) = 0;
 
-	/* PORTALS API */
-
-	enum InstancePortalMode {
-		INSTANCE_PORTAL_MODE_STATIC, // not moving within a room
-		INSTANCE_PORTAL_MODE_DYNAMIC, //  moving within room
-		INSTANCE_PORTAL_MODE_ROAMING, // moving between rooms
-		INSTANCE_PORTAL_MODE_GLOBAL, // frustum culled only
-		INSTANCE_PORTAL_MODE_IGNORE, // don't show at all - e.g. manual bounds, hidden portals
-	};
-
-	virtual void instance_set_portal_mode(RID p_instance, InstancePortalMode p_mode) = 0;
-
-	virtual RID ghost_create() = 0;
-	virtual void ghost_set_scenario(RID p_ghost, RID p_scenario, ObjectID p_id, const AABB &p_aabb) = 0;
-	virtual void ghost_update(RID p_ghost, const AABB &p_aabb) = 0;
-
-	virtual RID portal_create() = 0;
-	virtual void portal_set_scenario(RID p_portal, RID p_scenario) = 0;
-	virtual void portal_set_geometry(RID p_portal, const Vector<Vector3> &p_points, real_t p_margin) = 0;
-	virtual void portal_link(RID p_portal, RID p_room_from, RID p_room_to, bool p_two_way) = 0;
-	virtual void portal_set_active(RID p_portal, bool p_active) = 0;
-
-	/* ROOMGROUPS API */
-
-	virtual RID roomgroup_create() = 0;
-	virtual void roomgroup_prepare(RID p_roomgroup, ObjectID p_roomgroup_object_id) = 0;
-	virtual void roomgroup_set_scenario(RID p_roomgroup, RID p_scenario) = 0;
-	virtual void roomgroup_add_room(RID p_roomgroup, RID p_room) = 0;
-
-	/* OCCLUDERS API */
-
-	enum OccluderType {
-		OCCLUDER_TYPE_UNDEFINED,
-		OCCLUDER_TYPE_SPHERE,
-		OCCLUDER_TYPE_MESH,
-		OCCLUDER_TYPE_NUM_TYPES,
-	};
-
-	virtual RID occluder_instance_create() = 0;
-	virtual void occluder_instance_set_scenario(RID p_occluder_instance, RID p_scenario) = 0;
-	virtual void occluder_instance_link_resource(RID p_occluder_instance, RID p_occluder_resource) = 0;
-	virtual void occluder_instance_set_transform(RID p_occluder_instance, const Transform &p_xform) = 0;
-	virtual void occluder_instance_set_active(RID p_occluder_instance, bool p_active) = 0;
-
-	virtual RID occluder_resource_create() = 0;
-	virtual void occluder_resource_prepare(RID p_occluder_resource, RenderingServer::OccluderType p_type) = 0;
-	virtual void occluder_resource_spheres_update(RID p_occluder_resource, const Vector<Plane> &p_spheres) = 0;
-	virtual void occluder_resource_mesh_update(RID p_occluder_resource, const Geometry::OccluderMeshData &p_mesh_data) = 0;
-
-	virtual void set_use_occlusion_culling(bool p_enable) = 0;
-	virtual Geometry::MeshData occlusion_debug_get_current_polys(RID p_scenario) const = 0;
-
-	/* ROOMS API */
-
-	enum RoomsDebugFeature {
-		ROOMS_DEBUG_SPRAWL,
-	};
-
-	virtual RID room_create() = 0;
-	virtual void room_set_scenario(RID p_room, RID p_scenario) = 0;
-	virtual void room_add_instance(RID p_room, RID p_instance, const AABB &p_aabb, const Vector<Vector3> &p_object_pts) = 0;
-	virtual void room_add_ghost(RID p_room, ObjectID p_object_id, const AABB &p_aabb) = 0;
-	virtual void room_set_bound(RID p_room, ObjectID p_room_object_id, const Vector<Plane> &p_convex, const AABB &p_aabb, const Vector<Vector3> &p_verts) = 0;
-	virtual void room_prepare(RID p_room, int32_t p_priority) = 0;
-	virtual void rooms_and_portals_clear(RID p_scenario) = 0;
-	virtual void rooms_unload(RID p_scenario, String p_reason) = 0;
-	virtual void rooms_finalize(RID p_scenario, bool p_generate_pvs, bool p_cull_using_pvs, bool p_use_secondary_pvs, bool p_use_signals, String p_pvs_filename, bool p_use_simple_pvs, bool p_log_pvs_generation) = 0;
-	virtual void rooms_override_camera(RID p_scenario, bool p_override, const Vector3 &p_point, const Vector<Plane> *p_convex) = 0;
-	virtual void rooms_set_active(RID p_scenario, bool p_active) = 0;
-	virtual void rooms_set_params(RID p_scenario, int p_portal_depth_limit, real_t p_roaming_expansion_margin) = 0;
-	virtual void rooms_set_debug_feature(RID p_scenario, RoomsDebugFeature p_feature, bool p_active) = 0;
-	virtual void rooms_update_gameplay_monitor(RID p_scenario, const Vector<Vector3> &p_camera_positions) = 0;
-
-	// don't use this in a game!
-	virtual bool rooms_is_loaded(RID p_scenario) const = 0;
-
 	// callbacks are used to send messages back from the visual server to scene tree in thread friendly manner
 	virtual void callbacks_register(RenderingServerCallbacks *p_callbacks) = 0;
 
@@ -1146,7 +1070,6 @@ VARIANT_ENUM_CAST(RenderingServer::ViewportRenderInfo);
 VARIANT_ENUM_CAST(RenderingServer::ViewportDebugDraw);
 VARIANT_ENUM_CAST(RenderingServer::ScenarioDebugMode);
 VARIANT_ENUM_CAST(RenderingServer::InstanceType);
-VARIANT_ENUM_CAST(RenderingServer::InstancePortalMode);
 VARIANT_ENUM_CAST(RenderingServer::NinePatchAxisMode);
 VARIANT_ENUM_CAST(RenderingServer::CanvasLightMode);
 VARIANT_ENUM_CAST(RenderingServer::CanvasLightShadowFilter);

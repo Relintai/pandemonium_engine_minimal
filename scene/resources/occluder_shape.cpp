@@ -42,7 +42,6 @@ void OccluderShape::_bind_methods() {
 }
 
 OccluderShape::OccluderShape() {
-	_shape = RID_PRIME(RenderingServer::get_singleton()->occluder_resource_create());
 }
 
 OccluderShape::~OccluderShape() {
@@ -93,7 +92,6 @@ AABB OccluderShapeSphere::get_fallback_gizmo_aabb() const {
 #endif
 
 void OccluderShapeSphere::update_shape_to_rendering_server() {
-	RenderingServer::get_singleton()->occluder_resource_spheres_update(get_shape(), _spheres);
 }
 
 Transform OccluderShapeSphere::center_node(const Transform &p_global_xform, const Transform &p_parent_xform, real_t p_snap) {
@@ -237,10 +235,6 @@ void OccluderShapeSphere::set_sphere_radius(int p_idx, real_t p_radius) {
 }
 
 OccluderShapeSphere::OccluderShapeSphere() {
-	if (get_shape().is_valid()) {
-		RenderingServer::get_singleton()->occluder_resource_prepare(get_shape(), RenderingServer::OCCLUDER_TYPE_SPHERE);
-	}
-
 	// Create a default sphere
 	Vector<Plane> planes;
 	planes.push_back(Plane(Vector3(0, 0, 0), 1));

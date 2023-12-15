@@ -42,9 +42,7 @@ void VisibilityNotifier::_enter_camera(Camera *p_camera) {
 	cameras.insert(p_camera);
 
 	bool in_gameplay = _in_gameplay;
-	if (!Engine::get_singleton()->are_portals_active()) {
-		in_gameplay = true;
-	}
+
 
 	if ((cameras.size() == 1) && in_gameplay) {
 		emit_signal(SceneStringNames::get_singleton()->screen_entered);
@@ -59,9 +57,6 @@ void VisibilityNotifier::_exit_camera(Camera *p_camera) {
 	cameras.erase(p_camera);
 
 	bool in_gameplay = _in_gameplay;
-	if (!Engine::get_singleton()->are_portals_active()) {
-		in_gameplay = true;
-	}
 
 	emit_signal(SceneStringNames::get_singleton()->camera_exited, p_camera);
 	if ((cameras.size() == 0) && (in_gameplay)) {
@@ -110,33 +105,7 @@ AABB VisibilityNotifier::get_aabb() const {
 }
 
 void VisibilityNotifier::_refresh_portal_mode() {
-	// only create in the visual server if we are roaming.
-	// All other cases don't require a visual server rep.
-	// Global and ignore are the same (existing client side functionality only).
-	// Static and dynamic require only a one off creation at conversion.
-	if (get_portal_mode() == PORTAL_MODE_ROAMING) {
-		if (is_inside_world()) {
-			if (_cull_instance_rid == RID()) {
-				_cull_instance_rid = RID_PRIME(RenderingServer::get_singleton()->ghost_create());
-			}
 
-			if (is_inside_world() && get_world_3d().is_valid() && get_world_3d()->get_scenario().is_valid() && is_inside_tree()) {
-				AABB world_aabb = get_global_transform().xform(aabb);
-				RenderingServer::get_singleton()->ghost_set_scenario(_cull_instance_rid, get_world_3d()->get_scenario(), get_instance_id(), world_aabb);
-			}
-		} else {
-			if (_cull_instance_rid != RID()) {
-				RenderingServer::get_singleton()->free(_cull_instance_rid);
-				_cull_instance_rid = RID();
-			}
-		}
-
-	} else {
-		if (_cull_instance_rid != RID()) {
-			RenderingServer::get_singleton()->free(_cull_instance_rid);
-			_cull_instance_rid = RID();
-		}
-	}
 }
 
 void VisibilityNotifier::_notification(int p_what) {
@@ -169,9 +138,6 @@ void VisibilityNotifier::_notification(int p_what) {
 				_world_aabb_center = world_aabb.get_center();
 			}
 
-			if (_cull_instance_rid != RID()) {
-				RenderingServer::get_singleton()->ghost_update(_cull_instance_rid, world_aabb);
-			}
 		} break;
 		case NOTIFICATION_EXIT_WORLD: {
 			ERR_FAIL_COND(!world.is_valid());
@@ -183,32 +149,17 @@ void VisibilityNotifier::_notification(int p_what) {
 			world->_remove_notifier(this);
 #endif
 
-			if (_cull_instance_rid != RID()) {
-				RenderingServer::get_singleton()->ghost_set_scenario(_cull_instance_rid, RID(), get_instance_id(), AABB());
-			}
 		} break;
 		case NOTIFICATION_ENTER_GAMEPLAY: {
 			_in_gameplay = true;
-			if (cameras.size() && Engine::get_singleton()->are_portals_active()) {
-				emit_signal(SceneStringNames::get_singleton()->screen_entered);
-				_screen_enter();
-			}
 		} break;
 		case NOTIFICATION_EXIT_GAMEPLAY: {
 			_in_gameplay = false;
-			if (cameras.size() && Engine::get_singleton()->are_portals_active()) {
-				emit_signal(SceneStringNames::get_singleton()->screen_exited);
-				_screen_exit();
-			}
 		} break;
 	}
 }
 
 bool VisibilityNotifier::is_on_screen() const {
-	if (!Engine::get_singleton()->are_portals_active()) {
-		return cameras.size() != 0;
-	}
-
 	return (cameras.size() != 0) && _in_gameplay;
 }
 

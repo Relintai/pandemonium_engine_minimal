@@ -39,7 +39,6 @@
 #include "core/os/safe_refcount.h"
 #include "core/os/semaphore.h"
 #include "core/os/thread.h"
-#include "portals/portal_renderer.h"
 
 class RenderingServerScene {
 public:
@@ -48,8 +47,6 @@ public:
 		MAX_INSTANCE_CULL = 65536,
 		MAX_LIGHTS_CULLED = 4096,
 		MAX_REFLECTION_PROBES_CULLED = 4096,
-		MAX_ROOM_CULL = 32,
-		MAX_EXTERIOR_PORTALS = 128,
 	};
 
 	uint64_t render_pass;
@@ -272,7 +269,6 @@ public:
 		RID self;
 
 		SpatialPartitioningScene *sps;
-		PortalRenderer _portal_renderer;
 
 		List<Instance *> directional_lights;
 		RID environment;
@@ -308,10 +304,6 @@ public:
 		RID self;
 		//scenario stuff
 		SpatialPartitionID spatial_partition_id;
-
-		// rooms & portals
-		OcclusionHandle occlusion_handle; // handle of instance in occlusion system (or 0)
-		RenderingServer::InstancePortalMode portal_mode;
 
 		Scenario *scenario;
 		SelfList<Instance> scenario_item;
@@ -369,9 +361,6 @@ public:
 
 			object_id = 0;
 			visible = true;
-
-			occlusion_handle = 0;
-			portal_mode = RenderingServer::InstancePortalMode::INSTANCE_PORTAL_MODE_STATIC;
 
 			lod_begin = 0;
 			lod_end = 0;
@@ -525,182 +514,7 @@ public:
 
 	virtual void instance_set_extra_visibility_margin(RID p_instance, real_t p_margin);
 
-	// Portals
-	virtual void instance_set_portal_mode(RID p_instance, RenderingServer::InstancePortalMode p_mode);
-	bool _instance_get_transformed_aabb(RID p_instance, AABB &r_aabb);
-	bool _instance_get_transformed_aabb_for_occlusion(VSInstance *p_instance, AABB &r_aabb) const {
-		r_aabb = ((Instance *)p_instance)->transformed_aabb;
-		return ((Instance *)p_instance)->portal_mode != RenderingServer::INSTANCE_PORTAL_MODE_GLOBAL;
-	}
-	void *_instance_get_from_rid(RID p_instance);
-	bool _instance_cull_check(VSInstance *p_instance, uint32_t p_cull_mask) const {
-		uint32_t pairable_type = 1 << ((Instance *)p_instance)->base_type;
-		return pairable_type & p_cull_mask;
-	}
-	ObjectID _instance_get_object_ID(VSInstance *p_instance) const {
-		if (p_instance) {
-			return ((Instance *)p_instance)->object_id;
-		}
-		return 0;
-	}
-
-private:
-	void _instance_create_occlusion_rep(Instance *p_instance);
-	void _instance_destroy_occlusion_rep(Instance *p_instance);
-
 public:
-	struct Ghost : RID_Data {
-		// all interactions with actual ghosts are indirect, as the ghost is part of the scenario
-		Scenario *scenario = nullptr;
-		uint32_t object_id = 0;
-		RGhostHandle rghost_handle = 0; // handle in occlusion system (or 0)
-		AABB aabb;
-		virtual ~Ghost() {
-			if (scenario) {
-				if (rghost_handle) {
-					scenario->_portal_renderer.rghost_destroy(rghost_handle);
-					rghost_handle = 0;
-				}
-				scenario = nullptr;
-			}
-		}
-	};
-	RID_Owner<Ghost> ghost_owner;
-
-	virtual RID ghost_create();
-	virtual void ghost_set_scenario(RID p_ghost, RID p_scenario, ObjectID p_id, const AABB &p_aabb);
-	virtual void ghost_update(RID p_ghost, const AABB &p_aabb);
-
-private:
-	void _ghost_create_occlusion_rep(Ghost *p_ghost);
-	void _ghost_destroy_occlusion_rep(Ghost *p_ghost);
-
-public:
-	/* PORTALS API */
-
-	struct Portal : RID_Data {
-		// all interactions with actual portals are indirect, as the portal is part of the scenario
-		uint32_t scenario_portal_id = 0;
-		Scenario *scenario = nullptr;
-		virtual ~Portal() {
-			if (scenario) {
-				scenario->_portal_renderer.portal_destroy(scenario_portal_id);
-				scenario = nullptr;
-				scenario_portal_id = 0;
-			}
-		}
-	};
-	RID_Owner<Portal> portal_owner;
-
-	virtual RID portal_create();
-	virtual void portal_set_scenario(RID p_portal, RID p_scenario);
-	virtual void portal_set_geometry(RID p_portal, const Vector<Vector3> &p_points, real_t p_margin);
-	virtual void portal_link(RID p_portal, RID p_room_from, RID p_room_to, bool p_two_way);
-	virtual void portal_set_active(RID p_portal, bool p_active);
-
-	/* ROOMGROUPS API */
-
-	struct RoomGroup : RID_Data {
-		// all interactions with actual roomgroups are indirect, as the roomgroup is part of the scenario
-		uint32_t scenario_roomgroup_id = 0;
-		Scenario *scenario = nullptr;
-		virtual ~RoomGroup() {
-			if (scenario) {
-				scenario->_portal_renderer.roomgroup_destroy(scenario_roomgroup_id);
-				scenario = nullptr;
-				scenario_roomgroup_id = 0;
-			}
-		}
-	};
-	RID_Owner<RoomGroup> roomgroup_owner;
-
-	virtual RID roomgroup_create();
-	virtual void roomgroup_prepare(RID p_roomgroup, ObjectID p_roomgroup_object_id);
-	virtual void roomgroup_set_scenario(RID p_roomgroup, RID p_scenario);
-	virtual void roomgroup_add_room(RID p_roomgroup, RID p_room);
-
-	/* OCCLUDERS API */
-
-	struct OccluderInstance : RID_Data {
-		uint32_t scenario_occluder_id = 0;
-		Scenario *scenario = nullptr;
-		virtual ~OccluderInstance() {
-			if (scenario) {
-				scenario->_portal_renderer.occluder_instance_destroy(scenario_occluder_id);
-				scenario = nullptr;
-				scenario_occluder_id = 0;
-			}
-		}
-	};
-	RID_Owner<OccluderInstance> occluder_instance_owner;
-
-	struct OccluderResource : RID_Data {
-		uint32_t occluder_resource_id = 0;
-		void destroy(PortalResources &r_portal_resources) {
-			r_portal_resources.occluder_resource_destroy(occluder_resource_id);
-			occluder_resource_id = 0;
-		}
-		virtual ~OccluderResource() {
-			DEV_ASSERT(occluder_resource_id == 0);
-		}
-	};
-	RID_Owner<OccluderResource> occluder_resource_owner;
-
-	virtual RID occluder_instance_create();
-	virtual void occluder_instance_set_scenario(RID p_occluder_instance, RID p_scenario);
-	virtual void occluder_instance_link_resource(RID p_occluder_instance, RID p_occluder_resource);
-	virtual void occluder_instance_set_transform(RID p_occluder_instance, const Transform &p_xform);
-	virtual void occluder_instance_set_active(RID p_occluder_instance, bool p_active);
-
-	virtual RID occluder_resource_create();
-	virtual void occluder_resource_prepare(RID p_occluder_resource, RenderingServer::OccluderType p_type);
-	virtual void occluder_resource_spheres_update(RID p_occluder_resource, const Vector<Plane> &p_spheres);
-	virtual void occluder_resource_mesh_update(RID p_occluder_resource, const Geometry::OccluderMeshData &p_mesh_data);
-	virtual void set_use_occlusion_culling(bool p_enable);
-
-	// editor only .. slow
-	virtual Geometry::MeshData occlusion_debug_get_current_polys(RID p_scenario) const;
-	const PortalResources &get_portal_resources() const {
-		return _portal_resources;
-	}
-	PortalResources &get_portal_resources() {
-		return _portal_resources;
-	}
-
-	/* ROOMS API */
-
-	struct Room : RID_Data {
-		// all interactions with actual rooms are indirect, as the room is part of the scenario
-		uint32_t scenario_room_id = 0;
-		Scenario *scenario = nullptr;
-		virtual ~Room() {
-			if (scenario) {
-				scenario->_portal_renderer.room_destroy(scenario_room_id);
-				scenario = nullptr;
-				scenario_room_id = 0;
-			}
-		}
-	};
-	RID_Owner<Room> room_owner;
-
-	virtual RID room_create();
-	virtual void room_set_scenario(RID p_room, RID p_scenario);
-	virtual void room_add_instance(RID p_room, RID p_instance, const AABB &p_aabb, const Vector<Vector3> &p_object_pts);
-	virtual void room_add_ghost(RID p_room, ObjectID p_object_id, const AABB &p_aabb);
-	virtual void room_set_bound(RID p_room, ObjectID p_room_object_id, const Vector<Plane> &p_convex, const AABB &p_aabb, const Vector<Vector3> &p_verts);
-	virtual void room_prepare(RID p_room, int32_t p_priority);
-	virtual void rooms_and_portals_clear(RID p_scenario);
-	virtual void rooms_unload(RID p_scenario, String p_reason);
-	virtual void rooms_finalize(RID p_scenario, bool p_generate_pvs, bool p_cull_using_pvs, bool p_use_secondary_pvs, bool p_use_signals, String p_pvs_filename, bool p_use_simple_pvs, bool p_log_pvs_generation);
-	virtual void rooms_override_camera(RID p_scenario, bool p_override, const Vector3 &p_point, const Vector<Plane> *p_convex);
-	virtual void rooms_set_active(RID p_scenario, bool p_active);
-	virtual void rooms_set_params(RID p_scenario, int p_portal_depth_limit, real_t p_roaming_expansion_margin);
-	virtual void rooms_set_debug_feature(RID p_scenario, RenderingServer::RoomsDebugFeature p_feature, bool p_active);
-	virtual void rooms_update_gameplay_monitor(RID p_scenario, const Vector<Vector3> &p_camera_positions);
-
-	// don't use this in a game
-	virtual bool rooms_is_loaded(RID p_scenario) const;
-
 	virtual void callbacks_register(RenderingServerCallbacks *p_callbacks);
 	RenderingServerCallbacks *get_callbacks() const {
 		return _rendering_server_callbacks;
@@ -710,10 +524,6 @@ public:
 	virtual Vector<ObjectID> instances_cull_aabb(const AABB &p_aabb, RID p_scenario = RID()) const;
 	virtual Vector<ObjectID> instances_cull_ray(const Vector3 &p_from, const Vector3 &p_to, RID p_scenario = RID()) const;
 	virtual Vector<ObjectID> instances_cull_convex(const Vector<Plane> &p_convex, RID p_scenario = RID()) const;
-
-	// internal (uses portals when available)
-	int _cull_convex_from_point(Scenario *p_scenario, const Transform &p_cam_transform, const Projection &p_cam_projection, const Vector<Plane> &p_convex, Instance **p_result_array, int p_result_max, int32_t &r_previous_room_id_hint, uint32_t p_mask = 0xFFFFFFFF);
-	void _rooms_instance_update(Instance *p_instance, const AABB &p_aabb);
 
 	virtual void instance_geometry_set_flag(RID p_instance, RS::InstanceFlags p_flags, bool p_enabled);
 	virtual void instance_geometry_set_cast_shadows_setting(RID p_instance, RS::ShadowCastingSetting p_shadow_casting_setting);
@@ -745,7 +555,6 @@ public:
 private:
 	bool _use_bvh;
 	RenderingServerCallbacks *_rendering_server_callbacks;
-	PortalResources _portal_resources;
 
 public:
 	RenderingServerScene();
