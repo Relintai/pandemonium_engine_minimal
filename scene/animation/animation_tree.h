@@ -34,12 +34,6 @@
 #include "scene/main/node.h"
 #include "scene/animation/animation.h"
 
-#include "modules/modules_enabled.gen.h"
-
-class Spatial;
-#ifdef MODULE_SKELETON_3D_ENABLED
-class Skeleton;
-#endif
 class AnimationNodeBlendTree;
 class AnimationPlayer;
 class AnimationTree;
@@ -189,11 +183,6 @@ private:
 	};
 
 	struct TrackCacheTransform : public TrackCache {
-		Spatial *spatial;
-#ifdef MODULE_SKELETON_3D_ENABLED
-		Skeleton *skeleton;
-		int bone_idx;
-#endif
 		bool loc_used;
 		bool rot_used;
 		bool scale_used;
@@ -207,11 +196,6 @@ private:
 
 		TrackCacheTransform() {
 			type = Animation::TYPE_POSITION_3D;
-			spatial = nullptr;
-#ifdef MODULE_SKELETON_3D_ENABLED
-			bone_idx = -1;
-			skeleton = nullptr;
-#endif
 			loc_used = false;
 			rot_used = false;
 			scale_used = false;

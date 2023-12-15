@@ -751,17 +751,6 @@ bool LineEdit::_is_over_clear_button(const Point2 &p_pos) const {
 void LineEdit::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
-#ifdef TOOLS_ENABLED
-			if (Engine::get_singleton()->is_editor_hint() && !get_tree()->is_node_being_edited(this)) {
-				EDITOR_DEF("text_editor/cursor/caret_blink", false);
-				cursor_set_blink_enabled(EditorSettings::get_singleton()->is_caret_blink_active());
-				cursor_set_blink_speed(EDITOR_DEF("text_editor/cursor/caret_blink_speed", 0.65));
-
-				if (!EditorSettings::get_singleton()->is_connected("settings_changed", this, "_editor_settings_changed")) {
-					EditorSettings::get_singleton()->connect("settings_changed", this, "_editor_settings_changed");
-				}
-			}
-#endif
 			update_cached_width();
 			update_placeholder_width();
 		} break;

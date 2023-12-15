@@ -39,10 +39,6 @@
 #include "scene/resources/navigation_2d/navigation_mesh_source_geometry_data_2d.h"
 
 #ifndef _3D_DISABLED
-#include "scene/3d/mesh_instance.h"
-#endif // _3D_DISABLED
-
-#ifndef _3D_DISABLED
 #include <Recast.h>
 #endif // _3D_DISABLED
 

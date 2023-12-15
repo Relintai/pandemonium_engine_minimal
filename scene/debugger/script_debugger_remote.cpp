@@ -304,11 +304,6 @@ void ScriptDebuggerRemote::debug(ScriptLanguage *p_script, bool p_can_continue, 
 
 				//Below everything should only happen on the main thread. Should probably add a check.
 			} else if (command == "request_scene_tree") {
-#ifdef DEBUG_ENABLED
-				if (scene_tree) {
-					scene_tree->_debugger_request_tree();
-				}
-#endif
 			} else if (command == "request_video_mem") {
 				_send_video_memory();
 			} else if (command == "inspect_object") {
@@ -329,28 +324,6 @@ void ScriptDebuggerRemote::debug(ScriptLanguage *p_script, bool p_can_continue, 
 				if (scene_tree) {
 					scene_tree->get_root()->set_canvas_transform_override(transform);
 				}
-			} else if (command == "override_camera_3D:set") {
-				bool enable = cmd[1];
-
-				if (scene_tree) {
-					scene_tree->get_root()->enable_camera_override(enable);
-				}
-			} else if (command == "override_camera_3D:transform") {
-				Transform transform = cmd[1];
-				bool is_perspective = cmd[2];
-				float size_or_fov = cmd[3];
-				float near = cmd[4];
-				float far = cmd[5];
-
-				if (scene_tree) {
-					if (is_perspective) {
-						scene_tree->get_root()->set_camera_override_perspective(size_or_fov, near, far);
-					} else {
-						scene_tree->get_root()->set_camera_override_orthogonal(size_or_fov, near, far);
-					}
-					scene_tree->get_root()->set_camera_override_transform(transform);
-				}
-
 			} else if (command == "reload_scripts") {
 				reload_all_scripts = true;
 			} else if (command == "breakpoint") {
@@ -366,7 +339,6 @@ void ScriptDebuggerRemote::debug(ScriptLanguage *p_script, bool p_can_continue, 
 			} else if (command == "set_skip_breakpoints") {
 				skip_breakpoints = cmd[1];
 			} else {
-				_parse_live_edit(cmd);
 			}
 		} else {
 			OS::get_singleton()->delay_usec(10000);
@@ -616,73 +588,6 @@ void ScriptDebuggerRemote::_err_handler(void *ud, const char *p_func, const char
 	sdr->send_error(String::utf8(p_func), String::utf8(p_file), p_line, String::utf8(p_err), String::utf8(p_descr), p_type, si);
 }
 
-bool ScriptDebuggerRemote::_parse_live_edit(const Array &p_command) {
-#ifdef DEBUG_ENABLED
-
-	String cmdstr = p_command[0];
-	if (!scene_tree || !cmdstr.begins_with("live_")) {
-		return false;
-	}
-
-	if (cmdstr == "live_set_root") {
-		scene_tree->_live_edit_root_func(p_command[1], p_command[2]);
-
-	} else if (cmdstr == "live_node_path") {
-		scene_tree->_live_edit_node_path_func(p_command[1], p_command[2]);
-
-	} else if (cmdstr == "live_res_path") {
-		scene_tree->_live_edit_res_path_func(p_command[1], p_command[2]);
-
-	} else if (cmdstr == "live_node_prop_res") {
-		scene_tree->_live_edit_node_set_res_func(p_command[1], p_command[2], p_command[3]);
-
-	} else if (cmdstr == "live_node_prop") {
-		scene_tree->_live_edit_node_set_func(p_command[1], p_command[2], p_command[3]);
-
-	} else if (cmdstr == "live_res_prop_res") {
-		scene_tree->_live_edit_res_set_res_func(p_command[1], p_command[2], p_command[3]);
-
-	} else if (cmdstr == "live_res_prop") {
-		scene_tree->_live_edit_res_set_func(p_command[1], p_command[2], p_command[3]);
-
-	} else if (cmdstr == "live_node_call") {
-		scene_tree->_live_edit_node_call_func(p_command[1], p_command[2], p_command[3], p_command[4], p_command[5], p_command[6], p_command[7], p_command[8], p_command[9], p_command[10]);
-
-	} else if (cmdstr == "live_res_call") {
-		scene_tree->_live_edit_res_call_func(p_command[1], p_command[2], p_command[3], p_command[4], p_command[5], p_command[6], p_command[7], p_command[8], p_command[9], p_command[10]);
-
-	} else if (cmdstr == "live_create_node") {
-		scene_tree->_live_edit_create_node_func(p_command[1], p_command[2], p_command[3]);
-
-	} else if (cmdstr == "live_instance_node") {
-		scene_tree->_live_edit_instance_node_func(p_command[1], p_command[2], p_command[3]);
-
-	} else if (cmdstr == "live_remove_node") {
-		scene_tree->_live_edit_remove_node_func(p_command[1]);
-
-	} else if (cmdstr == "live_remove_and_keep_node") {
-		scene_tree->_live_edit_remove_and_keep_node_func(p_command[1], p_command[2]);
-
-	} else if (cmdstr == "live_restore_node") {
-		scene_tree->_live_edit_restore_node_func(p_command[1], p_command[2], p_command[3]);
-
-	} else if (cmdstr == "live_duplicate_node") {
-		scene_tree->_live_edit_duplicate_node_func(p_command[1], p_command[2]);
-
-	} else if (cmdstr == "live_reparent_node") {
-		scene_tree->_live_edit_reparent_node_func(p_command[1], p_command[2], p_command[3], p_command[4]);
-
-	} else {
-		return false;
-	}
-
-	return true;
-#else
-
-	return false;
-#endif
-}
-
 void ScriptDebuggerRemote::_send_object_id(ObjectID p_id) {
 	Object *obj = ObjectDB::get_instance(p_id);
 	if (!obj) {
@@ -865,11 +770,6 @@ void ScriptDebuggerRemote::_poll_events() {
 		} else if (command == "save_node") {
 			_save_node(cmd[1], cmd[2]);
 		} else if (command == "request_scene_tree") {
-#ifdef DEBUG_ENABLED
-			if (scene_tree) {
-				scene_tree->_debugger_request_tree();
-			}
-#endif
 		} else if (command == "request_video_mem") {
 			_send_video_memory();
 		} else if (command == "inspect_object") {
@@ -918,28 +818,6 @@ void ScriptDebuggerRemote::_poll_events() {
 			if (scene_tree) {
 				scene_tree->get_root()->set_canvas_transform_override(transform);
 			}
-		} else if (command == "override_camera_3D:set") {
-			bool enable = cmd[1];
-
-			if (scene_tree) {
-				scene_tree->get_root()->enable_camera_override(enable);
-			}
-		} else if (command == "override_camera_3D:transform") {
-			Transform transform = cmd[1];
-			bool is_perspective = cmd[2];
-			float size_or_fov = cmd[3];
-			float near = cmd[4];
-			float far = cmd[5];
-
-			if (scene_tree) {
-				if (is_perspective) {
-					scene_tree->get_root()->set_camera_override_perspective(size_or_fov, near, far);
-				} else {
-					scene_tree->get_root()->set_camera_override_orthogonal(size_or_fov, near, far);
-				}
-				scene_tree->get_root()->set_camera_override_transform(transform);
-			}
-
 		} else if (command == "reload_scripts") {
 			reload_all_scripts = true;
 		} else if (command == "breakpoint") {
@@ -952,7 +830,6 @@ void ScriptDebuggerRemote::_poll_events() {
 		} else if (command == "set_skip_breakpoints") {
 			skip_breakpoints = cmd[1];
 		} else {
-			_parse_live_edit(cmd);
 		}
 	}
 }

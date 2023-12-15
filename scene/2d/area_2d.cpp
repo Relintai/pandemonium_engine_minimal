@@ -29,7 +29,6 @@
 /*************************************************************************/
 
 #include "area_2d.h"
-#include "scene/resources/world_3d.h"
 #include "scene/main/scene_string_names.h"
 #include "servers/audio_server.h"
 #include "servers/physics_2d_server.h"

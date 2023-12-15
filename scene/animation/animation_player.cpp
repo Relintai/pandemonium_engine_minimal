@@ -33,65 +33,9 @@
 #include "core/config/engine.h"
 #include "core/object/message_queue.h"
 #include "scene/main/node_2d.h"
-#include "scene/main/spatial.h"
 #include "scene/animation/animation.h"
 #include "scene/main/scene_string_names.h"
 #include "servers/audio/audio_stream.h"
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-#include "modules/skeleton_3d/nodes/skeleton.h"
-#endif
-
-#ifdef TOOLS_ENABLED
-#include "editor/editor_node.h"
-#include "editor/editor_settings.h"
-
-#ifdef MODULE_SKELETON_2D_ENABLED
-#include "modules/skeleton_2d/nodes/skeleton_2d.h"
-#endif
-
-void AnimatedValuesBackup::update_skeletons() {
-	for (int i = 0; i < entries.size(); i++) {
-		if (entries[i].bone_idx != -1) {
-#ifdef MODULE_SKELETON_3D_ENABLED
-			// 3D bone
-			Object::cast_to<Skeleton>(entries[i].object)->notification(Skeleton::NOTIFICATION_UPDATE_SKELETON);
-#endif
-		} else {
-#ifdef MODULE_SKELETON_2D_ENABLED
-			Bone2D *bone = Object::cast_to<Bone2D>(entries[i].object);
-			if (bone && bone->skeleton) {
-				// 2D bone
-				bone->skeleton->_update_transform();
-			}
-#endif
-		}
-	}
-}
-
-void AnimatedValuesBackup::restore() const {
-	for (int i = 0; i < entries.size(); i++) {
-		const AnimatedValuesBackup::Entry *entry = &entries[i];
-		if (entry->bone_idx == -1) {
-			entry->object->set_indexed(entry->subpath, entry->value);
-		}
-#ifdef MODULE_SKELETON_3D_ENABLED
-		else {
-			Array arr = entry->value;
-			if (arr.size() == 3) {
-				Object::cast_to<Skeleton>(entry->object)->set_bone_pose_position(entry->bone_idx, arr[0]);
-				Object::cast_to<Skeleton>(entry->object)->set_bone_pose_rotation(entry->bone_idx, arr[1]);
-				Object::cast_to<Skeleton>(entry->object)->set_bone_pose_scale(entry->bone_idx, arr[2]);
-			}
-		}
-#endif
-	}
-}
-
-void AnimatedValuesBackup::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("restore"), &AnimatedValuesBackup::restore);
-}
-#endif
 
 bool AnimationPlayer::_set(const StringName &p_name, const Variant &p_value) {
 	String name = p_name;
@@ -313,61 +257,6 @@ void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim, Node *p_root_ov
 		node_cache->resource = resource;
 		node_cache->node_2d = Object::cast_to<Node2D>(child);
 
-#ifndef _3D_DISABLED
-		if (a->track_get_type(i) == Animation::TYPE_POSITION_3D || a->track_get_type(i) == Animation::TYPE_ROTATION_3D || a->track_get_type(i) == Animation::TYPE_SCALE_3D) {
-			// special cases and caches for transform tracks
-
-			if (node_cache->last_setup_pass != setup_pass) {
-				node_cache->loc_used = false;
-				node_cache->rot_used = false;
-				node_cache->scale_used = false;
-			}
-
-			// cache spatial
-			node_cache->spatial = Object::cast_to<Spatial>(child);
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-			// cache skeleton
-			node_cache->skeleton = Object::cast_to<Skeleton>(child);
-			if (node_cache->skeleton) {
-				if (a->track_get_path(i).get_subname_count() == 1) {
-					StringName bone_name = a->track_get_path(i).get_subname(0);
-
-					node_cache->bone_idx = node_cache->skeleton->find_bone(bone_name);
-					if (node_cache->bone_idx < 0) {
-						// broken track (nonexistent bone)
-						node_cache->skeleton = nullptr;
-						node_cache->spatial = nullptr;
-						ERR_CONTINUE(node_cache->bone_idx < 0);
-					}
-					Transform rest = node_cache->skeleton->get_bone_rest(bone_idx);
-					node_cache->init_loc = rest.origin;
-					node_cache->init_rot = rest.basis.get_rotation_quaternion();
-					node_cache->init_scale = rest.basis.get_scale();
-				} else {
-					// no property, just use spatialnode
-					node_cache->skeleton = nullptr;
-				}
-			}
-#endif
-
-			switch (a->track_get_type(i)) {
-				case Animation::TYPE_POSITION_3D: {
-					node_cache->loc_used = true;
-				} break;
-				case Animation::TYPE_ROTATION_3D: {
-					node_cache->rot_used = true;
-				} break;
-				case Animation::TYPE_SCALE_3D: {
-					node_cache->scale_used = true;
-				} break;
-				default: {
-				}
-			}
-		}
-
-#endif // _3D_DISABLED
-
 		if (a->track_get_type(i) == Animation::TYPE_VALUE) {
 			if (!node_cache->property_anim.has(a->track_get_path(i).get_concatenated_subnames())) {
 				TrackNodeCache::PropertyAnim pa;
@@ -433,85 +322,10 @@ void AnimationPlayer::_animation_process_animation(AnimationData *p_anim, float 
 
 		switch (a->track_get_type(i)) {
 			case Animation::TYPE_POSITION_3D: {
-#ifndef _3D_DISABLED
-				if (!nc->spatial) {
-					continue;
-				}
-
-				Vector3 loc;
-
-				Error err = a->position_track_interpolate(i, p_time, &loc);
-				//ERR_CONTINUE(err!=OK); //used for testing, should be removed
-
-				if (err != OK) {
-					continue;
-				}
-
-				if (nc->accum_pass != accum_pass) {
-					ERR_CONTINUE(cache_update_size >= NODE_CACHE_UPDATE_MAX);
-					cache_update[cache_update_size++] = nc;
-					nc->accum_pass = accum_pass;
-					nc->loc_accum = loc;
-					nc->rot_accum = nc->init_rot;
-					nc->scale_accum = nc->init_scale;
-				} else {
-					nc->loc_accum = nc->loc_accum.linear_interpolate(loc, p_interp);
-				}
-#endif // _3D_DISABLED
 			} break;
 			case Animation::TYPE_ROTATION_3D: {
-#ifndef _3D_DISABLED
-				if (!nc->spatial) {
-					continue;
-				}
-
-				Quaternion rot;
-
-				Error err = a->rotation_track_interpolate(i, p_time, &rot);
-				//ERR_CONTINUE(err!=OK); //used for testing, should be removed
-
-				if (err != OK) {
-					continue;
-				}
-
-				if (nc->accum_pass != accum_pass) {
-					ERR_CONTINUE(cache_update_size >= NODE_CACHE_UPDATE_MAX);
-					cache_update[cache_update_size++] = nc;
-					nc->accum_pass = accum_pass;
-					nc->loc_accum = nc->init_loc;
-					nc->rot_accum = rot;
-					nc->scale_accum = nc->init_scale;
-				} else {
-					nc->rot_accum = nc->rot_accum.slerp(rot, p_interp);
-				}
-#endif // _3D_DISABLED
 			} break;
 			case Animation::TYPE_SCALE_3D: {
-#ifndef _3D_DISABLED
-				if (!nc->spatial) {
-					continue;
-				}
-
-				Vector3 scale;
-
-				Error err = a->scale_track_interpolate(i, p_time, &scale);
-				//ERR_CONTINUE(err!=OK); //used for testing, should be removed
-
-				if (err != OK) {
-					continue;
-				}
-
-				if (nc->accum_pass != accum_pass) {
-					ERR_CONTINUE(cache_update_size >= NODE_CACHE_UPDATE_MAX);
-					cache_update[cache_update_size++] = nc;
-					nc->accum_pass = accum_pass;
-					nc->loc_accum = nc->init_loc;
-					nc->rot_accum = nc->init_rot;
-					nc->scale_accum = scale;
-				} else {
-					nc->scale_accum = nc->scale_accum.linear_interpolate(scale, p_interp);
-				}
-#endif // _3D_DISABLED
 			} break;
 			case Animation::TYPE_VALUE: {
 				if (!nc->node) {
@@ -966,35 +780,6 @@ void AnimationPlayer::_animation_update_transforms() {
 			TrackNodeCache *nc = cache_update[i];
 
 			ERR_CONTINUE(nc->accum_pass != accum_pass);
-
-#ifndef _3D_DISABLED
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-			if (nc->skeleton && nc->bone_idx >= 0) {
-				if (nc->loc_used) {
-					nc->skeleton->set_bone_pose_position(nc->bone_idx, nc->loc_accum);
-				}
-				if (nc->rot_used) {
-					nc->skeleton->set_bone_pose_rotation(nc->bone_idx, nc->rot_accum);
-				}
-				if (nc->scale_used) {
-					nc->skeleton->set_bone_pose_scale(nc->bone_idx, nc->scale_accum);
-				}
-
-			} else
-#endif
-					if (nc->spatial) {
-				if (nc->loc_used) {
-					nc->spatial->set_translation(nc->loc_accum);
-				}
-				if (nc->rot_used) {
-					nc->spatial->set_rotation(nc->rot_accum.get_euler());
-				}
-				if (nc->scale_used) {
-					nc->spatial->set_scale(nc->scale_accum);
-				}
-			}
-#endif // _3D_DISABLED
 		}
 	}
 
@@ -1641,104 +1426,6 @@ void AnimationPlayer::get_argument_options(const StringName &p_function, int p_i
 	}
 	Node::get_argument_options(p_function, p_idx, r_options, quote_style);
 }
-
-#ifdef TOOLS_ENABLED
-Ref<AnimatedValuesBackup> AnimationPlayer::backup_animated_values(Node *p_root_override) {
-	Ref<AnimatedValuesBackup> backup;
-	if (!playback.current.from) {
-		return backup;
-	}
-
-	_ensure_node_caches(playback.current.from, p_root_override);
-
-	backup.instance();
-	for (int i = 0; i < playback.current.from->node_cache.size(); i++) {
-		TrackNodeCache *nc = playback.current.from->node_cache[i];
-		if (!nc) {
-			continue;
-		}
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-		if (nc->skeleton) {
-			if (nc->bone_idx == -1) {
-				continue;
-			}
-
-			AnimatedValuesBackup::Entry entry;
-
-			Array arr;
-			arr.resize(3);
-			arr[0] = nc->skeleton->get_bone_pose_position(nc->bone_idx);
-			arr[1] = nc->skeleton->get_bone_pose_rotation(nc->bone_idx);
-			arr[2] = nc->skeleton->get_bone_pose_scale(nc->bone_idx);
-			entry.value = nc;
-
-			backup->entries.push_back(entry);
-		} else
-#endif
-		{
-			if (nc->spatial) {
-				AnimatedValuesBackup::Entry entry;
-				entry.object = nc->spatial;
-				entry.subpath.push_back("transform");
-				entry.value = nc->spatial->get_transform();
-				entry.bone_idx = -1;
-				backup->entries.push_back(entry);
-			} else {
-				for (RBMap<StringName, TrackNodeCache::PropertyAnim>::Element *E = nc->property_anim.front(); E; E = E->next()) {
-					AnimatedValuesBackup::Entry entry;
-					entry.object = E->value().object;
-					entry.subpath = E->value().subpath;
-					bool valid;
-					entry.value = E->value().object->get_indexed(E->value().subpath, &valid);
-					entry.bone_idx = -1;
-					if (valid) {
-						backup->entries.push_back(entry);
-					}
-				}
-			}
-		}
-	}
-
-	return backup;
-}
-
-Ref<AnimatedValuesBackup> AnimationPlayer::apply_reset(bool p_user_initiated) {
-	ERR_FAIL_COND_V(!can_apply_reset(), Ref<AnimatedValuesBackup>());
-
-	Ref<Animation> reset_anim = animation_set["RESET"].animation;
-
-	Node *root_node = get_node_or_null(root);
-	ERR_FAIL_COND_V(!root_node, Ref<AnimatedValuesBackup>());
-
-	AnimationPlayer *aux_player = memnew(AnimationPlayer);
-	EditorNode::get_singleton()->add_child(aux_player);
-	aux_player->add_animation("RESET", reset_anim);
-	aux_player->set_assigned_animation("RESET");
-	// Forcing the use of the original root because the scene where original player belongs may be not the active one
-	Node *root = get_node(get_root());
-	Ref<AnimatedValuesBackup> old_values = aux_player->backup_animated_values(root);
-	aux_player->seek(0.0f, true);
-	aux_player->queue_delete();
-
-	if (p_user_initiated) {
-		Ref<AnimatedValuesBackup> new_values = aux_player->backup_animated_values();
-		old_values->restore();
-
-		UndoRedo *ur = EditorNode::get_singleton()->get_undo_redo();
-		ur->create_action(TTR("Anim Apply Reset"));
-		ur->add_do_method(new_values.ptr(), "restore");
-		ur->add_undo_method(old_values.ptr(), "restore");
-		ur->commit_action();
-	}
-
-	return old_values;
-}
-
-bool AnimationPlayer::can_apply_reset() const {
-	return has_animation("RESET") && playback.assigned != StringName("RESET");
-}
-#endif
 
 void AnimationPlayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_node_removed"), &AnimationPlayer::_node_removed);

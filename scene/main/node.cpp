@@ -387,13 +387,6 @@ void Node::_propagate_enter_tree() {
 
 	data.blocked--;
 
-#ifdef DEBUG_ENABLED
-
-	if (ScriptDebugger::get_singleton() && data.filename != String()) {
-		//used for live edit
-		data.tree->live_scene_edit_cache[data.filename].insert(this);
-	}
-#endif
 	// enter groups
 }
 
@@ -435,27 +428,6 @@ void Node::_propagate_after_exit_branch(bool p_exiting_tree) {
 void Node::_propagate_exit_tree() {
 	//block while removing children
 
-#ifdef DEBUG_ENABLED
-
-	if (ScriptDebugger::get_singleton() && data.filename != String()) {
-		//used for live edit
-		RBMap<String, RBSet<Node *>>::Element *E = data.tree->live_scene_edit_cache.find(data.filename);
-		if (E) {
-			E->get().erase(this);
-			if (E->get().size() == 0) {
-				data.tree->live_scene_edit_cache.erase(E);
-			}
-		}
-
-		RBMap<Node *, RBMap<ObjectID, Node *>>::Element *F = data.tree->live_edit_remove_list.find(this);
-		if (F) {
-			for (RBMap<ObjectID, Node *>::Element *G = F->get().front(); G; G = G->next()) {
-				memdelete(G->get());
-			}
-			data.tree->live_edit_remove_list.erase(F);
-		}
-	}
-#endif
 	data.blocked++;
 
 	for (HashMap<StringName, Node *>::Element *E = data.children.back(); E; E = E->prev) {

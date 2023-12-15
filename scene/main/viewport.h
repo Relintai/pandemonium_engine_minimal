@@ -38,9 +38,7 @@
 #include "servers/rendering_server.h"
 #include "world.h"
 
-class Camera;
 class Camera2D;
-class Listener;
 class Listener2D;
 class Control;
 class CanvasItem;
@@ -154,20 +152,7 @@ public:
 	};
 
 public:
-	Listener *get_listener() const;
 	Camera2D *get_camera_2d() const;
-
-	void enable_camera_override(bool p_enable);
-	bool is_camera_override_enabled() const;
-
-	void set_camera_override_transform(const Transform &p_transform);
-	Transform get_camera_override_transform() const;
-
-	void set_camera_override_perspective(float p_fovy_degrees, float p_z_near, float p_z_far);
-	void set_camera_override_orthogonal(float p_size, float p_z_near, float p_z_far);
-
-	void set_as_audio_listener(bool p_enable);
-	bool is_audio_listener() const;
 
 	Listener2D *get_listener_2d() const;
 	void set_as_audio_listener_2d(bool p_enable);
@@ -302,17 +287,12 @@ public:
 	Viewport();
 	~Viewport();
 
-	void _camera_set(Camera *p_camera);
-
 protected:
 	void _notification(int p_what);
 	void _process_picking(bool p_ignore_paused);
 	static void _bind_methods();
 	virtual void _validate_property(PropertyInfo &property) const;
 
-	void _own_world_3d_changed();
-	void _on_set_use_own_world_3d(bool p_use_own_world_3d);
-	void _on_set_world_3d(const Ref<World3D> &p_old_world);
 	void _on_set_world_2d(const Ref<World2D> &p_old_world_2d);
 
 	void _on_before_world_override_changed();
@@ -322,29 +302,6 @@ private:
 	friend class ViewportTexture;
 
 	Viewport *parent;
-
-	Listener *listener;
-	RBSet<Listener *> listeners;
-
-	bool arvr;
-
-	struct CameraOverrideData {
-		Transform transform;
-		enum Projection {
-			PROJECTION_PERSPECTIVE,
-			PROJECTION_ORTHOGONAL
-		};
-		Projection projection;
-		float fov;
-		float size;
-		float z_near;
-		float z_far;
-		RID rid;
-
-		operator bool() const {
-			return rid != RID();
-		}
-	} camera_override;
 
 	Camera2D *camera_2d;
 	Listener2D *listener_2d = nullptr;
@@ -417,7 +374,6 @@ private:
 	StringName unhandled_input_group;
 	StringName unhandled_key_input_group;
 
-	void _update_listener();
 	void _update_listener_2d();
 
 	void _propagate_viewport_notification(Node *p_node, int p_what);
@@ -547,13 +503,6 @@ private:
 	Vector2 _get_window_offset() const;
 
 	bool _gui_drop(Control *p_at_control, Point2 p_at_pos, bool p_just_check);
-
-	friend class Listener;
-	void _listener_transform_changed_notify();
-	void _listener_set(Listener *p_listener);
-	bool _listener_add(Listener *p_listener); //true if first
-	void _listener_remove(Listener *p_listener);
-	void _listener_make_next_current(Listener *p_exclude);
 
 	friend class Camera2D;
 	void _camera_2d_set(Camera2D *p_camera_2d);

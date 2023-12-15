@@ -39,7 +39,6 @@ class PackedScene;
 class Node;
 class SceneTreeTween;
 class ShortCut;
-class Spatial;
 class Viewport;
 class Material;
 class Mesh;
@@ -102,11 +101,6 @@ private:
 		Group() { changed = false; };
 	};
 
-	struct ClientPhysicsInterpolation {
-		SelfList<Spatial>::List _spatials_list;
-		void physics_process();
-	} _client_physics_interpolation;
-
 	Viewport *root;
 
 	uint64_t tree_version;
@@ -139,10 +133,6 @@ private:
 	int64_t current_frame;
 	int64_t current_event;
 	int node_count;
-
-#ifdef TOOLS_ENABLED
-	Node *edited_scene_root;
-#endif
 	struct UGCall {
 		StringName group;
 		StringName call;
@@ -234,7 +224,6 @@ private:
 	void _flush_delete_queue();
 	//optimization
 	friend class CanvasItem;
-	friend class Spatial;
 	friend class Viewport;
 
 	SelfList<Node>::List xform_change_list;
@@ -242,40 +231,6 @@ private:
 	friend class ScriptDebuggerRemote;
 
 	Ref<ShortCut> debugger_stop_shortcut;
-
-#ifdef DEBUG_ENABLED
-
-	RBMap<int, NodePath> live_edit_node_path_cache;
-	RBMap<int, String> live_edit_resource_cache;
-
-	NodePath live_edit_root;
-	String live_edit_scene;
-
-	RBMap<String, RBSet<Node *>> live_scene_edit_cache;
-	RBMap<Node *, RBMap<ObjectID, Node *>> live_edit_remove_list;
-
-	void _debugger_request_tree();
-
-	void _live_edit_node_path_func(const NodePath &p_path, int p_id);
-	void _live_edit_res_path_func(const String &p_path, int p_id);
-
-	void _live_edit_node_set_func(int p_id, const StringName &p_prop, const Variant &p_value);
-	void _live_edit_node_set_res_func(int p_id, const StringName &p_prop, const String &p_value);
-	void _live_edit_node_call_func(int p_id, const StringName &p_method, VARIANT_ARG_DECLARE);
-	void _live_edit_res_set_func(int p_id, const StringName &p_prop, const Variant &p_value);
-	void _live_edit_res_set_res_func(int p_id, const StringName &p_prop, const String &p_value);
-	void _live_edit_res_call_func(int p_id, const StringName &p_method, VARIANT_ARG_DECLARE);
-	void _live_edit_root_func(const NodePath &p_scene_path, const String &p_scene_from);
-
-	void _live_edit_create_node_func(const NodePath &p_parent, const String &p_type, const String &p_name);
-	void _live_edit_instance_node_func(const NodePath &p_parent, const String &p_path, const String &p_name);
-	void _live_edit_remove_node_func(const NodePath &p_at);
-	void _live_edit_remove_and_keep_node_func(const NodePath &p_at, ObjectID p_keep_id);
-	void _live_edit_restore_node_func(ObjectID p_id, const NodePath &p_at, int p_at_pos);
-	void _live_edit_duplicate_node_func(const NodePath &p_at, const String &p_new_name);
-	void _live_edit_reparent_node_func(const NodePath &p_at, const NodePath &p_new_place, const String &p_new_name, int p_at_pos);
-
-#endif
 
 	enum {
 		MAX_IDLE_CALLBACKS = 256
@@ -342,14 +297,6 @@ public:
 	_FORCE_INLINE_ float get_idle_process_time() const {
 		return idle_process_time;
 	}
-
-#ifdef TOOLS_ENABLED
-	bool is_node_being_edited(const Node *p_node) const;
-#else
-	bool is_node_being_edited(const Node *p_node) const {
-		return false;
-	}
-#endif
 
 	void set_pause(bool p_enabled);
 	bool is_paused() const;
@@ -419,9 +366,6 @@ public:
 	//void change_scene(const String& p_path);
 	//Node *get_loaded_scene();
 
-	void set_edited_scene_root(Node *p_node);
-	Node *get_edited_scene_root() const;
-
 	void set_current_scene(Node *p_scene);
 	Node *get_current_scene() const;
 	Error change_scene(const String &p_path);
@@ -462,9 +406,6 @@ public:
 
 	void set_physics_interpolation_enabled(bool p_enabled);
 	bool is_physics_interpolation_enabled() const;
-
-	void client_physics_interpolation_add_spatial(SelfList<Spatial> *p_elem);
-	void client_physics_interpolation_remove_spatial(SelfList<Spatial> *p_elem);
 
 	static void add_idle_callback(IdleCallback p_callback);
 	SceneTree();

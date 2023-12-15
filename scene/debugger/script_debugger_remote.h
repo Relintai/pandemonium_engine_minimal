@@ -133,8 +133,6 @@ class ScriptDebuggerRemote : public ScriptDebugger {
 
 	SceneTree *scene_tree;
 
-	bool _parse_live_edit(const Array &p_command);
-
 	void _set_object_property(ObjectID p_id, const String &p_property, const Variant &p_value);
 
 	void _send_object_id(ObjectID p_id);

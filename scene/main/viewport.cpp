@@ -39,9 +39,6 @@
 #include "scene/2d/camera_2d.h"
 #include "scene/2d/collision_object_2d.h"
 #include "scene/2d/listener_2d.h"
-#include "scene/3d/camera.h"
-#include "scene/3d/listener.h"
-#include "scene/main/spatial.h"
 #include "scene/main/control.h"
 #include "scene/gui/label.h"
 #include "scene/gui/menu_button.h"
@@ -53,7 +50,6 @@
 #include "scene/main/timer.h"
 #include "scene/resources/mesh/mesh.h"
 #include "scene/resources/world_2d.h"
-#include "scene/resources/world_3d.h"
 #include "scene/main/scene_string_names.h"
 #include "servers/physics_2d_server.h"
 
@@ -216,34 +212,6 @@ void Viewport::_update_stretch_transform() {
 	_update_global_transform();
 }
 
-void Viewport::_own_world_3d_changed() {
-	ERR_FAIL_COND(world_3d.is_null());
-	ERR_FAIL_COND(own_world_3d.is_null());
-
-	World::_own_world_3d_changed();
-
-	if (is_inside_tree()) {
-		RenderingServer::get_singleton()->viewport_set_scenario(viewport, find_world_3d()->get_scenario());
-	}
-
-	_update_listener();
-}
-
-void Viewport::_on_set_use_own_world_3d(bool p_use_own_world_3d) {
-	if (is_inside_tree()) {
-		RenderingServer::get_singleton()->viewport_set_scenario(viewport, find_world_3d()->get_scenario());
-	}
-
-	_update_listener();
-}
-
-void Viewport::_on_set_world_3d(const Ref<World3D> &p_old_world) {
-	if (is_inside_tree()) {
-		RenderingServer::get_singleton()->viewport_set_scenario(viewport, find_world_3d()->get_scenario());
-	}
-
-	_update_listener();
-}
 void Viewport::_on_set_world_2d(const Ref<World2D> &p_old_world_2d) {
 	if (is_inside_tree() && p_old_world_2d.is_valid()) {
 		Ref<World2D> old_world_2d = p_old_world_2d;
@@ -277,35 +245,6 @@ void Viewport::_notification(int p_what) {
 			RS::get_singleton()->viewport_set_active(viewport, true);
 		} break;
 		case NOTIFICATION_READY: {
-#ifndef _3D_DISABLED
-			if (listeners.size() && !listener) {
-				Listener *first = nullptr;
-				for (RBSet<Listener *>::Element *E = listeners.front(); E; E = E->next()) {
-					if (first == nullptr || first->is_greater_than(E->get())) {
-						first = E->get();
-					}
-				}
-
-				if (first) {
-					first->make_current();
-				}
-			}
-
-			if (cameras.size() && !camera) {
-				//there are cameras but no current camera, pick first in tree and make it current
-				Camera *first = nullptr;
-				for (RBSet<Camera *>::Element *E = cameras.front(); E; E = E->next()) {
-					if (first == nullptr || first->is_greater_than(E->get())) {
-						first = E->get();
-					}
-				}
-
-				if (first) {
-					first->make_current();
-				}
-			}
-#endif
-
 			// Enable processing for tooltips, collision debugging, physics object picking, etc.
 			set_physics_process_internal(true);
 
@@ -635,16 +574,6 @@ Size2 Viewport::get_size() const {
 	return size;
 }
 
-void Viewport::_update_listener() {
-	/*
-	if (is_inside_tree() && audio_listener && (camera || listener) && (!get_parent() || (Object::cast_to<Control>(get_parent()) && Object::cast_to<Control>(get_parent())->is_visible_in_tree())))  {
-		SpatialSoundServer::get_singleton()->listener_set_space(internal_listener, find_world_3d()->get_sound_space());
-	} else {
-		SpatialSoundServer::get_singleton()->listener_set_space(internal_listener, RID());
-	}
-*/
-}
-
 void Viewport::_update_listener_2d() {
 	/*
 	if (is_inside_tree() && audio_listener && (!get_parent() || (Object::cast_to<Control>(get_parent()) && Object::cast_to<Control>(get_parent())->is_visible_in_tree())))
@@ -652,19 +581,6 @@ void Viewport::_update_listener_2d() {
 	else
 		SpatialSound2DServer::get_singleton()->listener_set_space(internal_listener_2d, RID());
 */
-}
-
-void Viewport::set_as_audio_listener(bool p_enable) {
-	if (p_enable == audio_listener) {
-		return;
-	}
-
-	audio_listener = p_enable;
-	_update_listener();
-}
-
-bool Viewport::is_audio_listener() const {
-	return audio_listener;
 }
 
 void Viewport::set_as_audio_listener_2d(bool p_enable) {
@@ -696,10 +612,8 @@ void Viewport::_on_before_world_override_changed() {
 
 void Viewport::_on_after_world_override_changed() {
 	current_canvas = find_world_2d()->get_canvas();
-	RenderingServer::get_singleton()->viewport_set_scenario(viewport, find_world_3d()->get_scenario());
 	RenderingServer::get_singleton()->viewport_attach_canvas(viewport, current_canvas);
 
-	_update_listener();
 	_update_listener_2d();
 
 	find_world_2d()->_register_world(this, Rect2());
@@ -812,93 +726,6 @@ Transform2D Viewport::get_global_canvas_transform() const {
 	return global_canvas_transform;
 }
 
-void Viewport::_listener_transform_changed_notify() {
-#ifndef _3D_DISABLED
-//if (listener)
-//		SpatialSoundServer::get_singleton()->listener_set_transform(internal_listener, listener->get_listener_transform());
-#endif
-}
-
-void Viewport::_listener_set(Listener *p_listener) {
-#ifndef _3D_DISABLED
-
-	if (listener == p_listener) {
-		return;
-	}
-
-	listener = p_listener;
-
-	_update_listener();
-	_listener_transform_changed_notify();
-#endif
-}
-
-bool Viewport::_listener_add(Listener *p_listener) {
-	listeners.insert(p_listener);
-	return listeners.size() == 1;
-}
-
-void Viewport::_listener_remove(Listener *p_listener) {
-	listeners.erase(p_listener);
-	if (listener == p_listener) {
-		listener = nullptr;
-	}
-}
-
-#ifndef _3D_DISABLED
-void Viewport::_listener_make_next_current(Listener *p_exclude) {
-	if (listeners.size() > 0) {
-		for (RBSet<Listener *>::Element *E = listeners.front(); E; E = E->next()) {
-			if (p_exclude == E->get()) {
-				continue;
-			}
-			if (!E->get()->is_inside_tree()) {
-				continue;
-			}
-			if (listener != nullptr) {
-				return;
-			}
-
-			E->get()->make_current();
-		}
-	} else {
-		// Attempt to reset listener to the camera position
-		if (camera != nullptr) {
-			_update_listener();
-			_camera_transform_changed_notify();
-		}
-	}
-}
-#endif
-
-void Viewport::_camera_set(Camera *p_camera) {
-#ifndef _3D_DISABLED
-
-	if (camera == p_camera) {
-		return;
-	}
-
-	if (camera) {
-		camera->notification(Camera::NOTIFICATION_LOST_CURRENT);
-	}
-	camera = p_camera;
-	if (!camera_override) {
-		if (camera) {
-			RenderingServer::get_singleton()->viewport_attach_camera(viewport, camera->get_camera());
-		} else {
-			RenderingServer::get_singleton()->viewport_attach_camera(viewport, RID());
-		}
-	}
-
-	if (camera) {
-		camera->notification(Camera::NOTIFICATION_BECAME_CURRENT);
-	}
-
-	_update_listener();
-	_camera_transform_changed_notify();
-#endif
-}
-
 void Viewport::_camera_2d_set(Camera2D *p_camera_2d) {
 	camera_2d = p_camera_2d;
 }
@@ -946,86 +773,8 @@ void Viewport::_propagate_viewport_notification(Node *p_node, int p_what) {
 	}
 }
 
-Listener *Viewport::get_listener() const {
-	return listener;
-}
-
 Camera2D *Viewport::get_camera_2d() const {
 	return camera_2d;
-}
-
-void Viewport::enable_camera_override(bool p_enable) {
-#ifndef _3D_DISABLED
-	if (p_enable == camera_override) {
-		return;
-	}
-
-	if (p_enable) {
-		camera_override.rid = RID_PRIME(RenderingServer::get_singleton()->camera_create());
-	} else {
-		RenderingServer::get_singleton()->free(camera_override.rid);
-		camera_override.rid = RID();
-	}
-
-	if (p_enable) {
-		RenderingServer::get_singleton()->viewport_attach_camera(viewport, camera_override.rid);
-	} else if (camera) {
-		RenderingServer::get_singleton()->viewport_attach_camera(viewport, camera->get_camera());
-	} else {
-		RenderingServer::get_singleton()->viewport_attach_camera(viewport, RID());
-	}
-#endif
-}
-
-bool Viewport::is_camera_override_enabled() const {
-	return camera_override;
-}
-
-void Viewport::set_camera_override_transform(const Transform &p_transform) {
-	if (camera_override) {
-		camera_override.transform = p_transform;
-		RenderingServer::get_singleton()->camera_set_transform(camera_override.rid, p_transform);
-	}
-}
-
-Transform Viewport::get_camera_override_transform() const {
-	if (camera_override) {
-		return camera_override.transform;
-	}
-
-	return Transform();
-}
-
-void Viewport::set_camera_override_perspective(float p_fovy_degrees, float p_z_near, float p_z_far) {
-	if (camera_override) {
-		if (camera_override.fov == p_fovy_degrees && camera_override.z_near == p_z_near &&
-				camera_override.z_far == p_z_far && camera_override.projection == CameraOverrideData::PROJECTION_PERSPECTIVE) {
-			return;
-		}
-
-		camera_override.fov = p_fovy_degrees;
-		camera_override.z_near = p_z_near;
-		camera_override.z_far = p_z_far;
-		camera_override.projection = CameraOverrideData::PROJECTION_PERSPECTIVE;
-
-		RenderingServer::get_singleton()->camera_set_perspective(camera_override.rid, camera_override.fov, camera_override.z_near, camera_override.z_far);
-	}
-}
-
-void Viewport::set_camera_override_orthogonal(float p_size, float p_z_near, float p_z_far) {
-	if (camera_override) {
-		if (camera_override.size == p_size && camera_override.z_near == p_z_near &&
-				camera_override.z_far == p_z_far && camera_override.projection == CameraOverrideData::PROJECTION_ORTHOGONAL) {
-			return;
-		}
-
-		camera_override.size = p_size;
-		camera_override.z_near = p_z_near;
-		camera_override.z_far = p_z_far;
-		camera_override.projection = CameraOverrideData::PROJECTION_ORTHOGONAL;
-
-		RenderingServer::get_singleton()->camera_set_orthogonal(camera_override.rid, camera_override.size, camera_override.z_near, camera_override.z_far);
-	}
 }
 
 Transform2D Viewport::get_final_transform() const {
@@ -3043,9 +2792,6 @@ void Viewport::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_camera_2d"), &Viewport::get_camera_2d);
 
-	ClassDB::bind_method(D_METHOD("set_as_audio_listener", "enable"), &Viewport::set_as_audio_listener);
-	ClassDB::bind_method(D_METHOD("is_audio_listener"), &Viewport::is_audio_listener);
-
 	ClassDB::bind_method(D_METHOD("set_as_audio_listener_2d", "enable"), &Viewport::set_as_audio_listener_2d);
 	ClassDB::bind_method(D_METHOD("is_audio_listener_2d"), &Viewport::is_audio_listener_2d);
 	ClassDB::bind_method(D_METHOD("set_attach_to_screen_rect", "rect"), &Viewport::set_attach_to_screen_rect);
@@ -3234,11 +2980,9 @@ Viewport::Viewport() {
 	audio_listener_2d = false;
 	transparent_bg = false;
 	parent = nullptr;
-	listener = nullptr;
 	camera_2d = nullptr;
 	override_canvas_transform = false;
 	canvas_layers.insert(NULL); // This eases picking code (interpreted as the canvas of the Viewport)
-	arvr = false;
 	size_override = false;
 	size_override_stretch = false;
 	size_override_size = Size2(1, 1);

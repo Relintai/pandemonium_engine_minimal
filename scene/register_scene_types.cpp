@@ -70,16 +70,12 @@
 #include "scene/2d/touch_screen_button.h"
 #include "scene/2d/visibility_notifier_2d.h"
 #include "scene/2d/y_sort.h"
-#include "scene/3d/label_3d.h"
-#include "scene/main/spatial.h"
-#include "scene/3d/world_environment_3d.h"
 #include "scene/animation/animation_blend_space_1d.h"
 #include "scene/animation/animation_blend_space_2d.h"
 #include "scene/animation/animation_blend_tree.h"
 #include "scene/animation/animation_node_state_machine.h"
 #include "scene/animation/animation_player.h"
 #include "scene/animation/animation_tree.h"
-#include "scene/animation/root_motion_view.h"
 #include "scene/animation/scene_tree_tween.h"
 #include "scene/animation/tween.h"
 #include "scene/audio/audio_stream_player.h"
@@ -175,32 +171,7 @@
 #include "scene/resources/texture.h"
 #include "scene/resources/video_stream.h"
 #include "scene/resources/world_2d.h"
-#include "scene/resources/world_3d.h"
 #include "scene/main/scene_string_names.h"
-
-#ifndef _3D_DISABLED
-#include "scene/3d/audio_stream_player_3d.h"
-#include "scene/3d/camera.h"
-#include "scene/3d/cpu_particles.h"
-#include "scene/3d/immediate_geometry.h"
-#include "scene/3d/interpolated_camera.h"
-#include "scene/3d/light.h"
-#include "scene/3d/listener.h"
-#include "scene/3d/mesh_instance.h"
-#include "scene/3d/multimesh_instance.h"
-#include "scene/3d/path.h"
-#include "scene/3d/position_3d.h"
-#include "scene/3d/proximity_group.h"
-#include "scene/3d/reflection_probe.h"
-#include "scene/3d/remote_transform.h"
-#include "scene/3d/spatial_velocity_tracker.h"
-#include "scene/3d/sprite_3d.h"
-#include "scene/3d/visibility_notifier.h"
-#include "scene/resources/environment_3d.h"
-#include "scene/resources/mesh/multimesh.h"
-#include "scene/resources/occluder_shape.h"
-#include "scene/resources/occluder_shape_polygon.h"
-#endif
 
 #include "modules/modules_enabled.gen.h" // For freetype.
 
@@ -369,8 +340,6 @@ void register_scene_types() {
 
 	/* REGISTER 3D */
 
-	ClassDB::register_class<Spatial>();
-	ClassDB::register_virtual_class<SpatialGizmo>();
 	ClassDB::register_class<AnimationPlayer>();
 	ClassDB::register_class<Tween>();
 	ClassDB::register_class<SceneTreeTween>();
@@ -404,42 +373,11 @@ void register_scene_types() {
 	OS::get_singleton()->yield(); //may take time to init
 
 #ifndef _3D_DISABLED
-	ClassDB::register_virtual_class<VisualInstance>();
-	ClassDB::register_virtual_class<CullInstance>();
-	ClassDB::register_virtual_class<GeometryInstance>();
-	ClassDB::register_class<Camera>();
-	ClassDB::register_class<Listener>();
-	ClassDB::register_class<InterpolatedCamera>();
-	ClassDB::register_class<MeshInstance>();
-	ClassDB::register_class<ImmediateGeometry>();
-	ClassDB::register_virtual_class<SpriteBase3D>();
-	ClassDB::register_class<Sprite3D>();
-	ClassDB::register_class<AnimatedSprite3D>();
-	ClassDB::register_class<Label3D>();
-	ClassDB::register_virtual_class<Light>();
-	ClassDB::register_class<DirectionalLight>();
-	ClassDB::register_class<OmniLight>();
-	ClassDB::register_class<SpotLight>();
-	ClassDB::register_class<ReflectionProbe>();
-	ClassDB::register_class<CPUParticles>();
-	ClassDB::register_class<Position3D>();
 	ClassDB::register_class<NavigationMesh>();
-
-	ClassDB::register_class<RootMotionView>();
-	ClassDB::set_class_enabled("RootMotionView", false); //disabled by default, enabled by editor
 
 	OS::get_singleton()->yield(); //may take time to init
 
-	ClassDB::register_class<ProximityGroup>();
-	ClassDB::register_class<MultiMeshInstance>();
-
 	ClassDB::register_class<Curve3D>();
-	ClassDB::register_class<Path>();
-	ClassDB::register_class<PathFollow>();
-	ClassDB::register_class<VisibilityNotifier>();
-	ClassDB::register_class<VisibilityEnabler>();
-	ClassDB::register_class<WorldEnvironment3D>();
-	ClassDB::register_class<RemoteTransform>();
 
 	OS::get_singleton()->yield(); //may take time to init
 
@@ -533,12 +471,8 @@ void register_scene_types() {
 
 	OS::get_singleton()->yield(); //may take time to init
 
-	ClassDB::register_class<SpatialVelocityTracker>();
-
 #endif
 	ClassDB::register_class<PhysicsMaterial>();
-	ClassDB::register_class<World3D>();
-	ClassDB::register_class<Environment3D>();
 	ClassDB::register_class<World2D>();
 	ClassDB::register_virtual_class<Texture>();
 	ClassDB::register_virtual_class<Sky>();
@@ -588,9 +522,6 @@ void register_scene_types() {
 
 	ClassDB::register_class<AudioStreamPlayer>();
 	ClassDB::register_class<AudioStreamPlayer2D>();
-#ifndef _3D_DISABLED
-	ClassDB::register_class<AudioStreamPlayer3D>();
-#endif
 	ClassDB::register_virtual_class<VideoStream>();
 	ClassDB::register_class<AudioStreamSample>();
 
@@ -638,17 +569,14 @@ void register_scene_types() {
 
 	for (int i = 0; i < 20; i++) {
 		GLOBAL_DEF("layer_names/2d_render/layer_" + itos(i + 1), "");
-		GLOBAL_DEF("layer_names/3d_render/layer_" + itos(i + 1), "");
 	}
 
 	for (int i = 0; i < 32; i++) {
 		GLOBAL_DEF("layer_names/2d_physics/layer_" + itos(i + 1), "");
-		GLOBAL_DEF("layer_names/3d_physics/layer_" + itos(i + 1), "");
 	}
 
 	for (int i = 0; i < 32; i++) {
 		GLOBAL_DEF("layer_names/2d_navigation/layer_" + itos(i + 1), "");
-		GLOBAL_DEF("layer_names/3d_navigation/layer_" + itos(i + 1), "");
 	}
 
 	for (int i = 0; i < 32; i++) {

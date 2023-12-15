@@ -34,13 +34,8 @@
 #include "animation_player.h"
 #include "core/config/engine.h"
 #include "core/object/method_bind_ext.gen.inc"
-#include "scene/main/spatial.h"
 #include "scene/main/scene_string_names.h"
 #include "servers/audio/audio_stream.h"
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-#include "modules/skeleton_3d/nodes/skeleton.h"
-#endif
 
 void AnimationNode::get_parameter_list(List<PropertyInfo> *r_list) const {
 	if (get_script_instance()) {
@@ -617,85 +612,6 @@ bool AnimationTree::_update_caches(AnimationPlayer *player) {
 					case Animation::TYPE_POSITION_3D:
 					case Animation::TYPE_ROTATION_3D:
 					case Animation::TYPE_SCALE_3D: {
-#ifndef _3D_DISABLED
-						Spatial *spatial = Object::cast_to<Spatial>(child);
-
-						if (!spatial) {
-							ERR_PRINT("AnimationTree: '" + String(E->get()) + "', transform track does not point to spatial:  '" + String(path) + "'");
-							continue;
-						}
-
-						//Always uses TYPE_POSITION_3D as type (Constructor)
-						//Note that these are stored using their path as the key in a hashmap
-						//So only one will be allocated for a given spatial
-						//track_xform->type = Animation::TYPE_POSITION_3D;
-						TrackCacheTransform *track_xform = memnew(TrackCacheTransform);
-
-						track_xform->spatial = spatial;
-#ifdef MODULE_SKELETON_3D_ENABLED
-						track_xform->skeleton = nullptr;
-						track_xform->bone_idx = -1;
-#endif
-
-						bool has_rest = false;
-
-#ifdef MODULE_SKELETON_3D_ENABLED
-						if (path.get_subname_count() == 1 && Object::cast_to<Skeleton>(spatial)) {
-							Skeleton *sk = Object::cast_to<Skeleton>(spatial);
-							track_xform->skeleton = sk;
-							int bone_idx = sk->find_bone(path.get_subname(0));
-							if (bone_idx != -1) {
-								has_rest = true;
-								track_xform->bone_idx = bone_idx;
-								Transform rest = sk->get_bone_rest(bone_idx);
-								track_xform->init_loc = rest.origin;
-								track_xform->ref_rot = rest.basis.get_rotation_quaternion();
-								track_xform->init_rot = track_xform->ref_rot.log();
-								track_xform->init_scale = rest.basis.get_scale();
-							}
-						}
-#endif
-
-						track_xform->object = spatial;
-						track_xform->object_id = track_xform->object->get_instance_id();
-
-						track = track_xform;
-
-						switch (track_type) {
-							case Animation::TYPE_POSITION_3D: {
-								track_xform->loc_used = true;
-							} break;
-							case Animation::TYPE_ROTATION_3D: {
-								track_xform->rot_used = true;
-							} break;
-							case Animation::TYPE_SCALE_3D: {
-								track_xform->scale_used = true;
-							} break;
-							default: {
-							}
-						}
-
-						// For non Skeleton3D bone animation.
-						if (has_reset_anim && !has_rest) {
-							int rt = reset_anim->find_track(path, track_type);
-							if (rt >= 0 && reset_anim->track_get_key_count(rt) > 0) {
-								switch (track_type) {
-									case Animation::TYPE_POSITION_3D: {
-										track_xform->init_loc = reset_anim->track_get_key_value(rt, 0);
-									} break;
-									case Animation::TYPE_ROTATION_3D: {
-										track_xform->ref_rot = reset_anim->track_get_key_value(rt, 0);
-										track_xform->init_rot = track_xform->ref_rot.log();
-									} break;
-									case Animation::TYPE_SCALE_3D: {
-										track_xform->init_scale = reset_anim->track_get_key_value(rt, 0);
-									} break;
-									default: {
-									}
-								}
-							}
-						}
-#endif
 					} break;
 					case Animation::TYPE_METHOD: {
 						TrackCacheMethod *track_method = memnew(TrackCacheMethod);
@@ -1491,30 +1407,6 @@ void AnimationTree::_process_graph(float p_delta) {
 
 						root_motion_transform = xform;
 					}
-#ifdef MODULE_SKELETON_3D_ENABLED
-					else if (t->skeleton && t->bone_idx >= 0) {
-						if (t->loc_used) {
-							t->skeleton->set_bone_pose_position(t->bone_idx, t->loc);
-						}
-						if (t->rot_used) {
-							t->skeleton->set_bone_pose_rotation(t->bone_idx, t->rot);
-						}
-						if (t->scale_used) {
-							t->skeleton->set_bone_pose_scale(t->bone_idx, t->scale);
-						}
-
-					} else if (!t->skeleton) {
-						if (t->loc_used) {
-							t->spatial->set_translation(t->loc);
-						}
-						if (t->rot_used) {
-							t->spatial->set_rotation(t->rot.get_euler());
-						}
-						if (t->scale_used) {
-							t->spatial->set_scale(t->scale);
-						}
-					}
-#endif
 #endif // _3D_DISABLED
 				} break;
 				case Animation::TYPE_VALUE: {

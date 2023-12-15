@@ -33,39 +33,9 @@
 #include "core/object/reference.h"
 #include "scene/main/node.h"
 
-#include "modules/modules_enabled.gen.h"
-
 class Resource;
-class Spatial;
 class Node2D;
-#ifdef MODULE_SKELETON_3D_ENABLED
-class Skeleton;
-#endif
 class Animation;
-
-#ifdef TOOLS_ENABLED
-
-class AnimatedValuesBackup : public Reference {
-	GDCLASS(AnimatedValuesBackup, Reference);
-
-	struct Entry {
-		Object *object;
-		Vector<StringName> subpath; // Unused if bone
-		int bone_idx; // -1 if not a bone
-		Variant value;
-	};
-	Vector<Entry> entries;
-
-	friend class AnimationPlayer;
-
-protected:
-	static void _bind_methods();
-
-public:
-	void update_skeletons();
-	void restore() const;
-};
-#endif
 
 class AnimationPlayer : public Node {
 	GDCLASS(AnimationPlayer, Node);
@@ -104,11 +74,7 @@ private:
 		uint32_t id;
 		Ref<Resource> resource;
 		Node *node;
-		Spatial *spatial;
 		Node2D *node_2d;
-#ifdef MODULE_SKELETON_3D_ENABLED
-		Skeleton *skeleton;
-#endif
 		int bone_idx;
 		// accumulated transforms
 
@@ -170,11 +136,7 @@ private:
 		TrackNodeCache() :
 				id(0),
 				node(nullptr),
-				spatial(nullptr),
 				node_2d(nullptr),
-#ifdef MODULE_SKELETON_3D_ENABLED
-				skeleton(nullptr),
-#endif
 				bone_idx(-1),
 				accum_pass(0),
 				audio_playing(false),

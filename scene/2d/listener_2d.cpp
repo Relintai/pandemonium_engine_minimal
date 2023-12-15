@@ -47,7 +47,7 @@ bool Listener2D::_set(const StringName &p_name, const Variant &p_value) {
 
 bool Listener2D::_get(const StringName &p_name, Variant &r_ret) const {
 	if (p_name == "current") {
-		if (is_inside_tree() && get_tree()->is_node_being_edited(this)) {
+		if (is_inside_tree()) {
 			r_ret = current;
 		} else {
 			r_ret = is_current();
@@ -65,18 +65,14 @@ void Listener2D::_get_property_list(List<PropertyInfo> *p_list) const {
 void Listener2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
-			if (!get_tree()->is_node_being_edited(this) && current) {
-				make_current();
-			}
+			make_current();
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
-			if (!get_tree()->is_node_being_edited(this)) {
-				if (is_current()) {
-					clear_current();
-					current = true; // Keep it true.
-				} else {
-					current = false;
-				}
+			if (is_current()) {
+				clear_current();
+				current = true; // Keep it true.
+			} else {
+				current = false;
 			}
 		} break;
 	}
@@ -99,7 +95,7 @@ void Listener2D::clear_current() {
 }
 
 bool Listener2D::is_current() const {
-	if (is_inside_tree() && !get_tree()->is_node_being_edited(this)) {
+	if (is_inside_tree()) {
 		return get_viewport()->get_listener_2d() == this;
 	} else {
 		return current;
