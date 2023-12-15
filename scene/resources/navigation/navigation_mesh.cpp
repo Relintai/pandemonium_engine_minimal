@@ -31,7 +31,6 @@
 #include "navigation_mesh.h"
 
 #include "servers/navigation_server.h"
-#include "scene/resources/material/spatial_material.h"
 
 void NavigationMesh::create_from_mesh(const Ref<Mesh> &p_mesh) {
 	ERR_FAIL_COND(p_mesh.is_null());
@@ -445,8 +444,6 @@ Ref<ArrayMesh> NavigationMesh::get_debug_mesh() {
 	}
 
 	debug_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, face_mesh_array);
-	Ref<SpatialMaterial> debug_geometry_face_material = NavigationServer::get_singleton()->get_debug_navigation_geometry_face_material();
-	debug_mesh->surface_set_material(debug_mesh->get_surface_count(), debug_geometry_face_material);
 
 	// if enabled build geometry edge line surface
 	bool enabled_edge_lines = NavigationServer::get_singleton()->get_debug_navigation_enable_edge_lines();
@@ -470,8 +467,6 @@ Ref<ArrayMesh> NavigationMesh::get_debug_mesh() {
 		line_mesh_array.resize(Mesh::ARRAY_MAX);
 		line_mesh_array[Mesh::ARRAY_VERTEX] = line_vertex_array;
 		debug_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_LINES, line_mesh_array);
-		Ref<SpatialMaterial> debug_geometry_edge_material = NavigationServer::get_singleton()->get_debug_navigation_geometry_edge_material();
-		debug_mesh->surface_set_material(debug_mesh->get_surface_count() - 1, debug_geometry_edge_material);
 	}
 
 	return debug_mesh;

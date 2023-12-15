@@ -146,7 +146,6 @@
 #include "scene/resources/mesh/immediate_mesh.h"
 #include "scene/resources/shapes_2d/line_shape_2d.h"
 #include "scene/resources/material/material.h"
-#include "scene/resources/material/spatial_material.h"
 #include "scene/resources/material/shader_material.h"
 #include "scene/resources/mesh/mesh.h"
 #include "scene/resources/mesh/mesh_data_tool.h"
@@ -155,16 +154,12 @@
 #include "scene/resources/navigation_2d/navigation_mesh_source_geometry_data_2d.h"
 #include "scene/resources/navigation_2d/navigation_polygon.h"
 #include "scene/resources/packed_scene.h"
-#include "scene/resources/material/particles_material.h"
 #include "scene/resources/mesh/polygon_path_finder.h"
 #include "scene/resources/mesh/primitive_meshes.h"
 #include "scene/resources/shapes_2d/rectangle_shape_2d.h"
 #include "scene/resources/resource_format_text.h"
 #include "scene/resources/shapes_2d/segment_shape_2d.h"
-
 #include "scene/resources/physics_material.h"
-
-#include "scene/resources/sky.h"
 #include "scene/resources/mesh/surface_tool.h"
 #include "scene/gui/resources/syntax_highlighter.h"
 #include "scene/resources/text_file.h"
@@ -442,9 +437,6 @@ void register_scene_types() {
 	/* REGISTER RESOURCES */
 
 	ClassDB::register_virtual_class<Shader>();
-	ClassDB::register_class<ParticlesMaterial>();
-	SceneTree::add_idle_callback(ParticlesMaterial::flush_changes);
-	ParticlesMaterial::init_shaders();
 
 	ClassDB::register_virtual_class<Mesh>();
 	ClassDB::register_class<ArrayMesh>();
@@ -465,9 +457,6 @@ void register_scene_types() {
 	ClassDB::register_class<TextMesh>();
 	ClassDB::register_class<PointMesh>();
 	ClassDB::register_virtual_class<Material>();
-	ClassDB::register_class<SpatialMaterial>();
-	SceneTree::add_idle_callback(SpatialMaterial::flush_changes);
-	SpatialMaterial::init_shaders();
 
 	OS::get_singleton()->yield(); //may take time to init
 
@@ -475,9 +464,6 @@ void register_scene_types() {
 	ClassDB::register_class<PhysicsMaterial>();
 	ClassDB::register_class<World2D>();
 	ClassDB::register_virtual_class<Texture>();
-	ClassDB::register_virtual_class<Sky>();
-	ClassDB::register_class<PanoramaSky>();
-	ClassDB::register_class<ProceduralSky>();
 	ClassDB::register_class<StreamTexture>();
 	ClassDB::register_class<ImageTexture>();
 	ClassDB::register_class<AtlasTexture>();
@@ -647,12 +633,6 @@ void unregister_scene_types() {
 	ResourceLoader::remove_resource_format_loader(resource_loader_bmfont);
 	resource_loader_bmfont.unref();
 
-	//SpatialMaterial is not initialised when 3D is disabled, so it shouldn't be cleaned up either
-#ifndef _3D_DISABLED
-	SpatialMaterial::finish_shaders();
-#endif // _3D_DISABLED
-
-	ParticlesMaterial::finish_shaders();
 	CanvasItemMaterial::finish_shaders();
 	SceneStringNames::free();
 }

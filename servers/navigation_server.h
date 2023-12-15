@@ -38,7 +38,6 @@
 #include "core/object/reference.h"
 
 class NavigationMesh;
-class SpatialMaterial;
 class NavigationPathQueryParameters3D;
 class NavigationPathQueryResult3D;
 
@@ -415,25 +414,6 @@ public:
 	void set_debug_navigation_avoidance_enable_obstacles_static(const bool p_value);
 	bool get_debug_navigation_avoidance_enable_obstacles_static() const;
 
-	Ref<SpatialMaterial> get_debug_navigation_geometry_face_material();
-	Ref<SpatialMaterial> get_debug_navigation_geometry_edge_material();
-	Ref<SpatialMaterial> get_debug_navigation_geometry_face_disabled_material();
-	Ref<SpatialMaterial> get_debug_navigation_geometry_edge_disabled_material();
-	Ref<SpatialMaterial> get_debug_navigation_edge_connections_material();
-	Ref<SpatialMaterial> get_debug_navigation_link_connections_material();
-	Ref<SpatialMaterial> get_debug_navigation_link_connections_disabled_material();
-
-	Ref<SpatialMaterial> get_debug_navigation_agent_path_line_material();
-	Ref<SpatialMaterial> get_debug_navigation_agent_path_point_material();
-
-	Ref<SpatialMaterial> get_debug_navigation_avoidance_agents_radius_material();
-	Ref<SpatialMaterial> get_debug_navigation_avoidance_obstacles_radius_material();
-
-	Ref<SpatialMaterial> get_debug_navigation_avoidance_static_obstacle_pushin_face_material();
-	Ref<SpatialMaterial> get_debug_navigation_avoidance_static_obstacle_pushout_face_material();
-	Ref<SpatialMaterial> get_debug_navigation_avoidance_static_obstacle_pushin_edge_material();
-	Ref<SpatialMaterial> get_debug_navigation_avoidance_static_obstacle_pushout_edge_material();
-
 protected:
 	bool _debug_enabled;
 	bool _debug_dirty;
@@ -478,24 +458,6 @@ protected:
 	bool _debug_navigation_avoidance_enable_agents_radius;
 	bool _debug_navigation_avoidance_enable_obstacles_radius;
 	bool _debug_navigation_avoidance_enable_obstacles_static;
-
-	Ref<SpatialMaterial> _debug_navigation_geometry_edge_material;
-	Ref<SpatialMaterial> _debug_navigation_geometry_face_material;
-	Ref<SpatialMaterial> _debug_navigation_geometry_edge_disabled_material;
-	Ref<SpatialMaterial> _debug_navigation_geometry_face_disabled_material;
-	Ref<SpatialMaterial> _debug_navigation_edge_connections_material;
-	Ref<SpatialMaterial> _debug_navigation_link_connections_material;
-	Ref<SpatialMaterial> _debug_navigation_link_connections_disabled_material;
-	Ref<SpatialMaterial> _debug_navigation_avoidance_agents_radius_material;
-	Ref<SpatialMaterial> _debug_navigation_avoidance_obstacles_radius_material;
-
-	Ref<SpatialMaterial> _debug_navigation_avoidance_static_obstacle_pushin_face_material;
-	Ref<SpatialMaterial> _debug_navigation_avoidance_static_obstacle_pushout_face_material;
-	Ref<SpatialMaterial> _debug_navigation_avoidance_static_obstacle_pushin_edge_material;
-	Ref<SpatialMaterial> _debug_navigation_avoidance_static_obstacle_pushout_edge_material;
-
-	Ref<SpatialMaterial> _debug_navigation_agent_path_line_material;
-	Ref<SpatialMaterial> _debug_navigation_agent_path_point_material;
 
 #endif // DEBUG_ENABLED
 };

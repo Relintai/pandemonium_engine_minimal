@@ -47,7 +47,6 @@
 #include "scene/main/control.h"
 #include "scene/resources/font/dynamic_font.h"
 #include "scene/resources/material/material.h"
-#include "scene/resources/material/spatial_material.h"
 #include "scene/resources/material/shader_material.h"
 #include "scene/resources/mesh/mesh.h"
 #include "scene/resources/packed_scene.h"
@@ -988,15 +987,6 @@ Ref<Material> SceneTree::get_debug_paths_material() {
 		return debug_paths_material;
 	}
 
-	Ref<SpatialMaterial> _debug_material = Ref<SpatialMaterial>(memnew(SpatialMaterial));
-	_debug_material->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-	_debug_material->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
-	_debug_material->set_flag(SpatialMaterial::FLAG_SRGB_VERTEX_COLOR, true);
-	_debug_material->set_flag(SpatialMaterial::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
-	_debug_material->set_albedo(get_debug_paths_color());
-
-	debug_paths_material = _debug_material;
-
 	return debug_paths_material;
 }
 
@@ -1006,15 +996,6 @@ Ref<Material> SceneTree::get_debug_collision_material() {
 	if (collision_material.is_valid()) {
 		return collision_material;
 	}
-
-	Ref<SpatialMaterial> line_material = Ref<SpatialMaterial>(memnew(SpatialMaterial));
-	line_material->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-	line_material->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
-	line_material->set_flag(SpatialMaterial::FLAG_SRGB_VERTEX_COLOR, true);
-	line_material->set_flag(SpatialMaterial::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
-	line_material->set_albedo(get_debug_collisions_color());
-
-	collision_material = line_material;
 
 	return collision_material;
 }
@@ -1027,13 +1008,6 @@ Ref<ArrayMesh> SceneTree::get_debug_contact_mesh() {
 	}
 
 	debug_contact_mesh = Ref<ArrayMesh>(memnew(ArrayMesh));
-
-	Ref<SpatialMaterial> mat = Ref<SpatialMaterial>(memnew(SpatialMaterial));
-	mat->set_flag(SpatialMaterial::FLAG_UNSHADED, true);
-	mat->set_feature(SpatialMaterial::FEATURE_TRANSPARENT, true);
-	mat->set_flag(SpatialMaterial::FLAG_SRGB_VERTEX_COLOR, true);
-	mat->set_flag(SpatialMaterial::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
-	mat->set_albedo(get_debug_collision_contact_color());
 
 	Vector3 diamond[6] = {
 		Vector3(-1, 0, 0),
@@ -1073,7 +1047,6 @@ Ref<ArrayMesh> SceneTree::get_debug_contact_mesh() {
 	arr[Mesh::ARRAY_INDEX] = indices;
 
 	debug_contact_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arr);
-	debug_contact_mesh->surface_set_material(0, mat);
 
 	return debug_contact_mesh;
 }

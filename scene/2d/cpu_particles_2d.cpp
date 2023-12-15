@@ -34,9 +34,7 @@
 #include "core/os/os.h"
 #include "core/containers/fixed_array.h"
 #include "core/math/transform_interpolator.h"
-
 #include "scene/main/canvas_item.h"
-#include "scene/resources/material/particles_material.h"
 #include "scene/resources/texture.h"
 #include "servers/rendering_server.h"
 
