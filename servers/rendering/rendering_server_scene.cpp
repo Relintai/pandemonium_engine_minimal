@@ -539,8 +539,7 @@ void RenderingServerScene::instance_set_base(RID p_instance, RID p_base) {
 				instance->base_data = light;
 			} break;
 			case RS::INSTANCE_MESH:
-			case RS::INSTANCE_MULTIMESH:
-			case RS::INSTANCE_IMMEDIATE: {
+			case RS::INSTANCE_MULTIMESH: {
 				InstanceGeometryData *geom = memnew(InstanceGeometryData);
 				instance->base_data = geom;
 				if (instance->base_type == RS::INSTANCE_MESH) {
@@ -1039,7 +1038,7 @@ void RenderingServerScene::instance_set_visible(RID p_instance, bool p_visible) 
 	}
 }
 inline bool is_geometry_instance(RenderingServer::InstanceType p_type) {
-	return p_type == RS::INSTANCE_MESH || p_type == RS::INSTANCE_MULTIMESH || p_type == RS::INSTANCE_IMMEDIATE;
+	return p_type == RS::INSTANCE_MESH || p_type == RS::INSTANCE_MULTIMESH;
 }
 
 void RenderingServerScene::instance_set_custom_aabb(RID p_instance, AABB p_aabb) {
@@ -1333,14 +1332,6 @@ void RenderingServerScene::_update_instance_aabb(Instance *p_instance) {
 			}
 
 		} break;
-		case RenderingServer::INSTANCE_IMMEDIATE: {
-			if (p_instance->custom_aabb) {
-				new_aabb = *p_instance->custom_aabb;
-			} else {
-				new_aabb = RSG::storage->immediate_get_aabb(p_instance->base);
-			}
-
-		} break;
 		case RenderingServer::INSTANCE_LIGHT: {
 			new_aabb = RSG::storage->light_get_aabb(p_instance->base);
 
@@ -1451,14 +1442,6 @@ void RenderingServerScene::_update_dirty_instance(Instance *p_instance) {
 						if (!cast_shadows) {
 							can_cast_shadows = false;
 						}
-					}
-				} else if (p_instance->base_type == RS::INSTANCE_IMMEDIATE) {
-					RID mat = RSG::storage->immediate_get_material(p_instance->base);
-
-					can_cast_shadows = !mat.is_valid() || RSG::storage->material_casts_shadows(mat);
-
-					if (mat.is_valid() && RSG::storage->material_is_animated(mat)) {
-						is_animated = true;
 					}
 				}
 			}

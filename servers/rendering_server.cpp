@@ -1919,21 +1919,6 @@ void RenderingServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("multimesh_set_physics_interpolated", "multimesh", "interpolated"), &RenderingServer::multimesh_set_physics_interpolated);
 	ClassDB::bind_method(D_METHOD("multimesh_set_physics_interpolation_quality", "multimesh", "quality"), &RenderingServer::multimesh_set_physics_interpolation_quality);
 	ClassDB::bind_method(D_METHOD("multimesh_instance_reset_physics_interpolation", "multimesh", "index"), &RenderingServer::multimesh_instance_reset_physics_interpolation);
-#ifndef _3D_DISABLED
-	ClassDB::bind_method(D_METHOD("immediate_create"), &RenderingServer::immediate_create);
-	ClassDB::bind_method(D_METHOD("immediate_begin", "immediate", "primitive", "texture"), &RenderingServer::immediate_begin, DEFVAL(RID()));
-	ClassDB::bind_method(D_METHOD("immediate_vertex", "immediate", "vertex"), &RenderingServer::immediate_vertex);
-	ClassDB::bind_method(D_METHOD("immediate_vertex_2d", "immediate", "vertex"), &RenderingServer::immediate_vertex_2d);
-	ClassDB::bind_method(D_METHOD("immediate_normal", "immediate", "normal"), &RenderingServer::immediate_normal);
-	ClassDB::bind_method(D_METHOD("immediate_tangent", "immediate", "tangent"), &RenderingServer::immediate_tangent);
-	ClassDB::bind_method(D_METHOD("immediate_color", "immediate", "color"), &RenderingServer::immediate_color);
-	ClassDB::bind_method(D_METHOD("immediate_uv", "immediate", "tex_uv"), &RenderingServer::immediate_uv);
-	ClassDB::bind_method(D_METHOD("immediate_uv2", "immediate", "tex_uv"), &RenderingServer::immediate_uv2);
-	ClassDB::bind_method(D_METHOD("immediate_end", "immediate"), &RenderingServer::immediate_end);
-	ClassDB::bind_method(D_METHOD("immediate_clear", "immediate"), &RenderingServer::immediate_clear);
-	ClassDB::bind_method(D_METHOD("immediate_set_material", "immediate", "material"), &RenderingServer::immediate_set_material);
-	ClassDB::bind_method(D_METHOD("immediate_get_material", "immediate"), &RenderingServer::immediate_get_material);
-#endif
 
 #ifndef _3D_DISABLED
 	ClassDB::bind_method(D_METHOD("directional_light_create"), &RenderingServer::directional_light_create);
@@ -2327,7 +2312,6 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(INSTANCE_NONE);
 	BIND_ENUM_CONSTANT(INSTANCE_MESH);
 	BIND_ENUM_CONSTANT(INSTANCE_MULTIMESH);
-	BIND_ENUM_CONSTANT(INSTANCE_IMMEDIATE);
 	BIND_ENUM_CONSTANT(INSTANCE_LIGHT);
 	BIND_ENUM_CONSTANT(INSTANCE_REFLECTION_PROBE);
 	BIND_ENUM_CONSTANT(INSTANCE_MAX);
@@ -2437,10 +2421,6 @@ void RenderingServer::mesh_add_surface_from_mesh_data(RID p_mesh, const Geometry
 void RenderingServer::mesh_add_surface_from_planes(RID p_mesh, const PoolVector<Plane> &p_planes) {
 	Geometry::MeshData mdata = Geometry::build_convex_mesh(p_planes);
 	mesh_add_surface_from_mesh_data(p_mesh, mdata);
-}
-
-void RenderingServer::immediate_vertex_2d(RID p_immediate, const Vector2 &p_vertex) {
-	immediate_vertex(p_immediate, Vector3(p_vertex.x, p_vertex.y, 0));
 }
 
 RID RenderingServer::instance_create2(RID p_base, RID p_scenario) {

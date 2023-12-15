@@ -1107,14 +1107,6 @@ void RasterizerSceneGLES2::_fill_render_list(InstanceBase **p_cull_result, int p
 				}
 			} break;
 
-			case RS::INSTANCE_IMMEDIATE: {
-				RasterizerStorageGLES2::Immediate *im = storage->immediate_owner.getptr(instance->base);
-				ERR_CONTINUE(!im);
-
-				_add_geometry(im, instance, nullptr, -1, p_depth_pass, p_shadow_pass);
-
-			} break;
-
 			default: {
 			}
 		}
@@ -1351,9 +1343,6 @@ void RasterizerSceneGLES2::_setup_geometry(RenderList::Element *p_element) {
 
 		} break;
 
-		case RS::INSTANCE_IMMEDIATE: {
-		} break;
-
 		default: {
 		}
 	}
@@ -1448,116 +1437,6 @@ void RasterizerSceneGLES2::_render_geometry(RenderList::Element *p_element) {
 					glDrawArrays(gl_primitive[s->primitive], 0, s->array_len);
 					storage->info.render.vertices_count += s->array_len;
 				}
-			}
-
-		} break;
-
-		case RS::INSTANCE_IMMEDIATE: {
-			const RasterizerStorageGLES2::Immediate *im = static_cast<const RasterizerStorageGLES2::Immediate *>(p_element->geometry);
-
-			if (im->building) {
-				return;
-			}
-
-			bool restore_tex = false;
-
-			glBindBuffer(GL_ARRAY_BUFFER, state.immediate_buffer);
-
-			for (const List<RasterizerStorageGLES2::Immediate::Chunk>::Element *E = im->chunks.front(); E; E = E->next()) {
-				const RasterizerStorageGLES2::Immediate::Chunk &c = E->get();
-
-				if (c.vertices.empty()) {
-					continue;
-				}
-
-				int vertices = c.vertices.size();
-
-				uint32_t buf_ofs = 0;
-
-				storage->info.render.vertices_count += vertices;
-
-				if (c.texture.is_valid() && storage->texture_owner.owns(c.texture)) {
-					RasterizerStorageGLES2::Texture *t = storage->texture_owner.get(c.texture);
-
-					if (t->redraw_if_visible) {
-						RenderingServerRaster::redraw_request(false);
-					}
-					t = t->get_ptr();
-
-#ifdef TOOLS_ENABLED
-					if (t->detect_3d) {
-						t->detect_3d(t->detect_3d_ud);
-					}
-#endif
-					if (t->render_target) {
-						t->render_target->used_in_frame = true;
-					}
-
-					WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-					glBindTexture(t->target, t->tex_id);
-					restore_tex = true;
-				} else if (restore_tex) {
-					WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, state.current_main_tex);
-					restore_tex = false;
-				}
-
-				if (!c.normals.empty()) {
-					glEnableVertexAttribArray(RS::ARRAY_NORMAL);
-					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Vector3) * vertices, c.normals.ptr());
-					glVertexAttribPointer(RS::ARRAY_NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Vector3), CAST_INT_TO_UCHAR_PTR(buf_ofs));
-					buf_ofs += sizeof(Vector3) * vertices;
-				} else {
-					glDisableVertexAttribArray(RS::ARRAY_NORMAL);
-				}
-
-				if (!c.tangents.empty()) {
-					glEnableVertexAttribArray(RS::ARRAY_TANGENT);
-					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Plane) * vertices, c.tangents.ptr());
-					glVertexAttribPointer(RS::ARRAY_TANGENT, 4, GL_FLOAT, GL_FALSE, sizeof(Plane), CAST_INT_TO_UCHAR_PTR(buf_ofs));
-					buf_ofs += sizeof(Plane) * vertices;
-				} else {
-					glDisableVertexAttribArray(RS::ARRAY_TANGENT);
-				}
-
-				if (!c.colors.empty()) {
-					glEnableVertexAttribArray(RS::ARRAY_COLOR);
-					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Color) * vertices, c.colors.ptr());
-					glVertexAttribPointer(RS::ARRAY_COLOR, 4, GL_FLOAT, GL_FALSE, sizeof(Color), CAST_INT_TO_UCHAR_PTR(buf_ofs));
-					buf_ofs += sizeof(Color) * vertices;
-				} else {
-					glDisableVertexAttribArray(RS::ARRAY_COLOR);
-				}
-
-				if (!c.uvs.empty()) {
-					glEnableVertexAttribArray(RS::ARRAY_TEX_UV);
-					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Vector2) * vertices, c.uvs.ptr());
-					glVertexAttribPointer(RS::ARRAY_TEX_UV, 2, GL_FLOAT, GL_FALSE, sizeof(Vector2), CAST_INT_TO_UCHAR_PTR(buf_ofs));
-					buf_ofs += sizeof(Vector2) * vertices;
-				} else {
-					glDisableVertexAttribArray(RS::ARRAY_TEX_UV);
-				}
-
-				if (!c.uv2s.empty()) {
-					glEnableVertexAttribArray(RS::ARRAY_TEX_UV2);
-					glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Vector2) * vertices, c.uv2s.ptr());
-					glVertexAttribPointer(RS::ARRAY_TEX_UV2, 2, GL_FLOAT, GL_FALSE, sizeof(Vector2), CAST_INT_TO_UCHAR_PTR(buf_ofs));
-					buf_ofs += sizeof(Vector2) * vertices;
-				} else {
-					glDisableVertexAttribArray(RS::ARRAY_TEX_UV2);
-				}
-
-				glEnableVertexAttribArray(RS::ARRAY_VERTEX);
-				glBufferSubData(GL_ARRAY_BUFFER, buf_ofs, sizeof(Vector3) * vertices, c.vertices.ptr());
-				glVertexAttribPointer(RS::ARRAY_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(Vector3), CAST_INT_TO_UCHAR_PTR(buf_ofs));
-
-				glDrawArrays(gl_primitive[c.primitive], 0, c.vertices.size());
-			}
-
-			if (restore_tex) {
-				WRAPPED_GL_ACTIVE_TEXTURE(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, state.current_main_tex);
-				restore_tex = false;
 			}
 
 		} break;
@@ -2124,8 +2003,7 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 
 		state.scene_shader.set_conditional(SceneShaderGLES2::USE_PHYSICAL_LIGHT_ATTENUATION, storage->config.use_physical_light_attenuation);
 
-		bool octahedral_compression = e->instance->base_type != RS::INSTANCE_IMMEDIATE &&
-				((RasterizerStorageGLES2::Surface *)e->geometry)->format & RenderingServer::ArrayFormat::ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION &&
+		bool octahedral_compression = ((RasterizerStorageGLES2::Surface *)e->geometry)->format & RenderingServer::ArrayFormat::ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION &&
 				(((RasterizerStorageGLES2::Surface *)e->geometry)->blend_shape_data.empty() || ((RasterizerStorageGLES2::Surface *)e->geometry)->blend_shape_buffer_size == 0);
 		if (octahedral_compression != prev_octahedral_compression) {
 			state.scene_shader.set_conditional(SceneShaderGLES2::ENABLE_OCTAHEDRAL_COMPRESSION, octahedral_compression);
