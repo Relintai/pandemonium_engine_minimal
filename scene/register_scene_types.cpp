@@ -62,14 +62,10 @@
 #include "scene/2d/touch_screen_button.h"
 #include "scene/2d/visibility_notifier_2d.h"
 #include "scene/2d/y_sort.h"
-#include "scene/animation/animation_blend_space_1d.h"
-#include "scene/animation/animation_blend_space_2d.h"
-#include "scene/animation/animation_blend_tree.h"
-#include "scene/animation/animation_node_state_machine.h"
 #include "scene/animation/animation_player.h"
-#include "scene/animation/animation_tree.h"
 #include "scene/animation/scene_tree_tween.h"
 #include "scene/animation/tween.h"
+#include "scene/animation/animation.h"
 #include "scene/audio/audio_stream_player.h"
 #include "scene/gui/aspect_ratio_container.h"
 #include "scene/gui/box_container.h"
@@ -332,27 +328,6 @@ void register_scene_types() {
 	ClassDB::register_class<IntervalTweener>();
 	ClassDB::register_class<CallbackTweener>();
 	ClassDB::register_class<MethodTweener>();
-
-	ClassDB::register_class<AnimationTree>();
-	ClassDB::register_class<AnimationNode>();
-	ClassDB::register_class<AnimationRootNode>();
-	ClassDB::register_class<AnimationNodeBlendTree>();
-	ClassDB::register_class<AnimationNodeBlendSpace1D>();
-	ClassDB::register_class<AnimationNodeBlendSpace2D>();
-	ClassDB::register_class<AnimationNodeStateMachine>();
-	ClassDB::register_class<AnimationNodeStateMachinePlayback>();
-
-	ClassDB::register_class<AnimationNodeStateMachineTransition>();
-	ClassDB::register_class<AnimationNodeOutput>();
-	ClassDB::register_class<AnimationNodeOneShot>();
-	ClassDB::register_class<AnimationNodeAnimation>();
-	ClassDB::register_class<AnimationNodeAdd2>();
-	ClassDB::register_class<AnimationNodeAdd3>();
-	ClassDB::register_class<AnimationNodeBlend2>();
-	ClassDB::register_class<AnimationNodeBlend3>();
-	ClassDB::register_class<AnimationNodeTimeScale>();
-	ClassDB::register_class<AnimationNodeTimeSeek>();
-	ClassDB::register_class<AnimationNodeTransition>();
 
 	OS::get_singleton()->yield(); //may take time to init
 
