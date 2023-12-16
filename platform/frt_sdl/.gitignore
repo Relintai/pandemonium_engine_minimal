@@ -1,6 +1,0 @@
-*.o
-*.swp
-*.pyc
-*.gen.*
-*.tmp
-private/

@@ -333,9 +333,9 @@ def generate_scu_files(verbose, is_release_build, env):
                     , "freetype/src/psnames", "freetype/src/raster", "freetype/src/sdf", "freetype/src/svg", "freetype/src/smooth", "freetype/src/truetype"
                     , "freetype/src/type1", "freetype/src/type42", "freetype/src/winfonts"], [], 0, "cpp c")
 
-    #process_folder(["modules/enet", "enet" ], [], 0, "cpp c")
-    process_folder(["modules/enet" ], [], 0, "cpp c")
-    process_folder(["modules/enet/enet" ], [], 0, "cpp c")
+    process_folder(["modules/enet", "enet" ], [], 0, "cpp c")
+    #process_folder(["modules/enet" ], [], 0, "cpp c")
+    #process_folder(["modules/enet/enet" ], [], 0, "cpp c")
 
     #process_folder(["modules/mbedtls"])
 
