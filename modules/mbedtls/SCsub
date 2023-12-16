@@ -96,10 +96,10 @@ if env["builtin_mbedtls"]:
         "xtea.c",
     ]
 
-    thirdparty_dir = "#thirdparty/mbedtls/library/"
+    thirdparty_dir = "mbedtls/library/"
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_mbed_tls.Prepend(CPPPATH=["#thirdparty/mbedtls/include/"])
+    env_mbed_tls.Prepend(CPPPATH=["mbedtls/include/"])
 
     env_thirdparty = env_mbed_tls.Clone()
     env_thirdparty.disable_warnings()
