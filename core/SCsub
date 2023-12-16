@@ -111,17 +111,6 @@ env.add_source_files(env.core_sources, "*.cpp")
 env.add_source_files(env.core_sources, "script_encryption_key.gen.cpp")
 env.add_source_files(env.core_sources, "version_hash.gen.cpp")
 
-# Certificates
-env.Depends(
-    "#core/io/certs_compressed.gen.h",
-    ["#thirdparty/certs/ca-certificates.crt", env.Value(env["builtin_certs"]), env.Value(env["system_certs_path"])],
-)
-env.CommandNoCache(
-    "#core/io/certs_compressed.gen.h",
-    "#thirdparty/certs/ca-certificates.crt",
-    run_in_subprocess(core_builders.make_certs_header),
-)
-
 # Authors
 env.Depends("#core/authors.gen.h", "../AUTHORS.md")
 env.CommandNoCache("#core/authors.gen.h", "../AUTHORS.md", run_in_subprocess(core_builders.make_authors_header))
