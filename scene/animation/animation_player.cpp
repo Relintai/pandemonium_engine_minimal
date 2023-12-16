@@ -321,12 +321,6 @@ void AnimationPlayer::_animation_process_animation(AnimationData *p_anim, float 
 		}
 
 		switch (a->track_get_type(i)) {
-			case Animation::TYPE_POSITION_3D: {
-			} break;
-			case Animation::TYPE_ROTATION_3D: {
-			} break;
-			case Animation::TYPE_SCALE_3D: {
-			} break;
 			case Animation::TYPE_VALUE: {
 				if (!nc->node) {
 					continue;
