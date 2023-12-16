@@ -298,6 +298,9 @@ def generate_scu_files(verbose, is_release_build, env):
     process_folder(["drivers/unix"])
     process_folder(["drivers/png"])
 
+    #process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gles2", "gles_common", "png", "pulseaudio", "unix", 
+    #                    "wasapi", "windows", "xaudio2" ], [], 0, "cpp c")
+
     process_folder(["main"])
 
     process_folder(
