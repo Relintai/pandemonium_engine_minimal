@@ -9,7 +9,7 @@ env_png = env.Clone()
 thirdparty_obj = []
 
 if env["builtin_libpng"]:
-    thirdparty_dir = "#thirdparty/libpng/"
+    thirdparty_dir = "libpng/"
     thirdparty_sources = [
         "png.c",
         "pngerror.c",
