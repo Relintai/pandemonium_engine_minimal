@@ -51,7 +51,6 @@
 #include "core/io/packet_peer.h"
 #include "core/io/packet_peer_dtls.h"
 #include "core/io/packet_peer_udp.h"
-#include "core/io/pck_packer.h"
 #include "core/io/resource_format_binary.h"
 #include "core/io/resource_importer.h"
 #include "core/io/stream_peer_ssl.h"
@@ -213,8 +212,6 @@ void register_core_types() {
 	ClassDB::register_class<XMLParser>();
 
 	ClassDB::register_class<ConfigFile>();
-
-	ClassDB::register_class<PCKPacker>();
 
 	ClassDB::register_class<PackedDataContainer>();
 	ClassDB::register_virtual_class<PackedDataContainerRef>();

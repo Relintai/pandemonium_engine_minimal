@@ -33,15 +33,12 @@
 #include "core/bind/core_bind.h"
 #include "core/core_string_names.h"
 #include "core/io/file_access_network.h"
-#include "core/io/file_access_pack.h"
 #include "core/io/marshalls.h"
 #include "core/os/dir_access.h"
 #include "core/os/file_access.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
 #include "core/variant/variant_parser.h"
-
-#include <zlib.h>
 
 const String ProjectSettings::PROJECT_DATA_DIR_NAME_SUFFIX = "import";
 
@@ -276,24 +273,6 @@ void ProjectSettings::_get_property_list(List<PropertyInfo> *p_list) const {
 	}
 }
 
-bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_files, int p_offset) {
-	if (PackedData::get_singleton()->is_disabled()) {
-		return false;
-	}
-
-	bool ok = PackedData::get_singleton()->add_pack(p_pack, p_replace_files, p_offset) == OK;
-
-	if (!ok) {
-		return false;
-	}
-
-	//if data.pck is found, all directory access will be from here
-	DirAccess::make_default<DirAccessPack>(DirAccess::ACCESS_RESOURCES);
-	using_datapack = true;
-
-	return true;
-}
-
 void ProjectSettings::_convert_to_last_version(int p_from_version) {
 	if (p_from_version <= 3) {
 		// Converts the actions from array to dictionary (array of events to dictionary with deadzone + events)
@@ -351,84 +330,6 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 		Error err = _load_settings_text_or_binary("res://project.pandemonium", "res://project.binary");
 		if (err == OK && !p_ignore_override) {
 			// Optional, we don't mind if it fails
-			_load_settings_text("res://override.cfg");
-		}
-		return err;
-	}
-
-	// Attempt with a user-defined main pack first
-
-	if (p_main_pack != "") {
-		bool ok = _load_resource_pack(p_main_pack);
-		ERR_FAIL_COND_V_MSG(!ok, ERR_CANT_OPEN, "Cannot open resource pack '" + p_main_pack + "'.");
-
-		Error err = _load_settings_text_or_binary("res://project.pandemonium", "res://project.binary");
-		if (err == OK && !p_ignore_override) {
-			// Load override from location of the main pack
-			// Optional, we don't mind if it fails
-			_load_settings_text(p_main_pack.get_base_dir().plus_file("override.cfg"));
-		}
-		return err;
-	}
-
-	String exec_path = OS::get_singleton()->get_executable_path();
-
-	if (exec_path != "") {
-		// We do several tests sequentially until one succeeds to find a PCK,
-		// and if so we attempt loading it at the end.
-
-		// Attempt with PCK bundled into executable.
-		bool found = _load_resource_pack(exec_path);
-
-		// Attempt with exec_name.pck.
-		// (This is the usual case when distributing a Pandemonium game.)
-		String exec_dir = exec_path.get_base_dir();
-		String exec_filename = exec_path.get_file();
-		String exec_basename = exec_filename.get_basename();
-
-		// Based on the OS, it can be the exec path + '.pck' (Linux w/o extension, macOS in .app bundle)
-		// or the exec path's basename + '.pck' (Windows).
-		// We need to test both possibilities as extensions for Linux binaries are optional
-		// (so both 'mygame.bin' and 'mygame' should be able to find 'mygame.pck').
-
-#ifdef OSX_ENABLED
-		if (!found) {
-			// Attempt to load PCK from macOS .app bundle resources.
-			found = _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().plus_file(exec_basename + ".pck")) || _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().plus_file(exec_filename + ".pck"));
-		}
-#endif
-
-		if (!found) {
-			// Try to load data pack at the location of the executable.
-			// As mentioned above, we have two potential names to attempt.
-			found = _load_resource_pack(exec_dir.plus_file(exec_basename + ".pck")) || _load_resource_pack(exec_dir.plus_file(exec_filename + ".pck"));
-		}
-
-		if (!found) {
-			// If we couldn't find them next to the executable, we attempt
-			// the current working directory. Same story, two tests.
-			found = _load_resource_pack(exec_basename + ".pck") || _load_resource_pack(exec_filename + ".pck");
-		}
-
-		// If we opened our package, try and load our project.
-		if (found) {
-			Error err = _load_settings_text_or_binary("res://project.pandemonium", "res://project.binary");
-			if (err == OK && !p_ignore_override) {
-				// Load override from location of the executable.
-				// Optional, we don't mind if it fails.
-				_load_settings_text(exec_path.get_base_dir().plus_file("override.cfg"));
-			}
-			return err;
-		}
-	}
-
-	// Try to use the filesystem for files, according to OS.
-	// (Only Android -when reading from pck- and iOS use this.)
-
-	if (OS::get_singleton()->get_resource_dir() != "") {
-		Error err = _load_settings_text_or_binary("res://project.pandemonium", "res://project.binary");
-		if (err == OK && !p_ignore_override) {
-			// Optional, we don't mind if it fails.
 			_load_settings_text("res://override.cfg");
 		}
 		return err;
@@ -1001,7 +902,6 @@ void ProjectSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("localize_path", "path"), &ProjectSettings::localize_path);
 	ClassDB::bind_method(D_METHOD("globalize_path", "path"), &ProjectSettings::globalize_path);
 	ClassDB::bind_method(D_METHOD("save"), &ProjectSettings::save);
-	ClassDB::bind_method(D_METHOD("load_resource_pack", "pack", "replace_files", "offset"), &ProjectSettings::_load_resource_pack, DEFVAL(true), DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("property_can_revert", "name"), &ProjectSettings::property_can_revert);
 	ClassDB::bind_method(D_METHOD("property_get_revert", "name"), &ProjectSettings::property_get_revert);
 

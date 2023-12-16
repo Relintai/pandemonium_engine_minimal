@@ -34,8 +34,6 @@
 #include "core/crypto/crypto.h"
 #include "core/input/input_map.h"
 #include "core/io/file_access_network.h"
-#include "core/io/file_access_pack.h"
-#include "core/io/file_access_zip.h"
 #include "core/io/image_loader.h"
 #include "core/io/ip.h"
 #include "core/io/resource_loader.h"
@@ -90,11 +88,7 @@ static ProjectSettings *globals = nullptr;
 static InputMap *input_map = nullptr;
 static TranslationServer *translation_server = nullptr;
 static Performance *performance = nullptr;
-static PackedData *packed_data = nullptr;
 static Time *time_singleton = nullptr;
-#ifdef MINIZIP_ENABLED
-static ZipArchive *zip_packed_data = nullptr;
-#endif
 static FileAccessNetworkClient *file_access_network_client = nullptr;
 static ScriptDebugger *script_debugger = nullptr;
 static MessageQueue *message_queue = nullptr;
@@ -421,23 +415,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	bool delta_smoothing_override = false;
 #ifdef TOOLS_ENABLED
 	bool found_project = false;
-#endif
-
-	packed_data = PackedData::get_singleton();
-	if (!packed_data) {
-		packed_data = memnew(PackedData);
-	}
-
-#ifdef MINIZIP_ENABLED
-
-	//XXX: always get_singleton() == 0x0
-	zip_packed_data = ZipArchive::get_singleton();
-	//TODO: remove this temporary fix
-	if (!zip_packed_data) {
-		zip_packed_data = memnew(ZipArchive);
-	}
-
-	packed_data->add_pack_source(zip_packed_data);
 #endif
 
 	// Default exit code, can be modified for certain errors.
@@ -971,13 +948,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 #ifdef TOOLS_ENABLED
 	if (editor) {
-		packed_data->set_disabled(true);
-	}
-
-#endif
-
-#ifdef TOOLS_ENABLED
-	if (editor) {
 		Engine::get_singleton()->set_editor_hint(true);
 		main_args.push_back("--editor");
 		if (!init_windowed) {
@@ -1282,9 +1252,6 @@ error:
 	}
 	if (script_debugger) {
 		memdelete(script_debugger);
-	}
-	if (packed_data) {
-		memdelete(packed_data);
 	}
 	if (file_access_network_client) {
 		memdelete(file_access_network_client);
@@ -2380,9 +2347,6 @@ void Main::cleanup(bool p_force) {
 	OS::get_singleton()->finalize();
 	finalize_physics();
 
-	if (packed_data) {
-		memdelete(packed_data);
-	}
 	if (file_access_network_client) {
 		memdelete(file_access_network_client);
 	}
