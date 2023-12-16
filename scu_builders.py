@@ -317,11 +317,13 @@ def generate_scu_files(verbose, is_release_build):
 
     process_folder(["scene", "audio", "debugger", "2d", "animation", "gui", "gui/resources",  "main", "resources", "resources/default_theme", "resources/font", "resources/material", "resources/mesh", "resources/shapes_2d" ])
 
-    process_folder(["servers"])
-    process_folder(["servers/rendering"])
-    process_folder(["servers/physics_2d"])
-    process_folder(["servers/audio"])
-    process_folder(["servers/audio/effects"])
+    #process_folder(["servers"])
+    #process_folder(["servers/rendering"])
+    #process_folder(["servers/physics_2d"])
+    #process_folder(["servers/audio"])
+    #process_folder(["servers/audio/effects"])
+
+    process_folder(["servers", "rendering", "physics_2d", "audio", "audio/effects" ])
 
     # Finally change back the path to the calling folder
     os.chdir(curr_folder)
