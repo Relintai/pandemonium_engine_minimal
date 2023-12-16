@@ -33,7 +33,7 @@
 #include "core/io/resource_loader.h"
 #include "servers/audio/audio_stream.h"
 
-#include "thirdparty/misc/stb_vorbis.h"
+#include "stb_vorbis/stb_vorbis.h"
 
 class AudioStreamOGGVorbis;
 
