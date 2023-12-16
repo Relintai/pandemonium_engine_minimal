@@ -331,7 +331,7 @@ def generate_scu_files(verbose, is_release_build, env):
     process_folder(["modules/gdscript"])
 
     process_folder(["modules/freetype", "brotli/common", "brotli/dec", "freetype/src/autofit", "freetype/src/base", 
-                    "freetype/src/bdf", "freetype/src/bzip2", "freetype/src/cache", "freetype/src/cff", "freetype/src/cid", "freetype/src/gxvalid"
+                    "freetype/src/bdf", "freetype/src/bzip2", "freetype/src/cache", "freetype/src/cff", "freetype/src/cid", "freetype/src/gxvalid",
                     "freetype/src/gzip", "freetype/src/lzw", "freetype/src/otvalid", "freetype/src/pcf",
                     "freetype/src/pfr", "freetype/src/psaux", "freetype/src/pshinter",
                     "freetype/src/psnames", "freetype/src/raster", "freetype/src/sdf", "freetype/src/svg", "freetype/src/smooth", "freetype/src/truetype",
