@@ -48,7 +48,7 @@
 #ifdef ANDROID_ENABLED
 // We could drop this file once we up our API level to 24,
 // where the NDK's ifaddrs.h supports to needed getifaddrs.
-#include "thirdparty/misc/ifaddrs-android.h"
+#include "thirdparty/ifaddrs-android.h"
 #else
 #ifdef __FreeBSD__
 #include <sys/types.h>
