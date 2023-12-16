@@ -70,7 +70,6 @@
 #include "core/object/undo_redo.h"
 #include "core/os/main_loop.h"
 #include "core/os/time.h"
-#include "core/string/compressed_translation.h"
 #include "core/string/translation.h"
 
 #include "core/os/thread_pool.h"
@@ -194,7 +193,6 @@ void register_core_types() {
 	ClassDB::register_class<MultiplayerAPI>();
 	ClassDB::register_class<MainLoop>();
 	ClassDB::register_class<Translation>();
-	ClassDB::register_class<PHashTranslation>();
 	ClassDB::register_class<UndoRedo>();
 	ClassDB::register_class<HTTPClient>();
 	ClassDB::register_class<TriangleMesh>();

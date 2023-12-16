@@ -106,7 +106,6 @@ Error NetworkedMultiplayerENet::create_server(int p_port, int p_max_clients, int
 	enet_host_refuse_new_connections(host, refuse_connections);
 #endif
 
-	_setup_compressor();
 	active = true;
 	server = true;
 	refuse_connections = false;
@@ -161,8 +160,6 @@ Error NetworkedMultiplayerENet::create_client(const String &p_address, int p_por
 	}
 	enet_host_refuse_new_connections(host, refuse_connections);
 #endif
-
-	_setup_compressor();
 
 	IP_Address ip;
 	if (p_address.is_valid_ip_address()) {
@@ -672,111 +669,6 @@ bool NetworkedMultiplayerENet::is_refusing_new_connections() const {
 	return refuse_connections;
 }
 
-void NetworkedMultiplayerENet::set_compression_mode(CompressionMode p_mode) {
-	compression_mode = p_mode;
-}
-
-NetworkedMultiplayerENet::CompressionMode NetworkedMultiplayerENet::get_compression_mode() const {
-	return compression_mode;
-}
-
-size_t NetworkedMultiplayerENet::enet_compress(void *context, const ENetBuffer *inBuffers, size_t inBufferCount, size_t inLimit, enet_uint8 *outData, size_t outLimit) {
-	NetworkedMultiplayerENet *enet = (NetworkedMultiplayerENet *)(context);
-
-	if (size_t(enet->src_compressor_mem.size()) < inLimit) {
-		enet->src_compressor_mem.resize(inLimit);
-	}
-
-	int total = inLimit;
-	int ofs = 0;
-	while (total) {
-		for (size_t i = 0; i < inBufferCount; i++) {
-			int to_copy = MIN(total, int(inBuffers[i].dataLength));
-			memcpy(&enet->src_compressor_mem.write[ofs], inBuffers[i].data, to_copy);
-			ofs += to_copy;
-			total -= to_copy;
-		}
-	}
-
-	Compression::Mode mode;
-
-	switch (enet->compression_mode) {
-		case COMPRESS_FASTLZ: {
-			mode = Compression::MODE_FASTLZ;
-		} break;
-		case COMPRESS_ZLIB: {
-			mode = Compression::MODE_DEFLATE;
-		} break;
-		case COMPRESS_ZSTD: {
-			mode = Compression::MODE_ZSTD;
-		} break;
-		default: {
-			ERR_FAIL_V_MSG(0, vformat("Invalid ENet compression mode: %d", enet->compression_mode));
-		}
-	}
-
-	int req_size = Compression::get_max_compressed_buffer_size(ofs, mode);
-	if (enet->dst_compressor_mem.size() < req_size) {
-		enet->dst_compressor_mem.resize(req_size);
-	}
-	int ret = Compression::compress(enet->dst_compressor_mem.ptrw(), enet->src_compressor_mem.ptr(), ofs, mode);
-
-	if (ret < 0) {
-		return 0;
-	}
-
-	if (ret > int(outLimit)) {
-		return 0; // Do not bother
-	}
-
-	memcpy(outData, enet->dst_compressor_mem.ptr(), ret);
-
-	return ret;
-}
-
-size_t NetworkedMultiplayerENet::enet_decompress(void *context, const enet_uint8 *inData, size_t inLimit, enet_uint8 *outData, size_t outLimit) {
-	NetworkedMultiplayerENet *enet = (NetworkedMultiplayerENet *)(context);
-	int ret = -1;
-	switch (enet->compression_mode) {
-		case COMPRESS_FASTLZ: {
-			ret = Compression::decompress(outData, outLimit, inData, inLimit, Compression::MODE_FASTLZ);
-		} break;
-		case COMPRESS_ZLIB: {
-			ret = Compression::decompress(outData, outLimit, inData, inLimit, Compression::MODE_DEFLATE);
-		} break;
-		case COMPRESS_ZSTD: {
-			ret = Compression::decompress(outData, outLimit, inData, inLimit, Compression::MODE_ZSTD);
-		} break;
-		default: {
-		}
-	}
-	if (ret < 0) {
-		return 0;
-	} else {
-		return ret;
-	}
-}
-
-void NetworkedMultiplayerENet::_setup_compressor() {
-	switch (compression_mode) {
-		case COMPRESS_NONE: {
-			enet_host_compress(host, nullptr);
-		} break;
-		case COMPRESS_RANGE_CODER: {
-			enet_host_compress_with_range_coder(host);
-		} break;
-		case COMPRESS_FASTLZ:
-		case COMPRESS_ZLIB:
-		case COMPRESS_ZSTD: {
-			enet_host_compress(host, &enet_compressor);
-		} break;
-	}
-}
-
-void NetworkedMultiplayerENet::enet_compressor_destroy(void *context) {
-	// Nothing to do
-}
-
 IP_Address NetworkedMultiplayerENet::get_peer_address(int p_peer_id) const {
 	ERR_FAIL_COND_V_MSG(!peer_map.has(p_peer_id), IP_Address(), vformat("Peer ID %d not found in the list of peers.", p_peer_id));
 	ERR_FAIL_COND_V_MSG(!is_server() && p_peer_id != 1, IP_Address(), "Can't get the address of peers other than the server (ID -1) when acting as a client.");
@@ -854,8 +746,6 @@ void NetworkedMultiplayerENet::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("create_client", "address", "port", "in_bandwidth", "out_bandwidth", "client_port"), &NetworkedMultiplayerENet::create_client, DEFVAL(0), DEFVAL(0), DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("close_connection", "wait_usec"), &NetworkedMultiplayerENet::close_connection, DEFVAL(100));
 	ClassDB::bind_method(D_METHOD("disconnect_peer", "id", "now"), &NetworkedMultiplayerENet::disconnect_peer, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("set_compression_mode", "mode"), &NetworkedMultiplayerENet::set_compression_mode);
-	ClassDB::bind_method(D_METHOD("get_compression_mode"), &NetworkedMultiplayerENet::get_compression_mode);
 	ClassDB::bind_method(D_METHOD("set_bind_ip", "ip"), &NetworkedMultiplayerENet::set_bind_ip);
 	ClassDB::bind_method(D_METHOD("set_dtls_enabled", "enabled"), &NetworkedMultiplayerENet::set_dtls_enabled);
 	ClassDB::bind_method(D_METHOD("is_dtls_enabled"), &NetworkedMultiplayerENet::is_dtls_enabled);
@@ -888,12 +778,6 @@ void NetworkedMultiplayerENet::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "dtls_verify"), "set_dtls_verify_enabled", "is_dtls_verify_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "dtls_hostname"), "set_dtls_hostname", "get_dtls_hostname");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_dtls"), "set_dtls_enabled", "is_dtls_enabled");
-
-	BIND_ENUM_CONSTANT(COMPRESS_NONE);
-	BIND_ENUM_CONSTANT(COMPRESS_RANGE_CODER);
-	BIND_ENUM_CONSTANT(COMPRESS_FASTLZ);
-	BIND_ENUM_CONSTANT(COMPRESS_ZLIB);
-	BIND_ENUM_CONSTANT(COMPRESS_ZSTD);
 }
 
 NetworkedMultiplayerENet::NetworkedMultiplayerENet() {
@@ -909,11 +793,6 @@ NetworkedMultiplayerENet::NetworkedMultiplayerENet() {
 	transfer_channel = -1;
 	always_ordered = false;
 	connection_status = CONNECTION_DISCONNECTED;
-	compression_mode = COMPRESS_RANGE_CODER;
-	enet_compressor.context = this;
-	enet_compressor.compress = enet_compress;
-	enet_compressor.decompress = enet_decompress;
-	enet_compressor.destroy = enet_compressor_destroy;
 
 	bind_ip = IP_Address("*");
 

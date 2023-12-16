@@ -30,7 +30,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "core/io/compression.h"
 #include "core/io/image.h"
 #include "core/io/resource_loader.h"
 #include "core/io/resource_saver.h"
@@ -82,8 +81,7 @@ public:
 		FLAG_CHANGE_PATH = 4,
 		FLAG_OMIT_EDITOR_PROPERTIES = 8,
 		FLAG_SAVE_BIG_ENDIAN = 16,
-		FLAG_COMPRESS = 32,
-		FLAG_REPLACE_SUBRESOURCE_PATHS = 64,
+		FLAG_REPLACE_SUBRESOURCE_PATHS = 32,
 	};
 
 	static _ResourceSaver *get_singleton() { return singleton; }
@@ -538,17 +536,6 @@ public:
 		WRITE_READ = 7,
 	};
 
-	enum CompressionMode {
-		COMPRESSION_FASTLZ = Compression::MODE_FASTLZ,
-		COMPRESSION_DEFLATE = Compression::MODE_DEFLATE,
-		COMPRESSION_ZSTD = Compression::MODE_ZSTD,
-		COMPRESSION_GZIP = Compression::MODE_GZIP
-	};
-
-	Error open_encrypted(const String &p_path, ModeFlags p_mode_flags, const Vector<uint8_t> &p_key);
-	Error open_encrypted_pass(const String &p_path, ModeFlags p_mode_flags, const String &p_pass);
-	Error open_compressed(const String &p_path, ModeFlags p_mode_flags, CompressionMode p_compress_mode = COMPRESSION_FASTLZ);
-
 	Error open(const String &p_path, ModeFlags p_mode_flags); // open a file.
 	void flush(); // Flush a file (write its buffer to disk).
 	void close(); // Close a file.
@@ -621,7 +608,6 @@ public:
 };
 
 VARIANT_ENUM_CAST(_File::ModeFlags);
-VARIANT_ENUM_CAST(_File::CompressionMode);
 
 class _Directory : public Reference {
 	GDCLASS(_Directory, Reference);

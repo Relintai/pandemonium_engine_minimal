@@ -32,7 +32,6 @@
 
 #include "core/core_string_names.h"
 #include "core/crypto/crypto_core.h"
-#include "core/io/compression.h"
 #include "core/math/color_names.inc"
 #include "core/object/object.h"
 #include "core/object/object_rc.h"
@@ -948,64 +947,6 @@ struct _VariantCall {
 			s = String((const CharType *)r.ptr(), ba->size() / 4);
 		}
 		r_ret = s;
-	}
-
-	static void _call_PoolByteArray_compress(Variant &r_ret, Variant &p_self, const Variant **p_args) {
-		PoolByteArray *ba = reinterpret_cast<PoolByteArray *>(p_self._data._mem);
-		PoolByteArray compressed;
-		if (ba->size() > 0) {
-			Compression::Mode mode = (Compression::Mode)(int)(*p_args[0]);
-
-			compressed.resize(Compression::get_max_compressed_buffer_size(ba->size(), mode));
-			int result = Compression::compress(compressed.write().ptr(), ba->read().ptr(), ba->size(), mode);
-
-			result = result >= 0 ? result : 0;
-			compressed.resize(result);
-		}
-		r_ret = compressed;
-	}
-
-	static void _call_PoolByteArray_decompress(Variant &r_ret, Variant &p_self, const Variant **p_args) {
-		PoolByteArray *ba = reinterpret_cast<PoolByteArray *>(p_self._data._mem);
-		PoolByteArray decompressed;
-		Compression::Mode mode = (Compression::Mode)(int)(*p_args[1]);
-
-		int buffer_size = (int)(*p_args[0]);
-
-		if (buffer_size <= 0) {
-			r_ret = decompressed;
-			ERR_FAIL_MSG("Decompression buffer size must be greater than zero.");
-		}
-		if (ba->size() == 0) {
-			r_ret = decompressed;
-			ERR_FAIL_MSG("Compressed buffer size must be greater than zero.");
-		}
-
-		decompressed.resize(buffer_size);
-		int result = Compression::decompress(decompressed.write().ptr(), buffer_size, ba->read().ptr(), ba->size(), mode);
-
-		result = result >= 0 ? result : 0;
-		decompressed.resize(result);
-
-		r_ret = decompressed;
-	}
-
-	static void _call_PoolByteArray_decompress_dynamic(Variant &r_ret, Variant &p_self, const Variant **p_args) {
-		PoolByteArray *ba = reinterpret_cast<PoolByteArray *>(p_self._data._mem);
-		PoolByteArray decompressed;
-		int max_output_size = (int)(*p_args[0]);
-		Compression::Mode mode = (Compression::Mode)(int)(*p_args[1]);
-
-		decompressed.resize(1024);
-		int result = Compression::decompress_dynamic(&decompressed, max_output_size, ba->read().ptr(), ba->size(), mode);
-
-		if (result == OK) {
-			r_ret = decompressed;
-		} else {
-			decompressed.resize(0);
-			r_ret = decompressed;
-			ERR_FAIL_MSG("Decompression failed.");
-		}
 	}
 
 	static void _call_PoolByteArray_hex_encode(Variant &r_ret, Variant &p_self, const Variant **p_args) {
@@ -3002,9 +2943,6 @@ void register_variant_methods() {
 	ADDFUNC0R(POOL_BYTE_ARRAY, STRING, PoolByteArray, get_string_from_utf16, varray());
 	ADDFUNC0R(POOL_BYTE_ARRAY, STRING, PoolByteArray, get_string_from_utf32, varray());
 	ADDFUNC0R(POOL_BYTE_ARRAY, STRING, PoolByteArray, hex_encode, varray());
-	ADDFUNC1R(POOL_BYTE_ARRAY, POOL_BYTE_ARRAY, PoolByteArray, compress, INT, "compression_mode", varray(0));
-	ADDFUNC2R(POOL_BYTE_ARRAY, POOL_BYTE_ARRAY, PoolByteArray, decompress, INT, "buffer_size", INT, "compression_mode", varray(0));
-	ADDFUNC2R(POOL_BYTE_ARRAY, POOL_BYTE_ARRAY, PoolByteArray, decompress_dynamic, INT, "max_output_size", INT, "compression_mode", varray(0));
 
 	ADDFUNC0R(POOL_INT_ARRAY, INT, PoolIntArray, size, varray());
 	ADDFUNC0R(POOL_INT_ARRAY, BOOL, PoolIntArray, empty, varray());

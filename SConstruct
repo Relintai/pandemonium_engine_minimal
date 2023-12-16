@@ -178,7 +178,6 @@ opts.Add(BoolVariable("builtin_mbedtls", "Use the built-in mbedTLS library", Tru
 opts.Add(BoolVariable("builtin_pcre2", "Use the built-in PCRE2 library", True))
 opts.Add(BoolVariable("builtin_pcre2_with_jit", "Use JIT compiler for the built-in PCRE2 library", True))
 opts.Add(BoolVariable("builtin_zlib", "Use the built-in zlib library", True))
-opts.Add(BoolVariable("builtin_zstd", "Use the built-in Zstd library", True))
 
 # Compilation environment setup
 opts.Add("CXX", "C++ compiler")

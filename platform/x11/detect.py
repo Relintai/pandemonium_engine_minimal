@@ -284,9 +284,6 @@ def configure(env):
     if not env["builtin_enet"]:
         env.ParseConfig("pkg-config libenet --cflags --libs")
 
-    if not env["builtin_zstd"]:
-        env.ParseConfig("pkg-config libzstd --cflags --libs")
-
     # Sound and video libraries
     # Keep the order as it triggers chained dependencies (ogg needed by others, etc.)
 

@@ -32,7 +32,6 @@
 
 #include "core/config/project_settings.h"
 #include "core/crypto/crypto_core.h"
-#include "core/io/file_access_compressed.h"
 #include "core/io/file_access_encrypted.h"
 #include "core/io/json.h"
 #include "core/io/marshalls.h"
@@ -168,7 +167,6 @@ void _ResourceSaver::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_CHANGE_PATH);
 	BIND_ENUM_CONSTANT(FLAG_OMIT_EDITOR_PROPERTIES);
 	BIND_ENUM_CONSTANT(FLAG_SAVE_BIG_ENDIAN);
-	BIND_ENUM_CONSTANT(FLAG_COMPRESS);
 	BIND_ENUM_CONSTANT(FLAG_REPLACE_SUBRESOURCE_PATHS);
 }
 
@@ -2017,57 +2015,6 @@ _Geometry::_Geometry() {
 
 ///////////////////////// FILE
 
-Error _File::open_encrypted(const String &p_path, ModeFlags p_mode_flags, const Vector<uint8_t> &p_key) {
-	Error err = open(p_path, p_mode_flags);
-	if (err) {
-		return err;
-	}
-
-	FileAccessEncrypted *fae = memnew(FileAccessEncrypted);
-	err = fae->open_and_parse(f, p_key, (p_mode_flags == WRITE) ? FileAccessEncrypted::MODE_WRITE_AES256 : FileAccessEncrypted::MODE_READ);
-	if (err) {
-		memdelete(fae);
-		close();
-		return err;
-	}
-	f = fae;
-	return OK;
-}
-
-Error _File::open_encrypted_pass(const String &p_path, ModeFlags p_mode_flags, const String &p_pass) {
-	Error err = open(p_path, p_mode_flags);
-	if (err) {
-		return err;
-	}
-
-	FileAccessEncrypted *fae = memnew(FileAccessEncrypted);
-	err = fae->open_and_parse_password(f, p_pass, (p_mode_flags == WRITE) ? FileAccessEncrypted::MODE_WRITE_AES256 : FileAccessEncrypted::MODE_READ);
-	if (err) {
-		memdelete(fae);
-		close();
-		return err;
-	}
-
-	f = fae;
-	return OK;
-}
-
-Error _File::open_compressed(const String &p_path, ModeFlags p_mode_flags, CompressionMode p_compress_mode) {
-	FileAccessCompressed *fac = memnew(FileAccessCompressed);
-
-	fac->configure("GCPF", (Compression::Mode)p_compress_mode);
-
-	Error err = fac->_open(p_path, p_mode_flags);
-
-	if (err) {
-		memdelete(fac);
-		return err;
-	}
-
-	f = fac;
-	return OK;
-}
-
 Error _File::open(const String &p_path, ModeFlags p_mode_flags) {
 	close();
 	Error err;
@@ -2356,10 +2303,6 @@ uint64_t _File::get_modified_time(const String &p_file) const {
 }
 
 void _File::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("open_encrypted", "path", "mode_flags", "key"), &_File::open_encrypted);
-	ClassDB::bind_method(D_METHOD("open_encrypted_with_pass", "path", "mode_flags", "pass"), &_File::open_encrypted_pass);
-	ClassDB::bind_method(D_METHOD("open_compressed", "path", "mode_flags", "compression_mode"), &_File::open_compressed, DEFVAL(0));
-
 	ClassDB::bind_method(D_METHOD("open", "path", "flags"), &_File::open);
 	ClassDB::bind_method(D_METHOD("flush"), &_File::flush);
 	ClassDB::bind_method(D_METHOD("close"), &_File::close);
@@ -2414,11 +2357,6 @@ void _File::_bind_methods() {
 	BIND_ENUM_CONSTANT(WRITE);
 	BIND_ENUM_CONSTANT(READ_WRITE);
 	BIND_ENUM_CONSTANT(WRITE_READ);
-
-	BIND_ENUM_CONSTANT(COMPRESSION_FASTLZ);
-	BIND_ENUM_CONSTANT(COMPRESSION_DEFLATE);
-	BIND_ENUM_CONSTANT(COMPRESSION_ZSTD);
-	BIND_ENUM_CONSTANT(COMPRESSION_GZIP);
 }
 
 _File::_File() {

@@ -496,15 +496,6 @@ Error ProjectSettings::setup(const String &p_path, const String &p_main_pack, bo
 	bool use_hidden_directory = GLOBAL_GET("application/config/use_hidden_project_data_directory");
 	project_data_dir_name = (use_hidden_directory ? "." : "") + PROJECT_DATA_DIR_NAME_SUFFIX;
 
-	// Using GLOBAL_GET on every block for compressing can be slow, so assigning here.
-	Compression::zstd_long_distance_matching = GLOBAL_GET("compression/formats/zstd/long_distance_matching");
-	Compression::zstd_level = GLOBAL_GET("compression/formats/zstd/compression_level");
-	Compression::zstd_window_log_size = GLOBAL_GET("compression/formats/zstd/window_log_size");
-
-	Compression::zlib_level = GLOBAL_GET("compression/formats/zlib/compression_level");
-
-	Compression::gzip_level = GLOBAL_GET("compression/formats/gzip/compression_level");
-
 	return err;
 }
 
@@ -1255,19 +1246,6 @@ ProjectSettings::ProjectSettings() {
 
 	GLOBAL_DEF("debug/settings/profiler/max_functions", 16384);
 	custom_prop_info["debug/settings/profiler/max_functions"] = PropertyInfo(Variant::INT, "debug/settings/profiler/max_functions", PROPERTY_HINT_RANGE, "128,65535,1");
-
-	GLOBAL_DEF("compression/formats/zstd/long_distance_matching", Compression::zstd_long_distance_matching);
-	custom_prop_info["compression/formats/zstd/long_distance_matching"] = PropertyInfo(Variant::BOOL, "compression/formats/zstd/long_distance_matching");
-	GLOBAL_DEF("compression/formats/zstd/compression_level", Compression::zstd_level);
-	custom_prop_info["compression/formats/zstd/compression_level"] = PropertyInfo(Variant::INT, "compression/formats/zstd/compression_level", PROPERTY_HINT_RANGE, "1,22,1");
-	GLOBAL_DEF("compression/formats/zstd/window_log_size", Compression::zstd_window_log_size);
-	custom_prop_info["compression/formats/zstd/window_log_size"] = PropertyInfo(Variant::INT, "compression/formats/zstd/window_log_size", PROPERTY_HINT_RANGE, "10,30,1");
-
-	GLOBAL_DEF("compression/formats/zlib/compression_level", Compression::zlib_level);
-	custom_prop_info["compression/formats/zlib/compression_level"] = PropertyInfo(Variant::INT, "compression/formats/zlib/compression_level", PROPERTY_HINT_RANGE, "-1,9,1");
-
-	GLOBAL_DEF("compression/formats/gzip/compression_level", Compression::gzip_level);
-	custom_prop_info["compression/formats/gzip/compression_level"] = PropertyInfo(Variant::INT, "compression/formats/gzip/compression_level", PROPERTY_HINT_RANGE, "-1,9,1");
 
 	// Would ideally be defined in an Android-specific file, but then it doesn't appear in the docs
 	GLOBAL_DEF("android/modules", "");

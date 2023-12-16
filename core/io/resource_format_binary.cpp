@@ -31,7 +31,6 @@
 #include "resource_format_binary.h"
 
 #include "core/config/project_settings.h"
-#include "core/io/file_access_compressed.h"
 #include "core/io/image.h"
 #include "core/io/marshalls.h"
 #include "core/os/dir_access.h"
@@ -906,18 +905,7 @@ void ResourceInteractiveLoaderBinary::open(FileAccess *p_f) {
 	f = p_f;
 	uint8_t header[4];
 	f->get_buffer(header, 4);
-	if (header[0] == 'R' && header[1] == 'S' && header[2] == 'C' && header[3] == 'C') {
-		// Compressed.
-		FileAccessCompressed *fac = memnew(FileAccessCompressed);
-		error = fac->open_after_magic(f);
-		if (error != OK) {
-			memdelete(fac);
-			f->close();
-			ERR_FAIL_MSG("Failed to open binary resource file: " + local_path + ".");
-		}
-		f = fac;
-
-	} else if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
+	if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
 		// Not normal.
 		error = ERR_FILE_UNRECOGNIZED;
 		f->close();
@@ -1003,18 +991,7 @@ String ResourceInteractiveLoaderBinary::recognize(FileAccess *p_f) {
 	f = p_f;
 	uint8_t header[4];
 	f->get_buffer(header, 4);
-	if (header[0] == 'R' && header[1] == 'S' && header[2] == 'C' && header[3] == 'C') {
-		// Compressed.
-		FileAccessCompressed *fac = memnew(FileAccessCompressed);
-		error = fac->open_after_magic(f);
-		if (error != OK) {
-			memdelete(fac);
-			f->close();
-			return "";
-		}
-		f = fac;
-
-	} else if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
+	if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
 		// Not normal.
 		error = ERR_FILE_UNRECOGNIZED;
 		f->close();
@@ -1128,29 +1105,7 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 
 	uint8_t header[4];
 	f->get_buffer(header, 4);
-	if (header[0] == 'R' && header[1] == 'S' && header[2] == 'C' && header[3] == 'C') {
-		// Compressed.
-		FileAccessCompressed *fac = memnew(FileAccessCompressed);
-		Error err = fac->open_after_magic(f);
-		if (err != OK) {
-			memdelete(fac);
-			memdelete(f);
-			ERR_FAIL_V_MSG(err, "Cannot open file '" + p_path + "'.");
-		}
-		f = fac;
-
-		FileAccessCompressed *facw = memnew(FileAccessCompressed);
-		facw->configure("RSCC");
-		err = facw->_open(p_path + ".depren", FileAccess::WRITE);
-		if (err) {
-			memdelete(fac);
-			memdelete(facw);
-			ERR_FAIL_COND_V_MSG(err, ERR_FILE_CORRUPT, "Cannot create file '" + p_path + ".depren'.");
-		}
-
-		fw = facw;
-
-	} else if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
+	if (header[0] != 'R' || header[1] != 'S' || header[2] != 'R' || header[3] != 'C') {
 		// Not normal.
 		memdelete(f);
 		ERR_FAIL_V_MSG(ERR_FILE_UNRECOGNIZED, "Unrecognized binary resource file '" + local_path + "'.");
@@ -1896,18 +1851,8 @@ int ResourceFormatSaverBinaryInstance::get_string_index(const String &p_string) 
 
 Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const RES &p_resource, uint32_t p_flags) {
 	Error err;
-	if (p_flags & ResourceSaver::FLAG_COMPRESS) {
-		FileAccessCompressed *fac = memnew(FileAccessCompressed);
-		fac->configure("RSCC");
-		f = fac;
-		err = fac->_open(p_path, FileAccess::WRITE);
-		if (err) {
-			memdelete(f);
-		}
 
-	} else {
-		f = FileAccess::open(p_path, FileAccess::WRITE, &err);
-	}
+	f = FileAccess::open(p_path, FileAccess::WRITE, &err);
 
 	ERR_FAIL_COND_V_MSG(err != OK, err, "Cannot create file '" + p_path + "'.");
 
@@ -1925,12 +1870,6 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const RES &p
 	path = ProjectSettings::get_singleton()->localize_path(p_path);
 
 	_find_resources(p_resource, true);
-
-	if (!(p_flags & ResourceSaver::FLAG_COMPRESS)) {
-		//save header compressed
-		static const uint8_t header[4] = { 'R', 'S', 'R', 'C' };
-		f->store_buffer(header, 4);
-	}
 
 	if (big_endian) {
 		f->store_32(1);

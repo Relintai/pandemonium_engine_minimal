@@ -32,7 +32,6 @@
 
 #include "core/config/engine.h"
 #include "core/io/certs_compressed.gen.h"
-#include "core/io/compression.h"
 
 /// Resources
 

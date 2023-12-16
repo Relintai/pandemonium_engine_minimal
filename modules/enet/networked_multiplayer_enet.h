@@ -31,22 +31,12 @@
 /*************************************************************************/
 
 #include "core/crypto/crypto.h"
-#include "core/io/compression.h"
 #include "core/io/networked_multiplayer_peer.h"
 
 #include <enet/enet.h>
 
 class NetworkedMultiplayerENet : public NetworkedMultiplayerPeer {
 	GDCLASS(NetworkedMultiplayerENet, NetworkedMultiplayerPeer);
-
-public:
-	enum CompressionMode {
-		COMPRESS_NONE,
-		COMPRESS_RANGE_CODER,
-		COMPRESS_FASTLZ,
-		COMPRESS_ZLIB,
-		COMPRESS_ZSTD
-	};
 
 private:
 	enum {
@@ -89,8 +79,6 @@ private:
 		int channel;
 	};
 
-	CompressionMode compression_mode;
-
 	List<Packet> incoming_packets;
 
 	Packet current_packet;
@@ -100,12 +88,6 @@ private:
 
 	Vector<uint8_t> src_compressor_mem;
 	Vector<uint8_t> dst_compressor_mem;
-
-	ENetCompressor enet_compressor;
-	static size_t enet_compress(void *context, const ENetBuffer *inBuffers, size_t inBufferCount, size_t inLimit, enet_uint8 *outData, size_t outLimit);
-	static size_t enet_decompress(void *context, const enet_uint8 *inData, size_t inLimit, enet_uint8 *outData, size_t outLimit);
-	static void enet_compressor_destroy(void *context);
-	void _setup_compressor();
 
 	IP_Address bind_ip;
 
@@ -153,9 +135,6 @@ public:
 
 	virtual int get_unique_id() const;
 
-	void set_compression_mode(CompressionMode p_mode);
-	CompressionMode get_compression_mode() const;
-
 	int get_packet_channel() const;
 	int get_last_packet_channel() const;
 	void set_transfer_channel(int p_channel);
@@ -180,7 +159,5 @@ public:
 	void set_dtls_hostname(const String &p_hostname);
 	String get_dtls_hostname() const;
 };
-
-VARIANT_ENUM_CAST(NetworkedMultiplayerENet::CompressionMode);
 
 #endif // NETWORKED_MULTIPLAYER_ENET_H

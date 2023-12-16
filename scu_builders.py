@@ -290,11 +290,11 @@ def generate_scu_files(verbose, is_release_build, env):
     if has_mbedtyls_module:
         process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
                         "os", "string", "variant", "io", "crypto", "thirdparty/misc", 
-                        "thirdparty/zstd", "thirdparty/zlib", "thirdparty/minizip"])
+                        "thirdparty/zlib", "thirdparty/minizip"])
     else:
         process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
                         "os", "string", "variant", "io", "crypto", "crypto/mbedtls/library", "thirdparty/misc", 
-                        "thirdparty/zstd", "thirdparty/zlib", "thirdparty/minizip"], [], 0, "cpp c")
+                        "thirdparty/zlib", "thirdparty/minizip"], [], 0, "cpp c")
 
     #process_folder(["drivers/gles2"], [], 0, "cpp c")
     #process_folder(["drivers/unix"], [], 0, "cpp c")
