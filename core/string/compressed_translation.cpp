@@ -33,7 +33,7 @@
 #include "core/containers/pair.h"
 
 extern "C" {
-#include "thirdparty/misc/smaz.h"
+#include "core/thirdparty/misc/smaz.h"
 }
 
 struct _PHashTranslationCmp {

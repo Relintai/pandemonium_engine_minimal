@@ -292,11 +292,14 @@ def generate_scu_files(verbose, is_release_build, env):
                         "os", "string", "variant", "io", "crypto"])
     else:
         process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
-                        "os", "string", "variant", "io", "crypto", "crypto/mbedtls/library"], [], 0, "cpp c")
+                        "os", "string", "variant", "io", "crypto", "crypto/mbedtls/library", "thirdparty/misc"], [], 0, "cpp c")
 
-    process_folder(["drivers/gles2"])
-    process_folder(["drivers/unix"])
-    process_folder(["drivers/png"])
+    #process_folder(["drivers/gles2"], [], 0, "cpp c")
+    #process_folder(["drivers/unix"], [], 0, "cpp c")
+    #process_folder(["drivers/png"], [], 0, "cpp c")
+
+    process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gles_common", "gles2",
+                    "png", "pulseaudio", "unix", "wasapi", "windows", "xaudio2"], [], 0, "cpp c")
 
     #process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gles2", "gles_common", "png", "pulseaudio", "unix", 
     #                    "wasapi", "windows", "xaudio2" ], [], 0, "cpp c")
@@ -309,10 +312,10 @@ def generate_scu_files(verbose, is_release_build, env):
             #"android/export",
             #"iphone/export",
             #"javascript/export",
-            #"osx/export",
+            "osx/export",
             #"uwp/export",
-            #"windows/export",
-            #"x11/export",
+            "windows/export",
+            "x11/export",
         ]
     )
 

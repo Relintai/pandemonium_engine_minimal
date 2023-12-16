@@ -34,7 +34,7 @@
 
 #include "core/math/math_defs.h"
 
-#include "thirdparty/misc/pcg.h"
+#include "core/thirdparty/misc/pcg.h"
 
 #if defined(__GNUC__) || (_llvm_has_builtin(__builtin_clz))
 #define CLZ32(x) __builtin_clz(x)

@@ -34,8 +34,8 @@
 #include "core/core_string_names.h"
 #include "core/os/main_loop.h"
 #include "scene/resources/theme.h"
-#include "thirdparty/misc/clipper.hpp"
-#include "thirdparty/misc/triangulator.h"
+#include "core/thirdparty/misc/clipper.hpp"
+#include "core/thirdparty/misc/triangulator.h"
 
 /**
   PrimitiveMesh

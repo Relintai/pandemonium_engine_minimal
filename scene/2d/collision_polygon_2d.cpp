@@ -37,7 +37,7 @@
 #include "scene/resources/shapes_2d/convex_polygon_shape_2d.h"
 #include "scene/resources/shapes_2d/shape_2d.h"
 
-#include "thirdparty/misc/triangulator.h"
+#include "core/thirdparty/misc/triangulator.h"
 
 void CollisionPolygon2D::_build_polygon() {
 	parent->shape_owner_clear_shapes(owner_id);

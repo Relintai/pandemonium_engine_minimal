@@ -33,8 +33,8 @@
 #include "core/containers/local_vector.h"
 #include "core/string/print_string.h"
 
-#include "thirdparty/misc/clipper.hpp"
-#include "thirdparty/misc/triangulator.h"
+#include "core/thirdparty/misc/clipper.hpp"
+#include "core/thirdparty/misc/triangulator.h"
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "thirdparty/stb_rect_pack/stb_rect_pack.h"
 

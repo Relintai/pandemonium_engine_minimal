@@ -37,7 +37,7 @@
 #include "core/math/math_funcs.h"
 #include "core/string/print_string.h"
 
-#include "thirdparty/misc/hq2x.h"
+#include "core/thirdparty/misc/hq2x.h"
 
 #include <stdio.h>
 
