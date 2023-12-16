@@ -412,7 +412,7 @@ if selected_platform in platform_list:
 
     # Run SCU file generation script if in a SCU build.
     if env["scu_build"]:
-        methods.set_scu_folders(scu_builders.generate_scu_files(env["verbose"], env_base["target"] != "debug"), env)
+        methods.set_scu_folders(scu_builders.generate_scu_files(env["verbose"], env_base["target"] != "debug", env))
 
     # Must happen after the flags' definition, as configure is when most flags
     # are actually handled to change compile options, etc.

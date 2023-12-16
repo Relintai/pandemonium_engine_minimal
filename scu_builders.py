@@ -163,6 +163,8 @@ def process_folder(folders, sought_exceptions=[], includes_per_scu=0, extension=
     if len(folders) == 0:
         return
 
+    extensions = extension.split(" ")
+
     # Construct the filename prefix from the FIRST folder name
     # e.g. "scene_3d"
     out_filename = find_section_name(folders[0])
@@ -179,15 +181,16 @@ def process_folder(folders, sought_exceptions=[], includes_per_scu=0, extension=
     _scu_folders.add(main_folder)
 
     # main folder (first)
-    found_includes, found_exceptions = find_files_in_folder(
-        main_folder, "", found_includes, extension, sought_exceptions, found_exceptions
-    )
-
-    # sub folders
-    for d in range(1, len(folders)):
+    for ext in extensions:
         found_includes, found_exceptions = find_files_in_folder(
-            main_folder, folders[d], found_includes, extension, sought_exceptions, found_exceptions
+            main_folder, "", found_includes, ext, sought_exceptions, found_exceptions
         )
+
+        # sub folders
+        for d in range(1, len(folders)):
+            found_includes, found_exceptions = find_files_in_folder(
+                main_folder, folders[d], found_includes, ext, sought_exceptions, found_exceptions
+            )
 
     found_includes = sorted(found_includes)
 
@@ -277,8 +280,19 @@ def generate_scu_files(verbose, is_release_build, env):
     #process_folder(["core/io"])
     #process_folder(["core/crypto"])
 
-    process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
-                    "os", "string", "variant", "io", "crypto"])
+    has_mbedtyls_module = False
+    
+    try:
+        has_mbedtyls_module = env["module_mbedtls_enabled"]
+    except:
+        pass
+
+    if has_mbedtyls_module:
+        process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
+                        "os", "string", "variant", "io", "crypto"])
+    else:
+        process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
+                        "os", "string", "variant", "io", "crypto", "crypto/mbedtls/library"], [], 0, "cpp c")
 
     process_folder(["drivers/gles2"])
     process_folder(["drivers/unix"])

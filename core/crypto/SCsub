@@ -8,7 +8,13 @@ is_builtin = env["builtin_mbedtls"]
 has_module = env["module_mbedtls_enabled"]
 thirdparty_obj = []
 
-if is_builtin or not has_module:
+if is_builtin and not has_module:
+    # Use our headers for builtin or if the module is not going to be compiled.
+    # We decided not to depend on system mbedtls just for these few files that can
+    # be easily extracted.
+    env_crypto.Prepend(CPPPATH=["mbedtls/include"])
+
+if is_builtin and has_module:
     # Use our headers for builtin or if the module is not going to be compiled.
     # We decided not to depend on system mbedtls just for these few files that can
     # be easily extracted.
