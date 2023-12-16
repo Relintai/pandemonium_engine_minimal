@@ -1193,6 +1193,14 @@ Error Expression::_get_token(Token &r_token) {
 					r_token.type = TK_ERROR;
 					return ERR_PARSE_ERROR;
 				}
+
+#undef READING_SIGN
+#undef READING_INT
+#undef READING_HEX
+#undef READING_BIN
+#undef READING_DEC
+#undef READING_EXP
+#undef READING_DONE
 			}
 		}
 #undef GET_CHAR
