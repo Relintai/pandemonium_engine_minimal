@@ -314,10 +314,10 @@ def generate_scu_files(verbose, is_release_build, env):
             #"android/export",
             #"iphone/export",
             #"javascript/export",
-            "osx/export",
+            #"osx/export",
             #"uwp/export",
-            "windows/export",
-            "x11/export",
+            #"windows/export",
+            #"x11/export",
         ]
     )
 

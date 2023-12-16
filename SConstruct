@@ -38,8 +38,6 @@ for x in sorted(glob.glob("platform/*")):
     sys.path.insert(0, tmppath)
     import detect
 
-    if os.path.exists(x + "/export/export.cpp"):
-        platform_exporters.append(x[9:])
     if os.path.exists(x + "/api/api.cpp"):
         platform_apis.append(x[9:])
     if detect.is_active():
