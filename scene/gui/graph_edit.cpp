@@ -831,7 +831,7 @@ bool GraphEdit::is_in_hot_zone(const Vector2 &pos, const Vector2 &p_mouse_pos, c
 }
 
 template <class Vector2>
-static _FORCE_INLINE_ Vector2 _bezier_interp(real_t t, Vector2 start, Vector2 control_1, Vector2 control_2, Vector2 end) {
+static _FORCE_INLINE_ Vector2 _bezier_interp_graph_edit(real_t t, Vector2 start, Vector2 control_1, Vector2 control_2, Vector2 end) {
 	/* Formula from Wikipedia article on Bezier curves. */
 	real_t omt = (1.0 - t);
 	real_t omt2 = omt * omt;
@@ -844,9 +844,9 @@ static _FORCE_INLINE_ Vector2 _bezier_interp(real_t t, Vector2 start, Vector2 co
 
 void GraphEdit::_bake_segment2d(Vector<Vector2> &points, Vector<Color> &colors, float p_begin, float p_end, const Vector2 &p_a, const Vector2 &p_out, const Vector2 &p_b, const Vector2 &p_in, int p_depth, int p_min_depth, int p_max_depth, float p_tol, const Color &p_color, const Color &p_to_color, int &lines) const {
 	float mp = p_begin + (p_end - p_begin) * 0.5;
-	Vector2 beg = _bezier_interp(p_begin, p_a, p_a + p_out, p_b + p_in, p_b);
-	Vector2 mid = _bezier_interp(mp, p_a, p_a + p_out, p_b + p_in, p_b);
-	Vector2 end = _bezier_interp(p_end, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector2 beg = _bezier_interp_graph_edit(p_begin, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector2 mid = _bezier_interp_graph_edit(mp, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector2 end = _bezier_interp_graph_edit(p_end, p_a, p_a + p_out, p_b + p_in, p_b);
 
 	Vector2 na = (mid - beg).normalized();
 	Vector2 nb = (end - mid).normalized();

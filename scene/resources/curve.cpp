@@ -33,7 +33,7 @@
 #include "core/core_string_names.h"
 
 template <class T>
-static _FORCE_INLINE_ T _bezier_interp(real_t t, T start, T control_1, T control_2, T end) {
+static _FORCE_INLINE_ T _bezier_interp_curve(real_t t, T start, T control_1, T control_2, T end) {
 	/* Formula from Wikipedia article on Bezier curves. */
 	real_t omt = (1.0 - t);
 	real_t omt2 = omt * omt;
@@ -355,7 +355,7 @@ real_t Curve::interpolate_local_nocheck(int index, real_t local_offset) const {
 	real_t yac = a.pos.y + d * a.right_tangent;
 	real_t ybc = b.pos.y - d * b.left_tangent;
 
-	real_t y = _bezier_interp(local_offset, a.pos.y, yac, ybc, b.pos.y);
+	real_t y = _bezier_interp_curve(local_offset, a.pos.y, yac, ybc, b.pos.y);
 
 	return y;
 }
@@ -621,7 +621,7 @@ Vector2 Curve2D::interpolate(int p_index, float p_offset) const {
 	Vector2 p3 = points[p_index + 1].pos;
 	Vector2 p2 = p3 + points[p_index + 1].in;
 
-	return _bezier_interp(p_offset, p0, p1, p2, p3);
+	return _bezier_interp_curve(p_offset, p0, p1, p2, p3);
 }
 
 Vector2 Curve2D::interpolatef(real_t p_findex) const {
@@ -636,9 +636,9 @@ Vector2 Curve2D::interpolatef(real_t p_findex) const {
 
 void Curve2D::_bake_segment2d(RBMap<float, Vector2> &r_bake, float p_begin, float p_end, const Vector2 &p_a, const Vector2 &p_out, const Vector2 &p_b, const Vector2 &p_in, int p_depth, int p_max_depth, float p_tol) const {
 	float mp = p_begin + (p_end - p_begin) * 0.5;
-	Vector2 beg = _bezier_interp(p_begin, p_a, p_a + p_out, p_b + p_in, p_b);
-	Vector2 mid = _bezier_interp(mp, p_a, p_a + p_out, p_b + p_in, p_b);
-	Vector2 end = _bezier_interp(p_end, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector2 beg = _bezier_interp_curve(p_begin, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector2 mid = _bezier_interp_curve(mp, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector2 end = _bezier_interp_curve(p_end, p_a, p_a + p_out, p_b + p_in, p_b);
 
 	Vector2 na = (mid - beg).normalized();
 	Vector2 nb = (end - mid).normalized();
@@ -688,7 +688,7 @@ void Curve2D::_bake() const {
 				np = 1.0;
 			}
 
-			Vector2 npp = _bezier_interp(np, points[i].pos, points[i].pos + points[i].out, points[i + 1].pos + points[i + 1].in, points[i + 1].pos);
+			Vector2 npp = _bezier_interp_curve(np, points[i].pos, points[i].pos + points[i].out, points[i + 1].pos + points[i + 1].in, points[i + 1].pos);
 			float d = pos.distance_to(npp);
 
 			if (d > bake_interval) {
@@ -701,7 +701,7 @@ void Curve2D::_bake() const {
 				float mid = low + (hi - low) * 0.5;
 
 				for (int j = 0; j < iterations; j++) {
-					npp = _bezier_interp(mid, points[i].pos, points[i].pos + points[i].out, points[i + 1].pos + points[i + 1].in, points[i + 1].pos);
+					npp = _bezier_interp_curve(mid, points[i].pos, points[i].pos + points[i].out, points[i + 1].pos + points[i + 1].in, points[i + 1].pos);
 					d = pos.distance_to(npp);
 
 					if (bake_interval < d) {
@@ -1103,7 +1103,7 @@ Vector3 Curve3D::interpolate(int p_index, float p_offset) const {
 	Vector3 p3 = points[p_index + 1].pos;
 	Vector3 p2 = p3 + points[p_index + 1].in;
 
-	return _bezier_interp(p_offset, p0, p1, p2, p3);
+	return _bezier_interp_curve(p_offset, p0, p1, p2, p3);
 }
 
 Vector3 Curve3D::interpolatef(real_t p_findex) const {
@@ -1118,9 +1118,9 @@ Vector3 Curve3D::interpolatef(real_t p_findex) const {
 
 void Curve3D::_bake_segment3d(RBMap<float, Vector3> &r_bake, float p_begin, float p_end, const Vector3 &p_a, const Vector3 &p_out, const Vector3 &p_b, const Vector3 &p_in, int p_depth, int p_max_depth, float p_tol) const {
 	float mp = p_begin + (p_end - p_begin) * 0.5;
-	Vector3 beg = _bezier_interp(p_begin, p_a, p_a + p_out, p_b + p_in, p_b);
-	Vector3 mid = _bezier_interp(mp, p_a, p_a + p_out, p_b + p_in, p_b);
-	Vector3 end = _bezier_interp(p_end, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector3 beg = _bezier_interp_curve(p_begin, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector3 mid = _bezier_interp_curve(mp, p_a, p_a + p_out, p_b + p_in, p_b);
+	Vector3 end = _bezier_interp_curve(p_end, p_a, p_a + p_out, p_b + p_in, p_b);
 
 	Vector3 na = (mid - beg).normalized();
 	Vector3 nb = (end - mid).normalized();
@@ -1180,7 +1180,7 @@ void Curve3D::_bake() const {
 				np = 1.0;
 			}
 
-			Vector3 npp = _bezier_interp(np, points[i].pos, points[i].pos + points[i].out, points[i + 1].pos + points[i + 1].in, points[i + 1].pos);
+			Vector3 npp = _bezier_interp_curve(np, points[i].pos, points[i].pos + points[i].out, points[i + 1].pos + points[i + 1].in, points[i + 1].pos);
 			float d = pos.distance_to(npp);
 
 			if (d > bake_interval) {
@@ -1193,7 +1193,7 @@ void Curve3D::_bake() const {
 				float mid = low + (hi - low) * 0.5;
 
 				for (int j = 0; j < iterations; j++) {
-					npp = _bezier_interp(mid, points[i].pos, points[i].pos + points[i].out, points[i + 1].pos + points[i + 1].in, points[i + 1].pos);
+					npp = _bezier_interp_curve(mid, points[i].pos, points[i].pos + points[i].out, points[i + 1].pos + points[i + 1].in, points[i + 1].pos);
 					d = pos.distance_to(npp);
 
 					if (bake_interval < d) {
