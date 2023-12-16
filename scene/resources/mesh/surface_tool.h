@@ -32,7 +32,7 @@
 
 #include "scene/resources/mesh/mesh.h"
 
-#include "thirdparty/misc/mikktspace.h"
+#include "thirdparty/mikktspace.h"
 
 class SurfaceTool : public Reference {
 	GDCLASS(SurfaceTool, Reference);

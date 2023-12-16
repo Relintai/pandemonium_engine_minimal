@@ -289,7 +289,8 @@ def generate_scu_files(verbose, is_release_build, env):
 
     if has_mbedtyls_module:
         process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
-                        "os", "string", "variant", "io", "crypto"])
+                        "os", "string", "variant", "io", "crypto", "thirdparty/misc", 
+                        "thirdparty/zstd", "thirdparty/zlib", "thirdparty/minizip"])
     else:
         process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
                         "os", "string", "variant", "io", "crypto", "crypto/mbedtls/library", "thirdparty/misc", 
@@ -332,10 +333,10 @@ def generate_scu_files(verbose, is_release_build, env):
 
     process_folder(["modules/freetype", "brotli/common", "brotli/dec", "freetype/src/autofit", "freetype/src/base", 
                     "freetype/src/bdf", "freetype/src/bzip2", "freetype/src/cache", "freetype/src/cff", "freetype/src/cid", "freetype/src/gxvalid"
-                    , "freetype/src/gzip", "freetype/src/lzw", "freetype/src/otvalid", "freetype/src/pcf"
-                    , "freetype/src/pfr", "freetype/src/psaux", "freetype/src/pshinter"
-                    , "freetype/src/psnames", "freetype/src/raster", "freetype/src/sdf", "freetype/src/svg", "freetype/src/smooth", "freetype/src/truetype"
-                    , "freetype/src/type1", "freetype/src/type42", "freetype/src/winfonts"], [], 0, "cpp c")
+                    "freetype/src/gzip", "freetype/src/lzw", "freetype/src/otvalid", "freetype/src/pcf",
+                    "freetype/src/pfr", "freetype/src/psaux", "freetype/src/pshinter",
+                    "freetype/src/psnames", "freetype/src/raster", "freetype/src/sdf", "freetype/src/svg", "freetype/src/smooth", "freetype/src/truetype",
+                    "freetype/src/type1", "freetype/src/type42", "freetype/src/winfonts"], [], 0, "cpp c")
 
     process_folder(["modules/enet", "enet" ], [], 0, "cpp c")
     #process_folder(["modules/enet" ], [], 0, "cpp c")
@@ -355,7 +356,7 @@ def generate_scu_files(verbose, is_release_build, env):
     #process_folder(["scene/main"])
     #process_folder(["scene/resources", "default_theme", "font", "material", "mesh", "shapes_2d"])
 
-    process_folder(["scene", "audio", "debugger", "2d", "animation", "gui", "gui/resources",  "main", "resources", "resources/default_theme", "resources/font", "resources/material", "resources/mesh", "resources/shapes_2d" ])
+    process_folder(["scene", "audio", "debugger", "2d", "animation", "gui", "gui/resources",  "main", "resources", "resources/default_theme", "resources/font", "resources/material", "resources/mesh", "resources/mesh/thirdparty", "resources/shapes_2d" ])
 
     #process_folder(["servers"])
     #process_folder(["servers/rendering"])
