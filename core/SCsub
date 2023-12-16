@@ -89,17 +89,6 @@ if env["builtin_zlib"]:
 
     env_thirdparty.add_source_files(thirdparty_obj, thirdparty_zlib_sources)
 
-# Minizip library, could be unbundled in theory
-# However, our version has some custom modifications, so it won't compile with the system one
-thirdparty_minizip_dir = "thirdparty/minizip/"
-thirdparty_minizip_sources = [
-    "ioapi.c",
-    "unzip.c",
-    "zip.c",
-]
-thirdparty_minizip_sources = [thirdparty_minizip_dir + file for file in thirdparty_minizip_sources]
-env_thirdparty.add_source_files(thirdparty_obj, thirdparty_minizip_sources)
-
 env.core_sources += thirdparty_obj
 
 #if env["scu_build"]:

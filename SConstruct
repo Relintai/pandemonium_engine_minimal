@@ -130,7 +130,6 @@ opts.Add(BoolVariable("use_rtti", "Use RTTI", False))
 
 # Components
 opts.Add(BoolVariable("deprecated", "Enable deprecated features", True))
-opts.Add(BoolVariable("minizip", "Enable ZIP archive support using minizip", True))
 opts.Add(BoolVariable("xaudio2", "Enable the XAudio2 audio driver", False))
 opts.Add(BoolVariable("disable_exceptions", "Force disabling exception handling code", True))
 opts.Add("custom_modules", "A list of comma-separated directory paths containing custom modules to build.", "")
@@ -646,8 +645,6 @@ if selected_platform in platform_list:
 
     if env["disable_advanced_gui"]:
         env.Append(CPPDEFINES=["ADVANCED_GUI_DISABLED"])
-    if env["minizip"]:
-        env.Append(CPPDEFINES=["MINIZIP_ENABLED"])
 
     if not env["verbose"]:
         methods.no_verbose(sys, env)
