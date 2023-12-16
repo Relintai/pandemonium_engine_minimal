@@ -306,6 +306,9 @@ def generate_scu_files(verbose, is_release_build):
 
     process_folder(["modules/mbedtls"])
 
+    #process_folder(["modules/regex"])
+    #process_folder(["modules/regex/pcre2/src", "sljit" ], [], 0, "c")
+
     #process_folder(["scene"])
     #process_folder(["scene/audio"])
     #process_folder(["scene/debugger"])

@@ -10,7 +10,7 @@ env_regex = env_modules.Clone()
 thirdparty_obj = []
 
 if env["builtin_pcre2"]:
-    thirdparty_dir = "#thirdparty/pcre2/src/"
+    thirdparty_dir = "pcre2/src/"
     thirdparty_flags = ["PCRE2_STATIC", "HAVE_CONFIG_H", "SUPPORT_UNICODE"]
 
     if env["builtin_pcre2_with_jit"]:
