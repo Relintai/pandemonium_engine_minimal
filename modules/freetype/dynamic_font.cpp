@@ -28,8 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "modules/modules_enabled.gen.h" // For freetype.
-#ifdef MODULE_FREETYPE_ENABLED
 
 #include "dynamic_font.h"
 
@@ -1462,5 +1460,3 @@ String ResourceFormatLoaderDynamicFont::get_resource_type(const String &p_path) 
 	}
 	return "";
 }
-
-#endif

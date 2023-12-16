@@ -30,9 +30,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "modules/modules_enabled.gen.h" // For freetype.
-#ifdef MODULE_FREETYPE_ENABLED
-
 #include "core/io/resource_loader.h"
 #include "core/os/mutex.h"
 #include "core/os/thread_safe.h"
@@ -396,7 +393,5 @@ public:
 	virtual bool handles_type(const String &p_type) const;
 	virtual String get_resource_type(const String &p_path) const;
 };
-
-#endif // MODULE_FREETYPE_ENABLED
 
 #endif // DYNAMIC_FONT_H

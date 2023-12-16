@@ -30,6 +30,29 @@
 
 #include "register_types.h"
 
-void register_freetype_types(ModuleRegistrationLevel p_level) {}
+#include "dynamic_font.h"
 
-void unregister_freetype_types(ModuleRegistrationLevel p_level) {}
+static Ref<ResourceFormatLoaderDynamicFont> resource_loader_dynamic_font;
+
+void register_freetype_types(ModuleRegistrationLevel p_level) {
+	if (p_level == MODULE_REGISTRATION_LEVEL_SINGLETON) {
+		resource_loader_dynamic_font.instance();
+		ResourceLoader::add_resource_format_loader(resource_loader_dynamic_font);
+	}
+
+	if (p_level == MODULE_REGISTRATION_LEVEL_SCENE) {
+		ClassDB::register_class<DynamicFontData>();
+		ClassDB::register_class<DynamicFont>();
+
+		DynamicFont::initialize_dynamic_fonts();
+	}
+}
+
+void unregister_freetype_types(ModuleRegistrationLevel p_level) {
+	if (p_level == MODULE_REGISTRATION_LEVEL_SINGLETON) {
+		ResourceLoader::remove_resource_format_loader(resource_loader_dynamic_font);
+		resource_loader_dynamic_font.unref();
+
+		DynamicFont::finish_dynamic_fonts();
+	}
+}

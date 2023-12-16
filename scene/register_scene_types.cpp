@@ -129,7 +129,6 @@
 #include "scene/resources/shapes_2d/concave_polygon_shape_2d.h"
 #include "scene/resources/shapes_2d/convex_polygon_shape_2d.h"
 #include "scene/resources/default_theme/default_theme.h"
-#include "scene/resources/font/dynamic_font.h"
 #include "scene/resources/gradient.h"
 #include "scene/resources/mesh/immediate_mesh.h"
 #include "scene/resources/shapes_2d/line_shape_2d.h"
@@ -158,10 +157,6 @@
 static Ref<ResourceFormatSaverText> resource_saver_text;
 static Ref<ResourceFormatLoaderText> resource_loader_text;
 
-#ifdef MODULE_FREETYPE_ENABLED
-static Ref<ResourceFormatLoaderDynamicFont> resource_loader_dynamic_font;
-#endif // MODULE_FREETYPE_ENABLED
-
 static Ref<ResourceFormatLoaderStreamTexture> resource_loader_stream_texture;
 static Ref<ResourceFormatLoaderTextureLayered> resource_loader_texture_layered;
 
@@ -176,11 +171,6 @@ void register_scene_types() {
 	OS::get_singleton()->yield(); //may take time to init
 
 	Node::init_node_hrcr();
-
-#ifdef MODULE_FREETYPE_ENABLED
-	resource_loader_dynamic_font.instance();
-	ResourceLoader::add_resource_format_loader(resource_loader_dynamic_font);
-#endif // MODULE_FREETYPE_ENABLED
 
 	resource_loader_stream_texture.instance();
 	ResourceLoader::add_resource_format_loader(resource_loader_stream_texture);
@@ -441,13 +431,6 @@ void register_scene_types() {
 
 	ClassDB::register_class<TextFile>();
 
-#ifdef MODULE_FREETYPE_ENABLED
-	ClassDB::register_class<DynamicFontData>();
-	ClassDB::register_class<DynamicFont>();
-
-	DynamicFont::initialize_dynamic_fonts();
-#endif // MODULE_FREETYPE_ENABLED
-
 	ClassDB::register_virtual_class<StyleBox>();
 	ClassDB::register_class<StyleBoxEmpty>();
 	ClassDB::register_class<StyleBoxTexture>();
@@ -534,13 +517,6 @@ void initialize_theme() {
 
 void unregister_scene_types() {
 	clear_default_theme();
-
-#ifdef MODULE_FREETYPE_ENABLED
-	ResourceLoader::remove_resource_format_loader(resource_loader_dynamic_font);
-	resource_loader_dynamic_font.unref();
-
-	DynamicFont::finish_dynamic_fonts();
-#endif // MODULE_FREETYPE_ENABLED
 
 	ResourceLoader::remove_resource_format_loader(resource_loader_texture_layered);
 	resource_loader_texture_layered.unref();

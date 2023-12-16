@@ -41,13 +41,11 @@
 #include "core/string/print_string.h"
 #include "core/variant/variant_parser.h"
 #include "main/input_default.h"
-#include "modules/modules_enabled.gen.h" // For freetype.
 #include "node.h"
 #include "scene/animation/scene_tree_tween.h"
 #include "scene/debugger/script_debugger_remote.h"
 #include "scene/main/control.h"
 #include "scene/main/scene_string_names.h"
-#include "scene/resources/font/dynamic_font.h"
 #include "scene/resources/material/material.h"
 #include "scene/resources/material/shader_material.h"
 #include "scene/resources/mesh/mesh.h"
@@ -56,6 +54,12 @@
 #include "servers/audio_server.h"
 #include "servers/physics_2d_server.h"
 #include "viewport.h"
+
+#include "modules/modules_enabled.gen.h" // For freetype.
+
+#ifdef MODULE_FREETYPE_ENABLED
+#include "modules/freetype/dynamic_font.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
