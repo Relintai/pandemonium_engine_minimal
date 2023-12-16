@@ -244,7 +244,7 @@ def process_folder(folders, sought_exceptions=[], includes_per_scu=0, extension=
         )
 
 
-def generate_scu_files(verbose, is_release_build):
+def generate_scu_files(verbose, is_release_build, env):
 
     print("=============================")
     print("Single Compilation Unit Build")

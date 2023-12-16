@@ -24,9 +24,9 @@ if not has_module:
     env_thirdparty.disable_warnings()
     # Custom config file
     env_thirdparty.Append(
-        CPPDEFINES=[("MBEDTLS_CONFIG_FILE", '\\"thirdparty/mbedtls/include/pandemonium_core_mbedtls_config.h\\"')]
+        CPPDEFINES=[("MBEDTLS_CONFIG_FILE", '\\"core/crypto/mbedtls/include/pandemonium_core_mbedtls_config.h\\"')]
     )
-    thirdparty_mbedtls_dir = "#thirdparty/mbedtls/library/"
+    thirdparty_mbedtls_dir = "mbedtls/library/"
     thirdparty_mbedtls_sources = [
         "aes.c",
         "base64.c",
