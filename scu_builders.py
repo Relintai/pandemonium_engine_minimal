@@ -329,7 +329,6 @@ def generate_scu_files(verbose, is_release_build, env):
     #TODO These should be moved to module conpig.py s
 
     process_folder(["modules/gdscript"])
-    process_folder(["modules/gdscript/language_server"])
 
     process_folder(["modules/freetype", "brotli/common", "brotli/dec", "freetype/src/autofit", "freetype/src/base", 
                     "freetype/src/bdf", "freetype/src/bzip2", "freetype/src/cache", "freetype/src/cff", "freetype/src/cid", "freetype/src/gxvalid"
