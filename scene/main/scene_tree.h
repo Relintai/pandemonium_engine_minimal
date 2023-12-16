@@ -227,8 +227,6 @@ private:
 
 	SelfList<Node>::List xform_change_list;
 
-	friend class ScriptDebuggerRemote;
-
 	Ref<ShortCut> debugger_stop_shortcut;
 
 	enum {

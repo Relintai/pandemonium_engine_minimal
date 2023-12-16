@@ -43,7 +43,6 @@
 #include "main/input_default.h"
 #include "node.h"
 #include "scene/animation/scene_tree_tween.h"
-#include "scene/debugger/script_debugger_remote.h"
 #include "scene/main/control.h"
 #include "scene/main/scene_string_names.h"
 #include "scene/resources/material/material.h"
@@ -2017,11 +2016,6 @@ SceneTree::SceneTree() {
 	_update_root_rect();
 
 	if (ScriptDebugger::get_singleton()) {
-		if (ScriptDebugger::get_singleton()->is_remote()) {
-			ScriptDebuggerRemote *remote_debugger = static_cast<ScriptDebuggerRemote *>(ScriptDebugger::get_singleton());
-
-			remote_debugger->set_scene_tree(this);
-		}
 		ScriptDebugger::get_singleton()->set_multiplayer(multiplayer);
 	}
 

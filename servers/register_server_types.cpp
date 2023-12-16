@@ -55,28 +55,8 @@
 #include "physics_2d/physics_2d_server_sw.h"
 #include "physics_2d/physics_2d_server_wrap_mt.h"
 #include "rendering/shader_types.h"
-#include "scene/debugger/script_debugger_remote.h"
 #include "servers/physics_2d_server.h"
 #include "servers/rendering_server.h"
-
-static void _debugger_get_resource_usage(List<ScriptDebuggerRemote::ResourceUsage> *r_usage) {
-	List<RS::TextureInfo> tinfo;
-	RS::get_singleton()->texture_debug_usage(&tinfo);
-
-	for (List<RS::TextureInfo>::Element *E = tinfo.front(); E; E = E->next()) {
-		ScriptDebuggerRemote::ResourceUsage usage;
-		usage.path = E->get().path;
-		usage.vram = E->get().bytes;
-		usage.id = E->get().texture;
-		usage.type = "Texture";
-		if (E->get().depth == 0) {
-			usage.format = itos(E->get().width) + "x" + itos(E->get().height) + " " + Image::get_format_name(E->get().format);
-		} else {
-			usage.format = itos(E->get().width) + "x" + itos(E->get().height) + "x" + itos(E->get().depth) + " " + Image::get_format_name(E->get().format);
-		}
-		r_usage->push_back(usage);
-	}
-}
 
 ShaderTypes *shader_types = nullptr;
 
@@ -160,8 +140,6 @@ void register_server_types() {
 	ClassDB::register_virtual_class<Physics2DDirectSpaceState>();
 	ClassDB::register_class<Physics2DTestMotionResult>();
 	ClassDB::register_class<Physics2DShapeQueryParameters>();
-
-	ScriptDebuggerRemote::resource_usage_func = _debugger_get_resource_usage;
 
 	// Physics 2D
 	GLOBAL_DEF(Physics2DServerManager::setting_property_name, "DEFAULT");

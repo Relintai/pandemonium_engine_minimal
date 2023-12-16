@@ -52,7 +52,6 @@
 #include "main/performance.h"
 #include "modules/register_module_types.h"
 #include "platform/register_platform_apis.h"
-#include "scene/debugger/script_debugger_remote.h"
 #include "scene/main/scene_tree.h"
 #include "scene/main/viewport.h"
 #include "scene/register_scene_types.h"
@@ -400,7 +399,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	bool upwards = false;
 	String debug_mode;
 	String debug_host;
-	bool skip_breakpoints = false;
 	String main_pack;
 	bool quiet_stdout = false;
 	int rtm = -1;
@@ -831,8 +829,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			print_fps = true;
 		} else if (I->get() == "--disable-crash-handler") {
 			OS::get_singleton()->disable_crash_handler();
-		} else if (I->get() == "--skip-breakpoints") {
-			skip_breakpoints = true;
 		} else if (I->get() == "--benchmark") {
 			OS::get_singleton()->set_use_benchmark(true);
 		} else if (I->get() == "--benchmark-file") {
@@ -912,28 +908,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	GLOBAL_DEF_RST("network/limits/debugger_stdout/max_warnings_per_second", 100);
 	ProjectSettings::get_singleton()->set_custom_property_info("network/limits/debugger_stdout/max_warnings_per_second", PropertyInfo(Variant::INT, "network/limits/debugger_stdout/max_warnings_per_second", PROPERTY_HINT_RANGE, "0, 200, 1, or_greater"));
 
-	if (debug_mode == "remote") {
-		ScriptDebuggerRemote *sdr = memnew(ScriptDebuggerRemote);
-		uint16_t debug_port = 6007;
-		if (debug_host.find(":") != -1) {
-			int sep_pos = debug_host.rfind(":");
-			debug_port = debug_host.substr(sep_pos + 1, debug_host.length()).to_int();
-			debug_host = debug_host.substr(0, sep_pos);
-		}
-		Error derr = sdr->connect_to_host(debug_host, debug_port);
-
-		sdr->set_skip_breakpoints(skip_breakpoints);
-
-		if (derr != OK) {
-			memdelete(sdr);
-		} else {
-			script_debugger = sdr;
-			sdr->set_allow_focus_steal_pid(allow_focus_steal_pid);
-		}
-	} else if (debug_mode == "local") {
+	if (debug_mode == "local") {
 		script_debugger = memnew(ScriptDebuggerLocal);
 		OS::get_singleton()->initialize_debugging();
 	}
+	
 	if (script_debugger) {
 		//there is a debugger, parse breakpoints
 
@@ -1719,12 +1698,6 @@ bool Main::start() {
 
 		if (!project_manager && !editor) { // game
 			if (game_path != "" || script != "") {
-				if (script_debugger && script_debugger->is_remote()) {
-					ScriptDebuggerRemote *remote_debugger = static_cast<ScriptDebuggerRemote *>(script_debugger);
-
-					remote_debugger->set_scene_tree(sml);
-				}
-
 				//autoload
 				List<PropertyInfo> props;
 				ProjectSettings::get_singleton()->get_property_list(&props);
