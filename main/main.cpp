@@ -72,9 +72,6 @@
 #include "editor/progress_dialog.h"
 #include "editor/project_manager.h"
 #include "editor/script_editor_debugger.h"
-#ifndef NO_EDITOR_SPLASH
-#include "main/splash_editor.gen.h"
-#endif
 #endif
 
 #include "modules/modules_enabled.gen.h"
@@ -2037,7 +2034,7 @@ bool Main::start() {
 		}
 #endif
 	}
-	
+
 	OS::get_singleton()->set_main_loop(main_loop);
 
 	if (minimum_time_msec) {

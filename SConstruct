@@ -260,10 +260,6 @@ env_base["platform"] = selected_platform  # Must always be re-set after calling 
 modules_detected = OrderedDict()
 module_search_paths = [ "modules" ]  # Built-in path.
 
-# maybe?
-#if env_base["tools"]:
-#    module_search_paths.append(methods.convert_custom_modules_path("editor_modules"))
-
 if env_base["custom_modules"]:
     paths = env_base["custom_modules"].split(",")
     for p in paths:
@@ -346,12 +342,6 @@ if methods.get_cmdline_bool("fast_unsafe", env_base["target"] == "debug"):
 if env_base["use_precise_math_checks"]:
     env_base.Append(CPPDEFINES=["PRECISE_MATH_CHECKS"])
 
-if not env_base.File("#main/splash_editor.png").exists():
-    # Force disabling editor splash if missing.
-    env_base["no_editor_splash"] = True
-if env_base["no_editor_splash"]:
-    env_base.Append(CPPDEFINES=["NO_EDITOR_SPLASH"])
-
 if not env_base["deprecated"]:
     env_base.Append(CPPDEFINES=["DISABLE_DEPRECATED"])
 
@@ -413,7 +403,7 @@ if selected_platform in platform_list:
         env["debug_symbols"] = methods.get_cmdline_bool("debug_symbols", False)
         # LTO "auto" means we handle the preferred option in each platform detect.py.
         env["lto"] = ARGUMENTS.get("lto", "auto")
-        if not env["tools"] and env["target"] == "debug":
+        if env["target"] == "debug":
             print(
                 "WARNING: Requested `production` build with `tools=no target=debug`, "
                 "this will give you a full debug template (use `target=release_debug` "
@@ -551,27 +541,14 @@ if selected_platform in platform_list:
         suffix = "." + selected_platform
 
     if env["target"] == "release":
-        if env["tools"]:
-            print("ERROR: The editor can only be built with `target=debug` or `target=release_debug`.")
-            print("       Use `tools=no target=release` to build a release export template.")
-            Exit(255)
         suffix += ".opt"
     elif env["target"] == "release_debug":
-        if env["tools"]:
-            suffix += ".opt.tools"
-        else:
-            suffix += ".opt.debug"
+        suffix += ".opt.debug"
     else:
-        if env["tools"]:
-            print(
-                "Note: Building a debug binary (which will run slowly). Use `target=release_debug` to build an optimized release binary."
-            )
-            suffix += ".tools"
-        else:
-            print(
-                "Note: Building a debug binary (which will run slowly). Use `target=release` to build an optimized release binary."
-            )
-            suffix += ".debug"
+        print(
+            "Note: Building a debug binary (which will run slowly). Use `target=release` to build an optimized release binary."
+        )
+        suffix += ".debug"
 
     if env["arch"] != "":
         suffix += "." + env["arch"]
@@ -669,28 +646,9 @@ if selected_platform in platform_list:
 
     if env.use_ptrcall:
         env.Append(CPPDEFINES=["PTRCALL_ENABLED"])
-    if env["tools"]:
-        env.Append(CPPDEFINES=["TOOLS_ENABLED"])
-
-    if env["disable_3d"]:
-        if env["tools"]:
-            print(
-                "Build option 'disable_3d=yes' cannot be used with 'tools=yes' (editor), "
-                "only with 'tools=no' (export template)."
-            )
-            sys.exit(255)
-        else:
-            env.Append(CPPDEFINES=["_3D_DISABLED"])
 
     if env["disable_advanced_gui"]:
-        if env["tools"]:
-            print(
-                "Build option 'disable_advanced_gui=yes' cannot be used with 'tools=yes' (editor), "
-                "only with 'tools=no' (export template)."
-            )
-            sys.exit(255)
-        else:
-            env.Append(CPPDEFINES=["ADVANCED_GUI_DISABLED"])
+        env.Append(CPPDEFINES=["ADVANCED_GUI_DISABLED"])
     if env["minizip"]:
         env.Append(CPPDEFINES=["MINIZIP_ENABLED"])
 
@@ -735,9 +693,6 @@ if selected_platform in platform_list:
     SConscript("core/SCsub")
     SConscript("servers/SCsub")
     SConscript("scene/SCsub")
-
-    if env["tools"]:
-        SConscript("editor/SCsub")
 
     SConscript("drivers/SCsub")
 

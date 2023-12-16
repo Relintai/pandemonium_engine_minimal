@@ -38,7 +38,7 @@ def create_engine_file(env, target, source, externs):
 
 
 def create_template_zip(env, js, wasm, extra):
-    binary_name = "pandemonium.tools" if env["tools"] else "pandemonium"
+    binary_name = "pandemonium"
     zip_dir = env.Dir("#bin/.javascript_zip")
     in_files = [
         js,
@@ -51,60 +51,19 @@ def create_template_zip(env, js, wasm, extra):
         zip_dir.File(binary_name + ".audio.worklet.js"),
     ]
     # GDNative/Threads specific
-    if env["gdnative_enabled"]:
-        in_files.append(extra)  # Runtime
-        out_files.append(zip_dir.File(binary_name + ".side.wasm"))
-    elif env["threads_enabled"]:
+    if env["threads_enabled"]:
         in_files.append(extra)  # Worker
         out_files.append(zip_dir.File(binary_name + ".worker.js"))
 
     service_worker = "#misc/dist/html/service-worker.js"
-    if env["tools"]:
-        # HTML
-        html = "#misc/dist/html/editor.html"
-        cache = [
-            "pandemonium.tools.html",
-            "offline.html",
-            "pandemonium.tools.js",
-            "pandemonium.tools.worker.js",
-            "pandemonium.tools.audio.worklet.js",
-            "logo.svg",
-            "favicon.png",
-        ]
-        opt_cache = ["pandemonium.tools.wasm"]
-        subst_dict = {
-            "@PANDEMONIUM_VERSION@": get_build_version(),
-            "@PANDEMONIUM_NAME@": "PandemoniumEngine",
-            "@PANDEMONIUM_CACHE@": json.dumps(cache),
-            "@PANDEMONIUM_OPT_CACHE@": json.dumps(opt_cache),
-            "@PANDEMONIUM_OFFLINE_PAGE@": "offline.html",
-        }
-        html = env.Substfile(target="#bin/pandemonium${PROGSUFFIX}.html", source=html, SUBST_DICT=subst_dict)
-        in_files.append(html)
-        out_files.append(zip_dir.File(binary_name + ".html"))
-        # And logo/favicon
-        in_files.append("#misc/dist/html/logo.svg")
-        out_files.append(zip_dir.File("logo.svg"))
-        in_files.append("#icon.png")
-        out_files.append(zip_dir.File("favicon.png"))
-        # PWA
-        service_worker = env.Substfile(
-            target="#bin/pandemonium${PROGSUFFIX}.service.worker.js", source=service_worker, SUBST_DICT=subst_dict
-        )
-        in_files.append(service_worker)
-        out_files.append(zip_dir.File("service.worker.js"))
-        in_files.append("#misc/dist/html/manifest.json")
-        out_files.append(zip_dir.File("manifest.json"))
-        in_files.append("#misc/dist/html/offline.html")
-        out_files.append(zip_dir.File("offline.html"))
-    else:
-        # HTML
-        in_files.append("#misc/dist/html/full-size.html")
-        out_files.append(zip_dir.File(binary_name + ".html"))
-        in_files.append(service_worker)
-        out_files.append(zip_dir.File(binary_name + ".service.worker.js"))
-        in_files.append("#misc/dist/html/offline-export.html")
-        out_files.append(zip_dir.File("pandemonium.offline.html"))
+
+    # HTML
+    in_files.append("#misc/dist/html/full-size.html")
+    out_files.append(zip_dir.File(binary_name + ".html"))
+    in_files.append(service_worker)
+    out_files.append(zip_dir.File(binary_name + ".service.worker.js"))
+    in_files.append("#misc/dist/html/offline-export.html")
+    out_files.append(zip_dir.File("pandemonium.offline.html"))
 
     zip_files = env.InstallAs(out_files, in_files)
     env.Zip(

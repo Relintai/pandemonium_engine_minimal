@@ -80,14 +80,6 @@ def configure(env):
     if env["use_assertions"]:
         env.Append(LINKFLAGS=["-s", "ASSERTIONS=1"])
 
-    if env["tools"]:
-        if not env["threads_enabled"]:
-            print('Note: Forcing "threads_enabled=yes" as it is required for the web editor.')
-            env["threads_enabled"] = "yes"
-        if env["initial_memory"] < 64:
-            print('Note: Forcing "initial_memory=64" as it is required for the web editor.')
-            env["initial_memory"] = 64
-
     env.Append(LINKFLAGS=["-s", "INITIAL_MEMORY=%sMB" % env["initial_memory"]])
 
     ## Copy env variables.

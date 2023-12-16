@@ -59,9 +59,6 @@ if lib_arch_dir != "":
 
     lib_tools_dir = ""
 
-    if env["tools"]:
-        lib_tools_dir = "tools/"
-
     out_dir = "#platform/android/java/lib/libs/" + lib_tools_dir + lib_type_dir + "/" + lib_arch_dir
     env_android.Command(
         out_dir + "/libpandemonium_android.so", "#bin/libpandemonium" + env["SHLIBSUFFIX"], Move("$TARGET", "$SOURCE")
