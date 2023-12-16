@@ -281,19 +281,14 @@ def generate_scu_files(verbose, is_release_build):
     process_folder(["drivers/unix"])
     process_folder(["drivers/png"])
 
-    process_folder(["editor"])
-    process_folder(["editor/import"])
-    process_folder(["editor/plugins"])
-
     process_folder(["main"])
-    process_folder(["main/tests"])
 
     process_folder(
         [
             "platform",
-            "android/export",
-            "iphone/export",
-            "javascript/export",
+            #"android/export",
+            #"iphone/export",
+            #"javascript/export",
             "osx/export",
             #"uwp/export",
             "windows/export",
@@ -303,279 +298,15 @@ def generate_scu_files(verbose, is_release_build):
 
     #TODO These should be moved to module conpig.py s
 
-    process_folder(["modules/broken_seals_module"])
-    process_folder(["modules/cscript"])
-    process_folder(["modules/csg"])
-
-    process_folder(["modules/database"])
-    process_folder(["modules/database_sqlite"])
-
-    process_folder(["modules/entity_spell_system",
-        "data/atlases",
-        "data/auras",
-        "data/items",
-        "data/loot",
-        "data/species",
-        "data/spells",
-        "database",
-        "drag_and_drop",
-        "editor",
-        "entities",
-        "entities/ai",
-        "entities/auras",
-        "entities/data",
-        "entities/resources",
-        "entities/skills",
-        "entities/stats",
-        "formations",
-        "infos",
-        "inventory",
-        "material_cache",
-        "pipelines",
-        "profiles",
-        "profiles/actionbar",
-        "profiles/input",
-        "projectiles/3d",
-        "props",
-        "singletons",
-        "skeleton",
-        "spawners",
-        "utility",
-    ])
-
-    process_folder(["modules/fastnoise"])
-
-    process_folder(["modules/gdnative",
-        "gdnative",
-        "nativescript",
-        #"arvr",
-        "pluginscript",
-        "net",
-    ])
-
     process_folder(["modules/gdscript"])
     process_folder(["modules/gdscript/language_server"])
 
-    process_folder(["modules/gridmap"])
-    process_folder(["modules/gridmap/geometry_parser"])
-
-    process_folder(["modules/http_server_simple"])
-
-    process_folder(["modules/lz4"])
-
-    process_folder(["modules/material_maker",
-        "algos",
-        "editor",
-        "editor/widgets/color_picker_popup",
-        "editor/widgets/curve_edit",
-        "editor/widgets/file_dialog",
-        "editor/widgets/float_edit",
-        "editor/widgets/gradient_editor",
-        "editor/widgets/image_picker_button",
-        "editor/widgets/mm_dnd_color_picker_button",
-        "editor/widgets/polygon_edit",
-        "editor/widgets/tones_editor",
-        "nodes",
-        "nodes/bases",
-        "nodes/filter",
-        "nodes/gradient",
-        "nodes/noise",
-        "nodes/other",
-        "nodes/pattern",
-        "nodes/sdf2d",
-        "nodes/sdf3d",
-        "nodes/simple",
-        "nodes/transform",
-        "nodes/uniform",
-    ])
-
     process_folder(["modules/mbedtls"])
-
-    process_folder(["modules/mesh_data_resource",
-        "editor",
-        "editor/utilities",
-        "editor/uv_editor",
-        "nodes",
-        "plugin",
-        "plugin_gltf",
-        "props",
-        "props_2d",
-    ])
-
-    process_folder(["modules/mesh_utils"])
-
-    process_folder(["modules/navigation"])
-    process_folder(["modules/navigation_dummy"])
-    process_folder(["modules/navigation_geometry_parsers",
-        "geometry_parser_2d",
-        "geometry_parser_3d",
-    ])
-    process_folder(["modules/navigation_mesh_generator"])
-    process_folder(["modules/navigation_mesh_generator/editor"])
-
-    process_folder(["modules/network_synchronizer"])
-
-    process_folder(["modules/paint",
-        "actions",
-        "editor",
-        "nodes",
-        "ui",
-        "ui/property_inspectors",
-    ])
-
-    process_folder(["modules/props",
-        "clutter",
-        "editor",
-        "jobs",
-        "lights",
-        "material_cache",
-        "props",
-        "singleton",
-        "tiled_wall",
-    ])
-
-    process_folder(["modules/props_2d",
-        "clutter",
-        "editor",
-        "jobs",
-        "lights",
-        "material_cache",
-        "props",
-        "singleton",
-        "tiled_wall",
-    ])
-
-    process_folder(["modules/skeleton_2d",
-        "editor",
-        "nodes",
-        "resources",
-    ])
-    process_folder(["modules/skeleton_3d",
-        "editor",
-        "nodes",
-        "resources",
-    ])
-
-    process_folder(["modules/steering_ai",
-        "agents",
-        "behaviors",
-        "proximities",
-    ])
-
-    process_folder(["modules/terraman",
-        "areas",
-        "data",
-        "level_generator",
-        "library",
-        "meshers",
-        "meshers/blocky",
-        "meshers/default",
-        "nodes",
-        "world",
-        "world/blocky",
-        "world/default",
-        "world/jobs",
-    ])
-
-    process_folder(["modules/terraman_2d",
-        "areas",
-        "data",
-        "level_generator",
-        "library",
-        "meshers",
-        "meshers/default",
-        "meshers/isometric",
-        "meshers/simple",
-        "nodes",
-        "world",
-        "world/default",
-        "world/isometric",
-        "world/jobs",
-        "world/simple",
-    ])
-
-    process_folder(["modules/texture_packer",
-        "layers",
-        "rectpack2D",
-        "texture_resource",
-    ])
-
-    process_folder(["modules/tile_map",
-        "geometry_parser",
-    ])
-
-    process_folder(["modules/ui_extensions"])
-
-    process_folder(["modules/unit_test"])
-
-    process_folder(["modules/users",
-        "managers",
-        "singleton",
-        "users",
-        "web/middleware",
-        "web/web_nodes",
-    ])
-
-    process_folder(["modules/voxelman",
-        "areas",
-        "data",
-        "level_generator",
-        "library",
-        "meshers",
-        "meshers/blocky",
-        "meshers/cubic",
-        "meshers/default",
-        "meshers/marching_cubes",
-        "nodes",
-        "world",
-        "world/blocky",
-        "world/cubic",
-        "world/default",
-        "world/jobs",
-        "world/marching_cubes",
-    ])
-
-    process_folder(["modules/web",
-        "database",
-        "editor",
-        "html",
-        "http",
-        "nodes/admin_panel",
-        "nodes/folder_serve_nodes",
-        "nodes/list_page",
-        "nodes/message_page",
-        "nodes/paged_article",
-        "nodes/redirect",
-        "nodes/static_pages",
-    ])
-
-    process_folder(["modules/websocket"])
-
-    process_folder(["modules/wfc"])
-
-    #Editor Modules
-    process_folder(["editor_modules/editor_code_editor"])
-
-    process_folder(["editor_modules/gltf"])
-    process_folder(["editor_modules/gltf/structures"])
-    process_folder(["editor_modules/gltf/extensions"])
-    process_folder(["editor_modules/gltf/extensions/physics"])
-
-    process_folder(["editor_modules/plugin_refresher"])
-
-    process_folder(["editor_modules/shader_editor"])
-    process_folder(["editor_modules/text_editor"])
-
-    #process_folder(["modules/fbx"])
-    #process_folder(["modules/fbx/tools"])
-    #process_folder(["modules/fbx/data"])
-    #process_folder(["modules/fbx/fbx_parser"])
 
     process_folder(["scene"])
     process_folder(["scene/audio"])
     process_folder(["scene/debugger"])
     process_folder(["scene/2d"])
-    process_folder(["scene/3d"])
     process_folder(["scene/animation"])
     process_folder(["scene/gui"])
     process_folder(["scene/main"])
@@ -583,10 +314,7 @@ def generate_scu_files(verbose, is_release_build):
 
     process_folder(["servers"])
     process_folder(["servers/rendering"])
-    process_folder(["servers/rendering/portals"])
     process_folder(["servers/physics_2d"])
-    process_folder(["servers/physics"])
-    process_folder(["servers/physics/joints"])
     process_folder(["servers/audio"])
     process_folder(["servers/audio/effects"])
 
