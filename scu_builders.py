@@ -196,13 +196,13 @@ def process_folder(folders, sought_exceptions=[], includes_per_scu=0, extension=
 
     # adjust number of output files according to whether DEV or release
     num_output_files = 1
-    if _is_release_build:
-        # always have a maximum in release
-        includes_per_scu = 8
-        num_output_files = max(math.ceil(total_lines / includes_per_scu), 1)
-    else:
-        if includes_per_scu > 0:
-            num_output_files = max(math.ceil(total_lines / includes_per_scu), 1)
+    #if _is_release_build:
+    #    # always have a maximum in release
+    #    includes_per_scu = 8
+    #    num_output_files = max(math.ceil(total_lines / includes_per_scu), 1)
+    #else:
+    #    if includes_per_scu > 0:
+    #        num_output_files = max(math.ceil(total_lines / includes_per_scu), 1)
 
     # error condition
     if total_lines == 0:
