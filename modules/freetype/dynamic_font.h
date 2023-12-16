@@ -30,10 +30,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
+#include "core/containers/pair.h"
 #include "core/io/resource_loader.h"
 #include "core/os/mutex.h"
 #include "core/os/thread_safe.h"
-#include "core/containers/pair.h"
 #include "scene/resources/font/font.h"
 #include "scene/resources/texture.h"
 
@@ -387,11 +387,18 @@ VARIANT_ENUM_CAST(DynamicFont::SpacingType);
 /////////////
 
 class ResourceFormatLoaderDynamicFont : public ResourceFormatLoader {
+	GDCLASS(ResourceFormatLoaderDynamicFont, ResourceFormatLoader);
+
 public:
 	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL, bool p_no_subresource_cache = false);
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;
 	virtual bool handles_type(const String &p_type) const;
 	virtual String get_resource_type(const String &p_path) const;
+
+	void _scene_tree_update_font_oversampling(float p_ratio);
+
+protected:
+	static void _bind_methods();
 };
 
 #endif // DYNAMIC_FONT_H

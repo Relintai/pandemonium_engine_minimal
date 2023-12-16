@@ -28,7 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-
 #include "dynamic_font.h"
 
 #include "core/os/file_access.h"
@@ -1459,4 +1458,13 @@ String ResourceFormatLoaderDynamicFont::get_resource_type(const String &p_path) 
 		return "DynamicFontData";
 	}
 	return "";
+}
+
+void ResourceFormatLoaderDynamicFont::_scene_tree_update_font_oversampling(float p_ratio) {
+	DynamicFontAtSize::font_oversampling = p_ratio;
+	DynamicFont::update_oversampling();
+}
+
+void ResourceFormatLoaderDynamicFont::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("_scene_tree_update_font_oversampling"), &ResourceFormatLoaderDynamicFont::_scene_tree_update_font_oversampling);
 }

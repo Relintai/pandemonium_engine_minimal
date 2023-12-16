@@ -55,12 +55,6 @@
 #include "servers/physics_2d_server.h"
 #include "viewport.h"
 
-#include "modules/modules_enabled.gen.h" // For freetype.
-
-#ifdef MODULE_FREETYPE_ENABLED
-#include "modules/freetype/dynamic_font.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -597,12 +591,9 @@ void SceneTree::iteration_end() {
 }
 
 void SceneTree::_update_font_oversampling(float p_ratio) {
-#ifdef MODULE_FREETYPE_ENABLED
 	if (use_font_oversampling) {
-		DynamicFontAtSize::font_oversampling = p_ratio;
-		DynamicFont::update_oversampling();
+		emit_signal("update_font_oversampling_request", p_ratio);
 	}
-#endif // MODULE_FREETYPE_ENABLED
 }
 
 bool SceneTree::idle(float p_time) {
@@ -1860,6 +1851,7 @@ void SceneTree::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("connected_to_server"));
 	ADD_SIGNAL(MethodInfo("connection_failed"));
 	ADD_SIGNAL(MethodInfo("server_disconnected"));
+	ADD_SIGNAL(MethodInfo("update_font_oversampling_request", PropertyInfo(Variant::REAL, "ratio")));
 
 	BIND_ENUM_CONSTANT(GROUP_CALL_DEFAULT);
 	BIND_ENUM_CONSTANT(GROUP_CALL_REVERSE);
