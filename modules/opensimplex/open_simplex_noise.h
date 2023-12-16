@@ -34,7 +34,7 @@
 #include "core/object/reference.h"
 #include "scene/resources/texture.h"
 
-#include "thirdparty/misc/open-simplex-noise.h"
+#include "thirdparty/open-simplex-noise.h"
 
 class OpenSimplexNoise : public Resource {
 	GDCLASS(OpenSimplexNoise, Resource);

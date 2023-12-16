@@ -9,7 +9,7 @@ env_opensimplex = env_modules.Clone()
 
 thirdparty_obj = []
 
-thirdparty_dir = "#thirdparty/misc/"
+thirdparty_dir = "thirdparty/"
 thirdparty_sources = [
     "open-simplex-noise.c",
 ]
