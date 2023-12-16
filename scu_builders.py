@@ -306,14 +306,16 @@ def generate_scu_files(verbose, is_release_build):
 
     process_folder(["modules/mbedtls"])
 
-    process_folder(["scene"])
-    process_folder(["scene/audio"])
-    process_folder(["scene/debugger"])
-    process_folder(["scene/2d"])
-    process_folder(["scene/animation"])
-    process_folder(["scene/gui"])
-    process_folder(["scene/main"])
-    process_folder(["scene/resources"])
+    #process_folder(["scene"])
+    #process_folder(["scene/audio"])
+    #process_folder(["scene/debugger"])
+    #process_folder(["scene/2d"])
+    #process_folder(["scene/animation"])
+    #process_folder(["scene/gui"])
+    #process_folder(["scene/main"])
+    #process_folder(["scene/resources"])
+
+    process_folder(["scene", "audio", "debugger", "2d", "animation", "gui", "gui/resources",  "main", "resources", "resources/default_theme", "resources/font", "resources/material", "resources/mesh", "resources/shapes_2d" ])
 
     process_folder(["servers"])
     process_folder(["servers/rendering"])

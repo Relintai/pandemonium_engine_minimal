@@ -136,7 +136,7 @@ void SyntaxHighlighter::_bind_methods() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static bool _is_char(CharType c) {
+static bool _is_char_syntax_highlighter(CharType c) {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
@@ -317,7 +317,7 @@ Dictionary CodeHighlighter::_get_line_syntax_highlighting(int p_line) {
 			}
 		}
 
-		if (!in_word && _is_char(str[j]) && !is_number) {
+		if (!in_word && _is_char_syntax_highlighter(str[j]) && !is_number) {
 			in_word = true;
 		}
 
