@@ -32,6 +32,9 @@
 
 #include "core/os/os.h"
 
+#ifndef TIME_CONSTANTS_HELPERS
+#define TIME_CONSTANTS_HELPERS
+
 #define UNIX_EPOCH_YEAR_AD 1970 // 1970
 #define SECONDS_PER_DAY (24 * 60 * 60) // 86400
 #define IS_LEAP_YEAR(year) (!((year) % 4) && (((year) % 100) || !((year) % 400)))
@@ -51,6 +54,8 @@ static const uint8_t MONTH_DAYS_TABLE[2][12] = {
 	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
 	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
 };
+
+#endif
 
 VARIANT_ENUM_CAST(Time::Month);
 VARIANT_ENUM_CAST(Time::Weekday);

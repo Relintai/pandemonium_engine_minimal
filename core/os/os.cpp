@@ -88,42 +88,53 @@ uint64_t OS::get_system_time_msecs() const {
 	return 0;
 }
 
-/**
- *  Time constants borrowed from loc_time.h
- */
-#define EPOCH_YR 1970 /* EPOCH = Jan 1 1970 00:00:00 */
-#define SECS_DAY (24L * 60L * 60L)
-#define LEAPYEAR(year) (!((year) % 4) && (((year) % 100) || !((year) % 400)))
-#define YEARSIZE(year) (LEAPYEAR(year) ? 366 : 365)
+#ifndef TIME_CONSTANTS_HELPERS
+#define TIME_CONSTANTS_HELPERS
 
-/// Table of number of days in each month (for regular year and leap year)
-static const unsigned int MONTH_DAYS_TABLE[2][12] = {
+#define UNIX_EPOCH_YEAR_AD 1970 // 1970
+#define SECONDS_PER_DAY (24 * 60 * 60) // 86400
+#define IS_LEAP_YEAR(year) (!((year) % 4) && (((year) % 100) || !((year) % 400)))
+#define YEAR_SIZE(year) (IS_LEAP_YEAR(year) ? 366 : 365)
+
+#define YEAR_KEY "year"
+#define MONTH_KEY "month"
+#define DAY_KEY "day"
+#define WEEKDAY_KEY "weekday"
+#define HOUR_KEY "hour"
+#define MINUTE_KEY "minute"
+#define SECOND_KEY "second"
+#define DST_KEY "dst"
+
+// Table of number of days in each month (for regular year and leap year).
+static const uint8_t MONTH_DAYS_TABLE[2][12] = {
 	{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
 	{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
 };
+
+#endif
 
 OS::DateTime OS::get_datetime_from_unix_time(int64_t unix_time_val) const {
 	DateTime dt;
 
 	long dayclock, dayno;
-	int year = EPOCH_YR;
+	int year = UNIX_EPOCH_YEAR_AD;
 
 	if (unix_time_val >= 0) {
-		dayno = unix_time_val / SECS_DAY;
-		dayclock = unix_time_val % SECS_DAY;
+		dayno = unix_time_val / SECONDS_PER_DAY;
+		dayclock = unix_time_val % SECONDS_PER_DAY;
 		/* day 0 was a thursday */
 		dt.date.weekday = static_cast<OS::Weekday>((dayno + 4) % 7);
-		while (dayno >= YEARSIZE(year)) {
-			dayno -= YEARSIZE(year);
+		while (dayno >= YEAR_SIZE(year)) {
+			dayno -= YEAR_SIZE(year);
 			year++;
 		}
 	} else {
-		dayno = (unix_time_val - SECS_DAY + 1) / SECS_DAY;
-		dayclock = unix_time_val - dayno * SECS_DAY;
+		dayno = (unix_time_val - SECONDS_PER_DAY + 1) / SECONDS_PER_DAY;
+		dayclock = unix_time_val - dayno * SECONDS_PER_DAY;
 		dt.date.weekday = static_cast<OS::Weekday>(((dayno % 7) + 11) % 7);
 		do {
 			year--;
-			dayno += YEARSIZE(year);
+			dayno += YEAR_SIZE(year);
 		} while (dayno < 0);
 	}
 
@@ -134,8 +145,8 @@ OS::DateTime OS::get_datetime_from_unix_time(int64_t unix_time_val) const {
 
 	size_t imonth = 0;
 
-	while ((unsigned long)dayno >= MONTH_DAYS_TABLE[LEAPYEAR(year)][imonth]) {
-		dayno -= MONTH_DAYS_TABLE[LEAPYEAR(year)][imonth];
+	while ((unsigned long)dayno >= MONTH_DAYS_TABLE[IS_LEAP_YEAR(year)][imonth]) {
+		dayno -= MONTH_DAYS_TABLE[IS_LEAP_YEAR(year)][imonth];
 		imonth++;
 	}
 
@@ -153,7 +164,7 @@ int64_t OS::get_unix_time_from_datetime(const DateTime &datetime) const {
 	static const unsigned int MINUTES_PER_HOUR = 60;
 	static const unsigned int HOURS_PER_DAY = 24;
 	static const unsigned int SECONDS_PER_HOUR = MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
-	static const unsigned int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
+	static const unsigned int SECONDS_PER_DAYL = SECONDS_PER_HOUR * HOURS_PER_DAY;
 
 	unsigned int second = static_cast<unsigned int>(datetime.time.sec);
 	unsigned int minute = static_cast<unsigned int>(datetime.time.min);
@@ -176,20 +187,20 @@ int64_t OS::get_unix_time_from_datetime(const DateTime &datetime) const {
 	ERR_FAIL_COND_V_MSG(year == 0, 0, "Years before 1 AD are not supported. Value passed: " + itos(year) + ".");
 	ERR_FAIL_COND_V_MSG(month > 12 || month == 0, 0, "Invalid month value of: " + itos(month) + ".");
 	// Do this check after month is tested as valid
-	unsigned int days_in_month = MONTH_DAYS_TABLE[LEAPYEAR(year)][month - 1];
+	unsigned int days_in_month = MONTH_DAYS_TABLE[IS_LEAP_YEAR(year)][month - 1];
 	ERR_FAIL_COND_V_MSG(day == 0 || day > days_in_month, 0, "Invalid day value of: " + itos(day) + ". It should be comprised between 1 and " + itos(days_in_month) + " for month " + itos(month) + ".");
 
 	// Calculate all the seconds from months past in this year
-	uint64_t SECONDS_FROM_MONTHS_PAST_THIS_YEAR = DAYS_PAST_THIS_YEAR_TABLE[LEAPYEAR(year)][month - 1] * SECONDS_PER_DAY;
+	uint64_t SECONDS_FROM_MONTHS_PAST_THIS_YEAR = DAYS_PAST_THIS_YEAR_TABLE[IS_LEAP_YEAR(year)][month - 1] * SECONDS_PER_DAY;
 
 	int64_t SECONDS_FROM_YEARS_PAST = 0;
-	if (year >= EPOCH_YR) {
-		for (unsigned int iyear = EPOCH_YR; iyear < year; iyear++) {
-			SECONDS_FROM_YEARS_PAST += YEARSIZE(iyear) * SECONDS_PER_DAY;
+	if (year >= UNIX_EPOCH_YEAR_AD) {
+		for (unsigned int iyear = UNIX_EPOCH_YEAR_AD; iyear < year; iyear++) {
+			SECONDS_FROM_YEARS_PAST += YEAR_SIZE(iyear) * SECONDS_PER_DAYL;
 		}
 	} else {
-		for (unsigned int iyear = EPOCH_YR - 1; iyear >= year; iyear--) {
-			SECONDS_FROM_YEARS_PAST -= YEARSIZE(iyear) * SECONDS_PER_DAY;
+		for (unsigned int iyear = UNIX_EPOCH_YEAR_AD - 1; iyear >= year; iyear--) {
+			SECONDS_FROM_YEARS_PAST -= YEAR_SIZE(iyear) * SECONDS_PER_DAYL;
 		}
 	}
 
@@ -199,7 +210,7 @@ int64_t OS::get_unix_time_from_datetime(const DateTime &datetime) const {
 			hour * SECONDS_PER_HOUR +
 			// Subtract 1 from day, since the current day isn't over yet
 			//   and we cannot count all 24 hours.
-			(day - 1) * SECONDS_PER_DAY +
+			(day - 1) * SECONDS_PER_DAYL +
 			SECONDS_FROM_MONTHS_PAST_THIS_YEAR +
 			SECONDS_FROM_YEARS_PAST;
 
