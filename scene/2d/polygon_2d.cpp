@@ -38,63 +38,6 @@
 #include "modules/skeleton_2d/nodes/skeleton_2d.h"
 #endif
 
-#ifdef TOOLS_ENABLED
-Dictionary Polygon2D::_edit_get_state() const {
-	Dictionary state = Node2D::_edit_get_state();
-	state["offset"] = offset;
-	return state;
-}
-
-void Polygon2D::_edit_set_state(const Dictionary &p_state) {
-	Node2D::_edit_set_state(p_state);
-	set_offset(p_state["offset"]);
-}
-
-void Polygon2D::_edit_set_pivot(const Point2 &p_pivot) {
-	set_position(get_transform().xform(p_pivot));
-	set_offset(get_offset() - p_pivot);
-}
-
-Point2 Polygon2D::_edit_get_pivot() const {
-	return Vector2();
-}
-
-bool Polygon2D::_edit_use_pivot() const {
-	return true;
-}
-
-Rect2 Polygon2D::_edit_get_rect() const {
-	if (rect_cache_dirty) {
-		int l = polygon.size();
-		PoolVector<Vector2>::Read r = polygon.read();
-		item_rect = Rect2();
-		for (int i = 0; i < l; i++) {
-			Vector2 pos = r[i] + offset;
-			if (i == 0) {
-				item_rect.position = pos;
-			} else {
-				item_rect.expand_to(pos);
-			}
-		}
-		rect_cache_dirty = false;
-	}
-
-	return item_rect;
-}
-
-bool Polygon2D::_edit_use_rect() const {
-	return polygon.size() > 0;
-}
-
-bool Polygon2D::_edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const {
-	Vector<Vector2> polygon2d = Variant(polygon);
-	if (internal_vertices > 0) {
-		polygon2d.resize(polygon2d.size() - internal_vertices);
-	}
-	return Geometry::is_point_in_polygon(p_point - get_offset(), polygon2d);
-}
-#endif
-
 void Polygon2D::_skeleton_bone_setup_changed() {
 	update();
 }

@@ -47,10 +47,6 @@
 #include "scene/gui/texture_rect.h"
 #include "scene/gui/tool_button.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_scale.h"
-#include "editor/editor_settings.h"
-#endif
 #include "scene/main/viewport.h"
 
 List<Color> ColorPicker::preset_cache;
@@ -69,21 +65,6 @@ void ColorPicker::_notification(int p_what) {
 
 			_update_controls();
 			_update_color();
-
-#ifdef TOOLS_ENABLED
-			if (Engine::get_singleton()->is_editor_hint()) {
-				if (preset_cache.empty()) {
-					PoolColorArray saved_presets = EditorSettings::get_singleton()->get_project_metadata("color_picker", "presets", PoolColorArray());
-					for (int i = 0; i < saved_presets.size(); i++) {
-						preset_cache.push_back(saved_presets[i]);
-					}
-				}
-
-				for (int i = 0; i < preset_cache.size(); i++) {
-					presets.push_back(preset_cache[i]);
-				}
-			}
-#endif
 		} break;
 		case NOTIFICATION_PARENTED: {
 			for (int i = 0; i < 4; i++) {
@@ -334,12 +315,6 @@ void ColorPicker::add_preset(const Color &p_color) {
 		_notification(NOTIFICATION_VISIBILITY_CHANGED);
 	}
 
-#ifdef TOOLS_ENABLED
-	if (Engine::get_singleton()->is_editor_hint()) {
-		PoolColorArray arr_to_save = get_presets();
-		EditorSettings::get_singleton()->set_project_metadata("color_picker", "presets", arr_to_save);
-	}
-#endif
 }
 
 void ColorPicker::erase_preset(const Color &p_color) {
@@ -355,13 +330,6 @@ void ColorPicker::erase_preset(const Color &p_color) {
 				break;
 			}
 		}
-
-#ifdef TOOLS_ENABLED
-		if (Engine::get_singleton()->is_editor_hint()) {
-			PoolColorArray arr_to_save = get_presets();
-			EditorSettings::get_singleton()->set_project_metadata("color_picker", "presets", arr_to_save);
-		}
-#endif
 	}
 }
 
@@ -911,9 +879,6 @@ ColorPicker::ColorPicker() :
 	text_type->set_text("#");
 	text_type->set_tooltip(TTR("Switch between hexadecimal and code values."));
 	if (Engine::get_singleton()->is_editor_hint()) {
-#ifdef TOOLS_ENABLED
-		text_type->set_custom_minimum_size(Size2(28 * EDSCALE, 0)); // Adjust for the width of the "Script" icon.
-#endif
 		text_type->connect("pressed", this, "_text_type_toggled");
 	} else {
 		text_type->set_flat(true);

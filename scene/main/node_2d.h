@@ -54,23 +54,6 @@ protected:
 	static void _bind_methods();
 
 public:
-#ifdef TOOLS_ENABLED
-	virtual Dictionary _edit_get_state() const;
-	virtual void _edit_set_state(const Dictionary &p_state);
-
-	virtual void _edit_set_position(const Point2 &p_position);
-	virtual Point2 _edit_get_position() const;
-
-	virtual void _edit_set_scale(const Size2 &p_scale);
-	virtual Size2 _edit_get_scale() const;
-
-	virtual void _edit_set_rotation(float p_rotation);
-	virtual float _edit_get_rotation() const;
-	virtual bool _edit_use_rotation() const;
-
-	virtual void _edit_set_rect(const Rect2 &p_edit_rect);
-#endif
-
 	void set_position(const Point2 &p_pos);
 	void set_rotation(float p_radians);
 	void set_rotation_degrees(float p_degrees);

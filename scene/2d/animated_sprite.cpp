@@ -34,52 +34,7 @@
 #include "scene/resources/texture.h"
 #include "scene/main/scene_string_names.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_settings.h"
-#endif
-
 #define NORMAL_SUFFIX "_normal"
-
-#ifdef TOOLS_ENABLED
-Dictionary AnimatedSprite::_edit_get_state() const {
-	Dictionary state = Node2D::_edit_get_state();
-	state["offset"] = offset;
-	return state;
-}
-
-void AnimatedSprite::_edit_set_state(const Dictionary &p_state) {
-	Node2D::_edit_set_state(p_state);
-	set_offset(p_state["offset"]);
-}
-
-void AnimatedSprite::_edit_set_pivot(const Point2 &p_pivot) {
-	set_offset(get_offset() - p_pivot);
-	set_position(get_transform().xform(p_pivot));
-}
-
-Point2 AnimatedSprite::_edit_get_pivot() const {
-	return Vector2();
-}
-
-bool AnimatedSprite::_edit_use_pivot() const {
-	return true;
-}
-
-Rect2 AnimatedSprite::_edit_get_rect() const {
-	return _get_rect();
-}
-
-bool AnimatedSprite::_edit_use_rect() const {
-	if (!frames.is_valid() || !frames->has_animation(animation) || frame < 0 || frame >= frames->get_frame_count(animation)) {
-		return false;
-	}
-	Ref<Texture> t;
-	if (animation) {
-		t = frames->get_frame(animation, frame);
-	}
-	return t.is_valid();
-}
-#endif
 
 Rect2 AnimatedSprite::get_anchorable_rect() const {
 	return _get_rect();

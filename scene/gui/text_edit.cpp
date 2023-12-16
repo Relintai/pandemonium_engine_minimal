@@ -43,10 +43,6 @@
 #include "scene/main/timer.h"
 #include "scene/main/viewport.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_scale.h"
-#endif
-
 #define TAB_PIXELS
 
 inline bool _is_symbol(CharType c) {
@@ -1139,11 +1135,7 @@ void TextEdit::_notification(int p_what) {
 						cache_entry.y_offset = ofs_y;
 
 						if (text.is_breakpoint(line) && !draw_breakpoint_gutter) {
-#ifdef TOOLS_ENABLED
-							RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y + get_row_height() - EDSCALE, xmargin_end - xmargin_beg, EDSCALE), cache.breakpoint_color);
-#else
 							RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y, xmargin_end - xmargin_beg, get_row_height()), cache.breakpoint_color);
-#endif
 						}
 
 						// Draw bookmark marker.
@@ -1203,11 +1195,7 @@ void TextEdit::_notification(int p_what) {
 								int marker_width = cache.breakpoint_gutter_width - (horizontal_gap * 2) + icon_extra_size;
 								cache.executing_icon->draw_rect(ci, Rect2(cache.style_normal->get_margin(MARGIN_LEFT) + horizontal_gap - 2 - icon_extra_size / 2, ofs_y + vertical_gap - icon_extra_size / 2, marker_width, marker_height), false, Color(cache.executing_line_color.r, cache.executing_line_color.g, cache.executing_line_color.b));
 							} else {
-#ifdef TOOLS_ENABLED
-								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y + get_row_height() - EDSCALE, xmargin_end - xmargin_beg, EDSCALE), cache.executing_line_color);
-#else
 								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y, xmargin_end - xmargin_beg, get_row_height()), cache.executing_line_color);
-#endif
 							}
 						}
 
@@ -1416,18 +1404,11 @@ void TextEdit::_notification(int p_what) {
 							if (ime_text.length() == 0) {
 								if (draw_caret || drag_caret_force_displayed) {
 									if (insert_mode) {
-#ifdef TOOLS_ENABLED
-										int caret_h = (block_caret) ? 4 : 2 * EDSCALE;
-#else
 										int caret_h = (block_caret) ? 4 : 2;
-#endif
+
 										RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(cursor_pos, Size2i(caret_w, caret_h)), cache.caret_color);
 									} else {
-#ifdef TOOLS_ENABLED
-										caret_w = (block_caret) ? caret_w : 2 * EDSCALE;
-#else
 										caret_w = (block_caret) ? caret_w : 2;
-#endif
 
 										RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(cursor_pos, Size2i(caret_w, cache.font->get_height())), cache.caret_color);
 									}
@@ -1447,9 +1428,6 @@ void TextEdit::_notification(int p_what) {
 								int w = drawer.draw_char(ci, Point2i(char_ofs + char_margin + ofs_x, yofs + ascent), str[j], str[j + 1], in_selection && override_selected_font_color ? cache.font_color_selected : color);
 								if (underlined) {
 									float line_width = 1.0;
-#ifdef TOOLS_ENABLED
-									line_width *= EDSCALE;
-#endif
 
 									draw_rect(Rect2(char_ofs + char_margin + ofs_x, yofs + ascent + 2, w, line_width), in_selection && override_selected_font_color ? cache.font_color_selected : color);
 								}
@@ -1523,19 +1501,12 @@ void TextEdit::_notification(int p_what) {
 							if (draw_caret || drag_caret_force_displayed) {
 								if (insert_mode) {
 									int char_w = cache.font->get_char_size(' ').width;
-#ifdef TOOLS_ENABLED
-									int caret_h = (block_caret) ? 4 : 2 * EDSCALE;
-#else
 									int caret_h = (block_caret) ? 4 : 2;
-#endif
+
 									RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(cursor_pos, Size2i(char_w, caret_h)), cache.caret_color);
 								} else {
 									int char_w = cache.font->get_char_size(' ').width;
-#ifdef TOOLS_ENABLED
-									int caret_w = (block_caret) ? char_w : 2 * EDSCALE;
-#else
 									int caret_w = (block_caret) ? char_w : 2;
-#endif
 
 									RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(cursor_pos, Size2i(caret_w, cache.font->get_height())), cache.caret_color);
 								}
@@ -5334,11 +5305,7 @@ void TextEdit::_update_caches() {
 	cache.search_result_color = get_theme_color("search_result_color");
 	cache.search_result_border_color = get_theme_color("search_result_border_color");
 	cache.background_color = get_theme_color("background_color");
-#ifdef TOOLS_ENABLED
-	cache.line_spacing = get_theme_constant("line_spacing") * EDSCALE;
-#else
 	cache.line_spacing = get_theme_constant("line_spacing");
-#endif
 	cache.row_height = cache.font->get_height() + cache.line_spacing;
 	cache.tab_icon = get_theme_icon("tab");
 	cache.space_icon = get_theme_icon("space");

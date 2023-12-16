@@ -687,33 +687,6 @@ bool SceneTree::idle(float p_time) {
 
 	ProjectSettings::get_singleton()->update();
 
-#ifdef TOOLS_ENABLED
-
-	if (Engine::get_singleton()->is_editor_hint()) {
-		//simple hack to reload fallback environment if it changed from editor
-		String env_path = ProjectSettings::get_singleton()->get("rendering/environment/default_environment");
-		env_path = env_path.strip_edges(); //user may have added a space or two
-		String cpath;
-		Ref<Environment3D> fallback = get_root()->get_world_3d()->get_fallback_environment();
-		if (fallback.is_valid()) {
-			cpath = fallback->get_path();
-		}
-		if (cpath != env_path) {
-			if (env_path != String()) {
-				fallback = ResourceLoader::load(env_path);
-				if (fallback.is_null()) {
-					//could not load fallback, set as empty
-					ProjectSettings::get_singleton()->set("rendering/environment/default_environment", "");
-				}
-			} else {
-				fallback.unref();
-			}
-			get_root()->get_world_3d()->set_fallback_environment(fallback);
-		}
-	}
-
-#endif
-
 	return _quit;
 }
 

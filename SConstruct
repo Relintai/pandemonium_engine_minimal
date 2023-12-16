@@ -615,11 +615,6 @@ if selected_platform in platform_list:
         sys.path.remove(path)
         sys.modules.pop("config")
 
-    #TODO hack, the editor should be a module as well
-    if env["tools"] and not env["module_freetype_enabled"]:
-        print("The editor (tools=yes) can't be built if freetype is disabled! Stopping.")
-        sys.exit(255)
-
     env.module_list = modules_enabled
     methods.sort_module_list(env)
 
@@ -642,6 +637,9 @@ if selected_platform in platform_list:
 
     if env.use_ptrcall:
         env.Append(CPPDEFINES=["PTRCALL_ENABLED"])
+
+    if env["tools"]:
+        env.Append(CPPDEFINES=["TOOLS_ENABLED"])
 
     if env["disable_advanced_gui"]:
         env.Append(CPPDEFINES=["ADVANCED_GUI_DISABLED"])
@@ -687,6 +685,9 @@ if selected_platform in platform_list:
     SConscript("core/SCsub")
     SConscript("servers/SCsub")
     SConscript("scene/SCsub")
+
+    if env["tools"]:
+        SConscript("editor/SCsub")
 
     SConscript("drivers/SCsub")
 

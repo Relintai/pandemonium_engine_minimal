@@ -292,32 +292,6 @@ public:
 
 	};
 
-	/* EDITOR */
-#ifdef TOOLS_ENABLED
-	virtual Dictionary _edit_get_state() const;
-	virtual void _edit_set_state(const Dictionary &p_state);
-
-	virtual void _edit_set_position(const Point2 &p_position);
-	virtual Point2 _edit_get_position() const;
-
-	virtual void _edit_set_scale(const Size2 &p_scale);
-	virtual Size2 _edit_get_scale() const;
-
-	virtual void _edit_set_rect(const Rect2 &p_edit_rect);
-	virtual Rect2 _edit_get_rect() const;
-	virtual bool _edit_use_rect() const;
-
-	virtual void _edit_set_rotation(float p_rotation);
-	virtual float _edit_get_rotation() const;
-	virtual bool _edit_use_rotation() const;
-
-	virtual void _edit_set_pivot(const Point2 &p_pivot);
-	virtual Point2 _edit_get_pivot() const;
-	virtual bool _edit_use_pivot() const;
-
-	virtual Size2 _edit_get_minimum_size() const;
-#endif
-
 	void accept_event();
 
 	virtual Size2 get_minimum_size() const;

@@ -35,44 +35,6 @@
 #include "scene/resources/texture.h"
 #include "scene/main/scene_string_names.h"
 
-#ifdef TOOLS_ENABLED
-Dictionary Sprite::_edit_get_state() const {
-	Dictionary state = Node2D::_edit_get_state();
-	state["offset"] = offset;
-	return state;
-}
-
-void Sprite::_edit_set_state(const Dictionary &p_state) {
-	Node2D::_edit_set_state(p_state);
-	set_offset(p_state["offset"]);
-}
-
-void Sprite::_edit_set_pivot(const Point2 &p_pivot) {
-	set_offset(get_offset() - p_pivot);
-	set_position(get_transform().xform(p_pivot));
-}
-
-Point2 Sprite::_edit_get_pivot() const {
-	return Vector2();
-}
-
-bool Sprite::_edit_use_pivot() const {
-	return true;
-}
-
-bool Sprite::_edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const {
-	return is_pixel_opaque(p_point);
-}
-
-Rect2 Sprite::_edit_get_rect() const {
-	return get_rect();
-}
-
-bool Sprite::_edit_use_rect() const {
-	return texture.is_valid();
-}
-#endif
-
 Rect2 Sprite::get_anchorable_rect() const {
 	return get_rect();
 }

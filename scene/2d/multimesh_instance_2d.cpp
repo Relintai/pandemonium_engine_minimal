@@ -99,17 +99,6 @@ Ref<Texture> MultiMeshInstance2D::get_normal_map() const {
 	return normal_map;
 }
 
-#ifdef TOOLS_ENABLED
-Rect2 MultiMeshInstance2D::_edit_get_rect() const {
-	if (multimesh.is_valid()) {
-		AABB aabb = multimesh->get_aabb();
-		return Rect2(aabb.position.x, aabb.position.y, aabb.size.x, aabb.size.y);
-	}
-
-	return Node2D::_edit_get_rect();
-}
-#endif
-
 MultiMeshInstance2D::MultiMeshInstance2D() {
 }
 

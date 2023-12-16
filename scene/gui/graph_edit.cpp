@@ -43,10 +43,6 @@
 #include "scene/gui/texture_rect.h"
 #include "scene/gui/tool_button.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_scale.h"
-#endif
-
 constexpr int MINIMAP_OFFSET = 12;
 constexpr int MINIMAP_PADDING = 5;
 
@@ -888,11 +884,7 @@ void GraphEdit::_draw_cos_line(CanvasItem *p_where, const Vector2 &p_from, const
 	points.push_back(p_to);
 	colors.push_back(p_to_color);
 
-#ifdef TOOLS_ENABLED
-	p_where->draw_polyline_colors(points, colors, Math::floor(p_width * EDSCALE), true);
-#else
 	p_where->draw_polyline_colors(points, colors, p_width, true);
-#endif
 }
 
 void GraphEdit::_connections_layer_draw() {
@@ -1822,11 +1814,7 @@ GraphEdit::GraphEdit() {
 	zoom_label->set_visible(false);
 	zoom_label->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
 	zoom_label->set_align(Label::ALIGN_CENTER);
-#ifdef TOOLS_ENABLED
-	zoom_label->set_custom_minimum_size(Size2(48, 0) * EDSCALE);
-#else
 	zoom_label->set_custom_minimum_size(Size2(48, 0));
-#endif
 	_update_zoom_label();
 
 	zoom_minus = memnew(ToolButton);

@@ -34,10 +34,6 @@
 #include "core/os/os.h"
 #include "core/config/project_settings.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_settings.h"
-#endif
-
 Input *Input::singleton = nullptr;
 
 Input *Input::get_singleton() {

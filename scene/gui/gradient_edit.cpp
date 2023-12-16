@@ -35,14 +35,8 @@
 #include "scene/gui/popup.h"
 #include "scene/resources/default_theme/theme_data.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_scale.h"
-#define SPACING (3 * EDSCALE)
-#define POINT_WIDTH (8 * EDSCALE)
-#else
 #define SPACING 3
 #define POINT_WIDTH 8
-#endif
 
 GradientEdit::GradientEdit() {
 	grabbed = -1;

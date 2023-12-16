@@ -42,11 +42,6 @@
 #include "scene/main/timer.h"
 #include "scene/main/viewport.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_scale.h"
-#include "editor/editor_settings.h"
-#endif
-
 bool LineEdit::_is_text_char(CharType c) {
 	return !is_symbol(c);
 }
@@ -930,11 +925,7 @@ void LineEdit::_notification(int p_what) {
 
 				if (char_ofs == cursor_pos && draw_caret && !using_placeholder) {
 					if (ime_text.length() == 0) {
-#ifdef TOOLS_ENABLED
-						RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(x_ofs, y_ofs), Size2(Math::round(EDSCALE), caret_height)), cursor_color);
-#else
 						RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(x_ofs, y_ofs), Size2(1, caret_height)), cursor_color);
-#endif
 					}
 				}
 
@@ -990,11 +981,7 @@ void LineEdit::_notification(int p_what) {
 							} break;
 						}
 					}
-#ifdef TOOLS_ENABLED
-					RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(caret_x_ofs, y_ofs), Size2(Math::round(EDSCALE), caret_height)), cursor_color);
-#else
 					RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(caret_x_ofs, y_ofs), Size2(1, caret_height)), cursor_color);
-#endif
 				}
 			}
 
@@ -1769,11 +1756,6 @@ PopupMenu *LineEdit::get_menu() const {
 }
 
 void LineEdit::_editor_settings_changed() {
-#ifdef TOOLS_ENABLED
-	EDITOR_DEF("text_editor/cursor/caret_blink", false);
-	cursor_set_blink_enabled(EditorSettings::get_singleton()->is_caret_blink_active());
-	cursor_set_blink_speed(EDITOR_DEF("text_editor/cursor/caret_blink_speed", 0.65));
-#endif
 }
 
 void LineEdit::set_expand_to_text_length(bool p_enabled) {

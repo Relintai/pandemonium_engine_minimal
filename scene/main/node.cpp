@@ -46,10 +46,6 @@
 #include "core/object/class_db.h"
 #include "core/object/script_language.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_settings.h"
-#endif
-
 VARIANT_ENUM_CAST(Node::PauseMode);
 VARIANT_ENUM_CAST(Node::PhysicsInterpolationMode);
 
@@ -3267,11 +3263,7 @@ NodePath Node::get_import_path() const {
 }
 
 static void _add_nodes_to_options(const Node *p_base, const Node *p_node, List<String> *r_options) {
-#ifdef TOOLS_ENABLED
-	const String quote_style = EDITOR_DEF("text_editor/completion/use_single_quotes", 0) ? "'" : "\"";
-#else
 	const String quote_style = "\"";
-#endif
 
 	if (p_node != p_base && !p_node->get_owner()) {
 		return;
@@ -3308,14 +3300,6 @@ String Node::get_configuration_warning() const {
 }
 
 void Node::update_configuration_warning() {
-#ifdef TOOLS_ENABLED
-	if (!is_inside_tree()) {
-		return;
-	}
-	if (get_tree()->get_edited_scene_root() && (get_tree()->get_edited_scene_root() == this || get_tree()->get_edited_scene_root()->is_a_parent_of(this))) {
-		get_tree()->emit_signal(SceneStringNames::get_singleton()->node_configuration_warning_changed, this);
-	}
-#endif
 }
 
 bool Node::is_owned_by_parent() const {

@@ -37,10 +37,6 @@
 #include "scene/gui/scroll_bar.h"
 #include "scene/main/scene_string_names.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_scale.h"
-#endif
-
 #include "modules/modules_enabled.gen.h" // For regex.
 #ifdef MODULE_REGEX_ENABLED
 #include "modules/regex/regex.h"
@@ -643,11 +639,8 @@ int RichTextLabel::_process_line(ItemFrame *p_frame, const Vector2 &p_ofs, int &
 							}
 						}
 
-#ifdef TOOLS_ENABLED
-						const float line_width = EDSCALE;
-#else
 						const float line_width = 1.0f;
-#endif
+						
 						if (underline) {
 							Color uc = color;
 							uc.a *= 0.5;

@@ -931,12 +931,6 @@ void Viewport::_vp_input(const Ref<InputEvent> &p_ev) {
 		return;
 	}
 
-#ifdef TOOLS_ENABLED
-	if (Engine::get_singleton()->is_editor_hint() && get_tree()->get_edited_scene_root() && get_tree()->get_edited_scene_root()->is_a_parent_of(this)) {
-		return;
-	}
-#endif
-
 	if (to_screen_rect == Rect2()) {
 		return; //if render target, can't get input events
 	}
@@ -952,11 +946,6 @@ void Viewport::_vp_unhandled_input(const Ref<InputEvent> &p_ev) {
 	if (disable_input) {
 		return;
 	}
-#ifdef TOOLS_ENABLED
-	if (Engine::get_singleton()->is_editor_hint() && get_tree()->get_edited_scene_root() && get_tree()->get_edited_scene_root()->is_a_parent_of(this)) {
-		return;
-	}
-#endif
 
 	/*
 	if (parent_control && !parent_control->is_visible_in_tree())

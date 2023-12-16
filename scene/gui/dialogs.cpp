@@ -40,12 +40,6 @@
 #include "core/input/shortcut.h"
 #include "scene/gui/texture_button.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_node.h"
-#include "editor/editor_scale.h"
-#include "scene/main/viewport.h" // Only used to check for more modals when dimming the editor.
-#endif
-
 // WindowDialog
 
 void WindowDialog::_post_popup() {
@@ -240,22 +234,6 @@ void WindowDialog::_notification(int p_what) {
 				}
 			}
 		} break;
-
-#ifdef TOOLS_ENABLED
-		case NOTIFICATION_POST_POPUP: {
-			if (get_tree() && Engine::get_singleton()->is_editor_hint() && EditorNode::get_singleton()) {
-				was_editor_dimmed = EditorNode::get_singleton()->is_editor_dimmed();
-				EditorNode::get_singleton()->dim_editor(true);
-			}
-		} break;
-
-		case NOTIFICATION_POPUP_HIDE: {
-			if (get_tree() && Engine::get_singleton()->is_editor_hint() && EditorNode::get_singleton() && !was_editor_dimmed) {
-				EditorNode::get_singleton()->dim_editor(false);
-				set_pass_on_modal_close_click(false);
-			}
-		} break;
-#endif
 	}
 }
 
@@ -349,10 +327,6 @@ WindowDialog::WindowDialog() {
 	close_button = memnew(TextureButton);
 	add_child(close_button);
 	close_button->connect("pressed", this, "_closed");
-
-#ifdef TOOLS_ENABLED
-	was_editor_dimmed = false;
-#endif
 }
 
 WindowDialog::~WindowDialog() {
@@ -631,8 +605,5 @@ Button *ConfirmationDialog::get_cancel() {
 
 ConfirmationDialog::ConfirmationDialog() {
 	set_title(RTR("Please Confirm..."));
-#ifdef TOOLS_ENABLED
-	set_custom_minimum_size(Size2(200, 70) * EDSCALE);
-#endif
 	cancel = add_cancel();
 }

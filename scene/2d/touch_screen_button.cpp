@@ -331,20 +331,6 @@ void TouchScreenButton::_release(bool p_exiting_tree) {
 	}
 }
 
-#ifdef TOOLS_ENABLED
-Rect2 TouchScreenButton::_edit_get_rect() const {
-	if (texture.is_null()) {
-		return CanvasItem::_edit_get_rect();
-	}
-
-	return Rect2(Size2(), texture->get_size());
-}
-
-bool TouchScreenButton::_edit_use_rect() const {
-	return !texture.is_null();
-}
-#endif
-
 Rect2 TouchScreenButton::get_anchorable_rect() const {
 	if (texture.is_null()) {
 		return CanvasItem::get_anchorable_rect();

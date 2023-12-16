@@ -47,10 +47,6 @@ protected:
 	static void _bind_methods();
 
 public:
-#ifdef TOOLS_ENABLED
-	virtual Rect2 _edit_get_rect() const;
-#endif
-
 	void set_multimesh(const Ref<MultiMesh> &p_multimesh);
 	Ref<MultiMesh> get_multimesh() const;
 

@@ -63,19 +63,9 @@
 #ifdef TOOLS_ENABLED
 #include "editor/doc/doc_data.h"
 #include "editor/doc/doc_data_class_path.gen.h"
-#include "editor/editor_node.h"
-#include "editor/editor_settings.h"
-#include "editor/editor_translation.h"
-#include "editor/progress_dialog.h"
-#include "editor/project_manager.h"
-#include "editor/script_editor_debugger.h"
 #endif
 
 #include "modules/modules_enabled.gen.h"
-
-#ifdef MODULE_EDITOR_CODE_EDITOR_ENABLED
-#include "editor_code_editor/editor_script_editor.h"
-#endif
 
 /* Static members */
 
@@ -113,9 +103,6 @@ static bool show_help = false;
 static bool auto_quit = false;
 static OS::ProcessID allow_focus_steal_pid = 0;
 static bool delta_sync_after_draw = false;
-#ifdef TOOLS_ENABLED
-static String debug_server_uri;
-#endif
 
 // Display
 
@@ -208,19 +195,11 @@ void Main::print_help(const char *p_binary) {
 	OS::get_singleton()->print("General options:\n");
 	OS::get_singleton()->print("  -h, --help                       Display this help message.\n");
 	OS::get_singleton()->print("  --version                        Display the version string.\n");
-#ifdef TOOLS_ENABLED
-	OS::get_singleton()->print("  --version-full-config            Display the full config version string (used by the export templates manager).\n");
-#endif
 	OS::get_singleton()->print("  -v, --verbose                    Use verbose stdout mode.\n");
 	OS::get_singleton()->print("  --quiet                          Quiet mode, silences stdout messages. Errors are still displayed.\n");
 	OS::get_singleton()->print("\n");
 
 	OS::get_singleton()->print("Run options:\n");
-#ifdef TOOLS_ENABLED
-	OS::get_singleton()->print("  -e, --editor                     Start the editor instead of running the scene.\n");
-	OS::get_singleton()->print("  -p, --project-manager            Start the project manager, even if a project is auto-detected.\n");
-	OS::get_singleton()->print("  --debug-server <address>         Start the editor debug server (<IP>:<port>, e.g. 127.0.0.1:6007)\n");
-#endif
 	OS::get_singleton()->print("  -q, --quit                       Quit after the first iteration.\n");
 	OS::get_singleton()->print("  -l, --language <locale>          Use a specific locale (<locale> being a two-letter code).\n");
 	OS::get_singleton()->print("  --path <directory>               Path to a project (<directory> must contain a 'project.pandemonium' file).\n");
@@ -296,14 +275,8 @@ void Main::print_help(const char *p_binary) {
 	OS::get_singleton()->print("  -s, --script <script>            Run a script.\n");
 	OS::get_singleton()->print("  --check-only                     Only parse for errors and quit (use with --script).\n");
 #ifdef TOOLS_ENABLED
-	OS::get_singleton()->print("  --export <preset> <path>         Export the project using the given preset and matching release template. The preset name should match one defined in export_presets.cfg.\n");
-	OS::get_singleton()->print("                                   <path> should be absolute or relative to the project directory, and include the filename for the binary (e.g. 'builds/game.exe'). The target directory should exist.\n");
-	OS::get_singleton()->print("  --export-debug <preset> <path>   Same as --export, but using the debug template.\n");
-	OS::get_singleton()->print("  --export-pack <preset> <path>    Same as --export, but only export the game pack for the given preset. The <path> extension determines whether it will be in PCK or ZIP format.\n");
 	OS::get_singleton()->print("  --doctool [<path>]               Dump the engine API reference to the given <path> (defaults to current dir) in XML format, merging if existing files are found.\n");
 	OS::get_singleton()->print("  --no-docbase                     Disallow dumping the base types (used with --doctool).\n");
-	OS::get_singleton()->print("  --benchmark                      Benchmark the run time and print it to console.\n");
-	OS::get_singleton()->print("  --benchmark-file <path>          Benchmark the run time and save it to a given file in JSON format. The path should be absolute.\n");
 #endif
 }
 
@@ -411,9 +384,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	bool force_res = false;
 	bool saw_vsync_via_compositor_override = false;
 	bool delta_smoothing_override = false;
-#ifdef TOOLS_ENABLED
-	bool found_project = false;
-#endif
 
 	// Default exit code, can be modified for certain errors.
 	Error exit_code = ERR_INVALID_PARAMETER;
@@ -441,13 +411,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			print_line(get_full_version_string());
 			exit_code = ERR_HELP; // Hack to force an early exit in `main()` with a success code.
 			goto error;
-
-#ifdef TOOLS_ENABLED
-		} else if (I->get() == "--version-full-config") {
-			print_line(String(VERSION_FULL_CONFIG));
-			exit_code = ERR_HELP; // Hack to force an early exit in `main()` with a success code.
-			goto error;
-#endif
 
 		} else if (I->get() == "-v" || I->get() == "--verbose") { // verbose output
 
@@ -681,29 +644,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				OS::get_singleton()->print("Missing render thread mode argument, aborting.\n");
 				goto error;
 			}
-#ifdef TOOLS_ENABLED
-		} else if (I->get() == "-e" || I->get() == "--editor") { // starts editor
-
-			editor = true;
-		} else if (I->get() == "-p" || I->get() == "--project-manager") { // starts project manager
-
-			project_manager = true;
-		} else if (I->get() == "--debug-server") {
-			if (I->next()) {
-				debug_server_uri = I->next()->get();
-				if (debug_server_uri.find(":") == -1) { // wrong address
-					OS::get_singleton()->print("Invalid debug server address. It should be of the form <bind_address>:<port>.\n");
-					goto error;
-				}
-				N = I->next()->next();
-			} else {
-				OS::get_singleton()->print("Missing remote debug server server, aborting.\n");
-				goto error;
-			}
-		} else if (I->get() == "--export" || I->get() == "--export-debug" || I->get() == "--export-pack") { // Export project
-			editor = true;
-			main_args.push_back(I->get());
-#endif
 		} else if (I->get() == "--path") { // set path of project to start or edit
 
 			if (I->next()) {
@@ -736,9 +676,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			} else {
 				project_path = path;
 			}
-#ifdef TOOLS_ENABLED
-			editor = true;
-#endif
 		} else if (I->get() == "-b" || I->get() == "--breakpoints") { // add breakpoints
 
 			if (I->next()) {
@@ -849,13 +786,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		I = N;
 	}
 
-#ifdef TOOLS_ENABLED
-	if (editor && project_manager) {
-		OS::get_singleton()->print("Error: Command line arguments implied opening both editor and project manager, which is not possible. Aborting.\n");
-		goto error;
-	}
-#endif
-
 	// Network file system needs to be configured before globals, since globals are based on the
 	// 'project.pandemonium' file which will only be available through the network if this is enabled
 	FileAccessNetwork::configure();
@@ -879,19 +809,12 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	if (globals->setup(project_path, main_pack, upwards, editor) == OK) {
-#ifdef TOOLS_ENABLED
-		found_project = true;
-#endif
 	} else {
-#ifdef TOOLS_ENABLED
-		editor = false;
-#else
 		const String error_msg = "Error: Couldn't load project data at path \"" + project_path + "\". Is the .pck file missing?\nIf you've renamed the executable, the associated .pck file should also be renamed to match the executable's name (without the extension).\n";
 		OS::get_singleton()->print("%s", error_msg.utf8().get_data());
 		OS::get_singleton()->alert(error_msg);
 
 		goto error;
-#endif
 	}
 
 	// Initialize user data dir.
@@ -925,22 +848,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		}
 	}
 
-#ifdef TOOLS_ENABLED
-	if (editor) {
-		Engine::get_singleton()->set_editor_hint(true);
-		main_args.push_back("--editor");
-		if (!init_windowed) {
-			init_maximized = true;
-			video_mode.maximized = true;
-		}
-	}
-
-	if (!project_manager && !editor) {
-		// Determine if the project manager should be requested
-		project_manager = main_args.size() == 0 && !found_project;
-	}
-#endif
-
 	// Only flush stdout in debug builds by default, as spamming `print()` will
 	// decrease performance if this is enabled.
 	GLOBAL_DEF_RST("application/run/flush_stdout_on_print", false);
@@ -964,16 +871,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	if (main_args.size() == 0 && String(GLOBAL_DEF("application/run/main_scene", "")) == "") {
-#ifdef TOOLS_ENABLED
-		if (!editor && !project_manager) {
-#endif
 			const String error_msg = "Error: Can't run project: no main scene defined in the project.\n";
 			OS::get_singleton()->print("%s", error_msg.utf8().get_data());
 			OS::get_singleton()->alert(error_msg);
 			goto error;
-#ifdef TOOLS_ENABLED
-		}
-#endif
 	}
 
 	if (editor || project_manager) {
@@ -1370,14 +1271,6 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	register_scene_types();
 
-#ifdef TOOLS_ENABLED
-	ClassDB::set_current_api(ClassDB::API_EDITOR);
-	EditorNode::register_editor_types();
-
-	ClassDB::set_current_api(ClassDB::API_CORE);
-
-#endif
-
 	MAIN_PRINT("Main: Load Modules, Physics, Drivers, Scripts");
 
 	register_platform_apis();
@@ -1452,9 +1345,6 @@ bool Main::start() {
 
 #ifdef TOOLS_ENABLED
 	bool doc_base = true;
-	String _export_preset;
-	bool export_debug = false;
-	bool export_pack_only = false;
 #endif
 
 	main_timer_sync.init(OS::get_singleton()->get_ticks_usec());
@@ -1467,10 +1357,6 @@ bool Main::start() {
 #ifdef TOOLS_ENABLED
 		} else if (args[i] == "--no-docbase") {
 			doc_base = false;
-		} else if (args[i] == "-e" || args[i] == "--editor") {
-			editor = true;
-		} else if (args[i] == "-p" || args[i] == "--project-manager") {
-			project_manager = true;
 #endif
 		} else if (args[i].length() && args[i][0] != '-' && positional_arg == "") {
 			positional_arg = args[i];
@@ -1502,17 +1388,6 @@ bool Main::start() {
 					doc_tool_path = ".";
 					parsed_pair = false;
 				}
-			} else if (args[i] == "--export") {
-				editor = true; //needs editor
-				_export_preset = args[i + 1];
-			} else if (args[i] == "--export-debug") {
-				editor = true; //needs editor
-				_export_preset = args[i + 1];
-				export_debug = true;
-			} else if (args[i] == "--export-pack") {
-				editor = true;
-				_export_preset = args[i + 1];
-				export_pack_only = true;
 #endif
 			} else {
 				// The parameter does not match anything known, don't skip the next argument
@@ -1537,11 +1412,6 @@ bool Main::start() {
 #ifdef TOOLS_ENABLED
 	if (doc_tool_path != "") {
 		Engine::get_singleton()->set_editor_hint(true); // Needed to instance editor-only classes for their default values
-
-		// Translate the class reference only when `-l LOCALE` parameter is given.
-		if (!locale.empty() && locale != "en") {
-			load_doc_translations(locale);
-		}
 
 		{
 			DirAccessRef da = DirAccess::open(doc_tool_path);
@@ -1776,19 +1646,6 @@ bool Main::start() {
 			}
 		}
 
-#ifdef TOOLS_ENABLED
-		EditorNode *editor_node = nullptr;
-		if (editor) {
-			editor_node = memnew(EditorNode);
-			sml->get_root()->add_child(editor_node);
-
-			if (_export_preset != "") {
-				editor_node->export_preset(_export_preset, positional_arg, export_debug, export_pack_only);
-				game_path = ""; // Do not load anything.
-			}
-		}
-#endif
-
 		if (!editor && !project_manager) {
 			//standard helpers that can be changed from main config
 
@@ -1888,27 +1745,6 @@ bool Main::start() {
 
 			local_game_path = ProjectSettings::get_singleton()->localize_path(local_game_path);
 
-#ifdef TOOLS_ENABLED
-			if (editor) {
-				if (game_path != GLOBAL_GET("application/run/main_scene") || !editor_node->has_scenes_in_session()) {
-					Error serr = editor_node->load_scene(local_game_path);
-					if (serr != OK)
-						ERR_PRINT("Failed to load scene");
-				}
-
-				OS::get_singleton()->set_context(OS::CONTEXT_EDITOR);
-
-#ifdef MODULE_EDITOR_CODE_EDITOR_ENABLED
-				// Start debug server.
-				if (!debug_server_uri.empty()) {
-					int idx = debug_server_uri.rfind(":");
-					IP_Address addr = debug_server_uri.substr(0, idx);
-					int port = debug_server_uri.substr(idx + 1).to_int();
-					EditorScriptEditor::get_singleton()->get_debugger()->start(port, addr);
-				}
-#endif
-			}
-#endif
 			if (!editor) {
 				OS::get_singleton()->set_context(OS::CONTEXT_ENGINE);
 			}
@@ -1957,22 +1793,6 @@ bool Main::start() {
 			}
 		}
 
-#ifdef TOOLS_ENABLED
-		if (project_manager || (script == "" && game_path == "" && !editor)) {
-			Engine::get_singleton()->set_editor_hint(true);
-			ProjectManager *pmanager = memnew(ProjectManager);
-			ProgressDialog *progress_dialog = memnew(ProgressDialog);
-			pmanager->add_child(progress_dialog);
-			sml->get_root()->add_child(pmanager);
-			OS::get_singleton()->set_context(OS::CONTEXT_PROJECTMAN);
-			project_manager = true;
-		}
-
-		if (project_manager || editor) {
-			// Load SSL Certificates from Editor Settings (or builtin)
-			Crypto::load_default_certificates(EditorSettings::get_singleton()->get_setting("network/ssl/editor_ssl_certificates").operator String());
-		}
-#endif
 	}
 
 	OS::get_singleton()->set_main_loop(main_loop);
@@ -2287,10 +2107,6 @@ void Main::cleanup(bool p_force) {
 
 	// Sync pending commands that may have been queued from a different thread during ScriptServer finalization
 	RenderingServer::get_singleton()->sync();
-
-#ifdef TOOLS_ENABLED
-	EditorNode::unregister_editor_types();
-#endif
 
 	ImageLoader::cleanup();
 

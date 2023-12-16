@@ -44,10 +44,6 @@
 #include "scene/main/timer.h"
 #include "scene/main/viewport.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_scale.h"
-#endif
-
 #include <limits.h>
 
 void TreeItem::move_to_top() {
@@ -1446,9 +1442,6 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 				}
 
 				float line_width = 1.0;
-#ifdef TOOLS_ENABLED
-				line_width *= EDSCALE;
-#endif
 
 				Point2i parent_pos = Point2i(parent_ofs - cache.arrow->get_width() / 2, p_pos.y + label_h / 2 + cache.arrow->get_height() / 2) - cache.offset + p_draw_ofs;
 
