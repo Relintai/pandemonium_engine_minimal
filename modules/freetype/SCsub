@@ -12,7 +12,7 @@ env_freetype = env_modules.Clone()
 thirdparty_obj = []
 
 if env["builtin_freetype"]:
-    thirdparty_dir = "#thirdparty/freetype/"
+    thirdparty_dir = "freetype/"
     thirdparty_sources = [
         "src/autofit/autofit.c",
         "src/base/ftbase.c",
@@ -60,7 +60,7 @@ if env["builtin_freetype"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    thirdparty_brotli_dir = "#thirdparty/brotli/"
+    thirdparty_brotli_dir = "brotli/"
     thirdparty_brotli_sources = [
         "common/constants.c",
         "common/context.c",
