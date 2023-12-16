@@ -10,7 +10,7 @@ env_enet = env_modules.Clone()
 thirdparty_obj = []
 
 if env["builtin_enet"]:
-    thirdparty_dir = "#thirdparty/enet/"
+    thirdparty_dir = "enet/"
     thirdparty_sources = [
         "pandemonium.cpp",
         "callbacks.c",
