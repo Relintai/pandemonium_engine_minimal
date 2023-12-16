@@ -31,7 +31,6 @@
 #include "crypto.h"
 
 #include "core/config/engine.h"
-#include "core/io/certs_compressed.gen.h"
 
 /// Resources
 
