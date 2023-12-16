@@ -309,19 +309,35 @@ def generate_scu_files(verbose, is_release_build, env):
             #"android/export",
             #"iphone/export",
             #"javascript/export",
-            "osx/export",
+            #"osx/export",
             #"uwp/export",
-            "windows/export",
-            "x11/export",
+            #"windows/export",
+            #"x11/export",
         ]
     )
+
+    process_folder(["platform/x11"])
+    process_folder(["platform/windows"])
+    process_folder(["platform/server"])
+    process_folder(["platform/osx"])
 
     #TODO These should be moved to module conpig.py s
 
     process_folder(["modules/gdscript"])
     process_folder(["modules/gdscript/language_server"])
 
-    process_folder(["modules/mbedtls"])
+    process_folder(["modules/freetype", "brotli/common", "brotli/dec", "freetype/src/autofit", "freetype/src/base", 
+                    "freetype/src/bdf", "freetype/src/bzip2", "freetype/src/cache", "freetype/src/cff", "freetype/src/cid", "freetype/src/gxvalid"
+                    , "freetype/src/gzip", "freetype/src/lzw", "freetype/src/otvalid", "freetype/src/pcf"
+                    , "freetype/src/pfr", "freetype/src/psaux", "freetype/src/pshinter"
+                    , "freetype/src/psnames", "freetype/src/raster", "freetype/src/sdf", "freetype/src/svg", "freetype/src/smooth", "freetype/src/truetype"
+                    , "freetype/src/type1", "freetype/src/type42", "freetype/src/winfonts"], [], 0, "cpp c")
+
+    #process_folder(["modules/enet", "enet" ], [], 0, "cpp c")
+    process_folder(["modules/enet" ], [], 0, "cpp c")
+    process_folder(["modules/enet/enet" ], [], 0, "cpp c")
+
+    #process_folder(["modules/mbedtls"])
 
     #process_folder(["modules/regex"])
     #process_folder(["modules/regex", "pcre2/src", "pcre2/src/sljit" ], [], 0, "cpp c")
@@ -331,9 +347,9 @@ def generate_scu_files(verbose, is_release_build, env):
     #process_folder(["scene/debugger"])
     #process_folder(["scene/2d"])
     #process_folder(["scene/animation"])
-    #process_folder(["scene/gui"])
+    #process_folder(["scene/gui", "resources"])
     #process_folder(["scene/main"])
-    #process_folder(["scene/resources"])
+    #process_folder(["scene/resources", "default_theme", "font", "material", "mesh", "shapes_2d"])
 
     process_folder(["scene", "audio", "debugger", "2d", "animation", "gui", "gui/resources",  "main", "resources", "resources/default_theme", "resources/font", "resources/material", "resources/mesh", "resources/shapes_2d" ])
 

@@ -151,12 +151,19 @@ if env["builtin_zstd"]:
 
 env.core_sources += thirdparty_obj
 
-if env["scu_build"]:
-    if env["builtin_mbedtls"] and not env["module_mbedtls_enabled"]:
-        env.Prepend(CPPPATH=["crypto/mbedtls/include"])
-
-    if env["builtin_mbedtls"] and env["module_mbedtls_enabled"]:
-        env.Prepend(CPPPATH=["#modules/mbedtls/mbedtls/include"])
+#if env["scu_build"]:
+#    has_mbedtls_module = False
+#
+#    try:
+#        has_mbedtls_module = env["module_mbedtls_enabled"]
+#    except:
+#        pass
+#
+#    if env["builtin_mbedtls"] and not has_mbedtls_module:
+#        env.Prepend(CPPPATH=["crypto/mbedtls/include"])
+#
+#    if env["builtin_mbedtls"] and has_mbedtls_module:
+#        env.Prepend(CPPPATH=["#modules/mbedtls/mbedtls/include"])
 
 # Pandemonium source files
 

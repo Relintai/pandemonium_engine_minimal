@@ -5,7 +5,15 @@ Import("env")
 env_crypto = env.Clone()
 
 is_builtin = env["builtin_mbedtls"]
-has_module = env["module_mbedtls_enabled"]
+
+has_module = False
+
+try:
+    has_module = env["module_mbedtls_enabled"]
+except:
+    pass
+
+
 thirdparty_obj = []
 
 if is_builtin and not has_module:
