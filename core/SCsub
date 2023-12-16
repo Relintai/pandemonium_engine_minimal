@@ -92,7 +92,7 @@ if env["builtin_zlib"]:
 
 # Minizip library, could be unbundled in theory
 # However, our version has some custom modifications, so it won't compile with the system one
-thirdparty_minizip_dir = "#thirdparty/minizip/"
+thirdparty_minizip_dir = "thirdparty/minizip/"
 thirdparty_minizip_sources = [
     "ioapi.c",
     "unzip.c",

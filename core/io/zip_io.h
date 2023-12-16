@@ -35,8 +35,8 @@
 // Not directly used in this header, but assumed available in downstream users
 // like platform/*/export/export.cpp. Could be fixed, but probably better to have
 // thirdparty includes in as little headers as possible.
-#include "thirdparty/minizip/unzip.h"
-#include "thirdparty/minizip/zip.h"
+#include "core/thirdparty/minizip/unzip.h"
+#include "core/thirdparty/minizip/zip.h"
 
 void *zipio_open(void *data, const char *p_fname, int mode);
 uLong zipio_read(void *data, void *fdata, void *buf, uLong size);

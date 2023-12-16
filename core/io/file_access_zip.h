@@ -35,7 +35,7 @@
 #include "core/io/file_access_pack.h"
 #include "core/containers/rb_map.h"
 
-#include "thirdparty/minizip/unzip.h"
+#include "core/thirdparty/minizip/unzip.h"
 
 #include <stdlib.h>
 
