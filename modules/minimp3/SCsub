@@ -5,7 +5,7 @@ Import("env_modules")
 
 env_minimp3 = env_modules.Clone()
 
-thirdparty_dir = "#thirdparty/minimp3/"
+thirdparty_dir = "minimp3/"
 
 # Treat minimp3 headers as system headers to avoid raising warnings. Not supported on MSVC.
 if not env.msvc:
