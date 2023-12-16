@@ -277,7 +277,7 @@ def generate_scu_files(verbose, is_release_build):
     #process_folder(["core/io"])
     #process_folder(["core/crypto"])
 
-    process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object"
+    process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
                     "os", "string", "variant", "io", "crypto"])
 
     process_folder(["drivers/gles2"])
