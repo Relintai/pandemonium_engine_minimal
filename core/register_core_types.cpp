@@ -15,7 +15,6 @@
 #include "core/input/input.h"
 #include "core/input/input_map.h"
 #include "core/io/config_file.h"
-#include "core/io/dtls_server.h"
 #include "core/io/http_client.h"
 #include "core/io/image_loader.h"
 #include "core/io/marshalls.h"
@@ -142,7 +141,6 @@ void register_core_types() {
 	ClassDB::register_class<PacketPeerUDP>();
 	ClassDB::register_class<UDPServer>();
 	ClassDB::register_custom_instance_class<PacketPeerDTLS>();
-	ClassDB::register_custom_instance_class<DTLSServer>();
 
 	// Crypto
 	ClassDB::register_class<HashingContext>();

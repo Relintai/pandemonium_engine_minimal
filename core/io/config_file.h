@@ -42,12 +42,6 @@ public:
 	Error parse(const String &p_data);
 
 	void clear();
-
-	Error load_encrypted(const String &p_path, const Vector<uint8_t> &p_key);
-	Error load_encrypted_pass(const String &p_path, const String &p_pass);
-
-	Error save_encrypted(const String &p_path, const Vector<uint8_t> &p_key);
-	Error save_encrypted_pass(const String &p_path, const String &p_pass);
 };
 
 #endif // CONFIG_FILE_H

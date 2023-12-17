@@ -8,7 +8,6 @@
 #include "core/config/project_settings.h"
 #include "core/core_string_names.h"
 #include "core/global_constants.h"
-#include "core/io/file_access_encrypted.h"
 #include "core/os/file_access.h"
 #include "core/os/os.h"
 #include "gdscript_compiler.h"
@@ -703,37 +702,7 @@ Vector<uint8_t> GDScript::get_as_byte_code() const {
 Error GDScript::load_byte_code(const String &p_path) {
 	Vector<uint8_t> bytecode;
 
-	if (p_path.ends_with("gde")) {
-		FileAccess *fa = FileAccess::open(p_path, FileAccess::READ);
-		ERR_FAIL_COND_V(!fa, ERR_CANT_OPEN);
-
-		FileAccessEncrypted *fae = memnew(FileAccessEncrypted);
-		ERR_FAIL_COND_V(!fae, ERR_CANT_OPEN);
-
-		Vector<uint8_t> key;
-		key.resize(32);
-		for (int i = 0; i < key.size(); i++) {
-			key.write[i] = script_encryption_key[i];
-		}
-
-		Error err = fae->open_and_parse(fa, key, FileAccessEncrypted::MODE_READ);
-
-		if (err) {
-			fa->close();
-			memdelete(fa);
-			memdelete(fae);
-
-			ERR_FAIL_COND_V(err, err);
-		}
-
-		bytecode.resize(fae->get_len());
-		fae->get_buffer(bytecode.ptrw(), bytecode.size());
-		fae->close();
-		memdelete(fae);
-
-	} else {
-		bytecode = FileAccess::get_file_as_array(p_path);
-	}
+	bytecode = FileAccess::get_file_as_array(p_path);
 
 	ERR_FAIL_COND_V(bytecode.size() == 0, ERR_PARSE_ERROR);
 	path = p_path;
