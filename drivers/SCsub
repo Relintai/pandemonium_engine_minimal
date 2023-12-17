@@ -25,9 +25,6 @@ if env["platform"] != "server":
 else:
     SConscript("dummy/SCsub")
 
-# Core dependencies
-SConscript("png/SCsub")
-
 env.add_source_files(env.drivers_sources, "*.cpp")
 
 lib = env.add_library("drivers", env.drivers_sources)
