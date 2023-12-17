@@ -22,6 +22,13 @@
 #include <wchar.h>
 #include <cstdint>
 
+#include "scene/main/scene_string_names.h"
+#include "scene/main/node.h" //only so casting works
+#include "scene/main/scene_tree.h"
+#include "scene/main/control.h"
+#include "scene/main/node.h"
+#include "scene/main/scene_tree.h"
+
 {{FILE:core/variant/variant.cpp}}
 {{FILE:core/variant/variant_call.cpp}}
 

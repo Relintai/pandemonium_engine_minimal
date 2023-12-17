@@ -28,3 +28,9 @@ g++ -o bin/pandemonium.x11.opt.debug.64 -no-pie -T platform/x11/pck_embed.legacy
 platform/x11/pandemonium_x11.x11.opt.debug.64.o platform/x11/context_gl_x11.x11.opt.debug.64.o platform/x11/crash_handler_x11.x11.opt.debug.64.o platform/x11/os_x11.x11.opt.debug.64.o platform/x11/key_mapping_x11.x11.opt.debug.64.o platform/x11/joypad_linux.x11.opt.debug.64.o platform/x11/power_x11.x11.opt.debug.64.o platform/x11/detect_prime.x11.opt.debug.64.o platform/x11/libudev-so_wrap.x11.opt.debug.64.o main/libmain.x11.opt.debug.64.a modules/libmodules.x11.opt.debug.64.a platform/libplatform.x11.opt.debug.64.a drivers/libdrivers.x11.opt.debug.64.a scene/libscene.x11.opt.debug.64.a servers/libservers.x11.opt.debug.64.a core/libcore.x11.opt.debug.64.a modules/freetype/libfreetype_builtin.x11.opt.debug.64.a 
 
 -lXcursor -lXinerama -lXext -lXrandr -lXrender -lX11 -lXi -lGL -lpthread -ldl
+
+
+g++ -o pem_core.o -fno-rtti -std=gnu++14 -O2 -pipe -fpie -fno-exceptions -Wall -Wno-misleading-indentation -Wshadow-local 
+
+
+g++ -o misc/merger/out/pem_core.o -c -fno-rtti -std=gnu++14 -O2 -pipe -fpie -fno-exceptions -Wall -Wno-misleading-indentation -Wshadow-local -DNO_SAFE_CAST -DDEBUG_ENABLED -DNDEBUG -DTOUCH_ENABLED -DALSA_ENABLED -DPULSEAUDIO_ENABLED -D_REENTRANT -DJOYDEV_ENABLED -DUDEV_ENABLED -DX11_ENABLED -DUNIX_ENABLED -DOPENGL_ENABLED -DGLES_ENABLED -D_FILE_OFFSET_BITS=64 -DGLAD_ENABLED -DGLES_OVER_GL -DHAVE_MNTENT -I.  misc/merger/out/pem_core.cpp
