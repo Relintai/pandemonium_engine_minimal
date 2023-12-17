@@ -808,6 +808,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		FileAccess::make_default<FileAccessNetwork>(FileAccess::ACCESS_RESOURCES);
 	}
 
+	globals->setup(project_path, main_pack, upwards, editor);
+
+	/*
 	if (globals->setup(project_path, main_pack, upwards, editor) == OK) {
 	} else {
 		const String error_msg = "Error: Couldn't load project data at path \"" + project_path + "\". Is the .pck file missing?\nIf you've renamed the executable, the associated .pck file should also be renamed to match the executable's name (without the extension).\n";
@@ -816,6 +819,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 		goto error;
 	}
+	*/
 
 	// Initialize user data dir.
 	OS::get_singleton()->ensure_user_data_dir();
