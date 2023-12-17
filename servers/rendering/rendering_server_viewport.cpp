@@ -128,7 +128,6 @@ void RenderingServerViewport::draw_viewports() {
 		RSG::storage->render_target_set_external_texture(vp->render_target, 0, 0);
 		RSG::rasterizer->set_current_render_target(vp->render_target);
 
-		RSG::scene_render->set_debug_draw_mode(vp->debug_draw);
 		RSG::storage->render_info_begin_capture();
 
 		// render standard mono camera
@@ -153,7 +152,6 @@ void RenderingServerViewport::draw_viewports() {
 		if (vp->update_mode == RS::VIEWPORT_UPDATE_ONCE) {
 			vp->update_mode = RS::VIEWPORT_UPDATE_DISABLED;
 		}
-		RSG::scene_render->set_debug_draw_mode(RS::VIEWPORT_DEBUG_DRAW_DISABLED);
 	}
 }
 

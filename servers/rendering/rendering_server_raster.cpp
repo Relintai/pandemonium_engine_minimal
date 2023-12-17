@@ -78,9 +78,6 @@ void RenderingServerRaster::free(RID p_rid) {
 	if (RSG::viewport->free(p_rid)) {
 		return;
 	}
-	if (RSG::scene_render->free(p_rid)) {
-		return;
-	}
 
 	ERR_FAIL_MSG("Invalid RID.");
 }

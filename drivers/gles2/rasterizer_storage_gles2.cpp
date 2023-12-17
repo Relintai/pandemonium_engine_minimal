@@ -1670,32 +1670,6 @@ bool RasterizerStorageGLES2::material_uses_ensure_correct_normals(RID p_material
 	return material->shader->spatial.uses_ensure_correct_normals;
 }
 
-void RasterizerStorageGLES2::material_add_instance_owner(RID p_material, RasterizerScene::InstanceBase *p_instance) {
-	Material *material = material_owner.getornull(p_material);
-	ERR_FAIL_COND(!material);
-
-	RBMap<RasterizerScene::InstanceBase *, int>::Element *E = material->instance_owners.find(p_instance);
-	if (E) {
-		E->get()++;
-	} else {
-		material->instance_owners[p_instance] = 1;
-	}
-}
-
-void RasterizerStorageGLES2::material_remove_instance_owner(RID p_material, RasterizerScene::InstanceBase *p_instance) {
-	Material *material = material_owner.getornull(p_material);
-	ERR_FAIL_COND(!material);
-
-	RBMap<RasterizerScene::InstanceBase *, int>::Element *E = material->instance_owners.find(p_instance);
-	ERR_FAIL_COND(!E);
-
-	E->get()--;
-
-	if (E->get() == 0) {
-		material->instance_owners.erase(E);
-	}
-}
-
 void RasterizerStorageGLES2::material_set_render_priority(RID p_material, int priority) {
 	ERR_FAIL_COND(priority < RS::MATERIAL_RENDER_PRIORITY_MIN);
 	ERR_FAIL_COND(priority > RS::MATERIAL_RENDER_PRIORITY_MAX);
@@ -3233,53 +3207,6 @@ void RasterizerStorageGLES2::update_dirty_blend_shapes() {
 	}
 }
 
-////////
-
-void RasterizerStorageGLES2::instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) {
-}
-
-void RasterizerStorageGLES2::instance_remove_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance) {
-}
-
-void RasterizerStorageGLES2::instance_add_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance) {
-	Instantiable *inst = nullptr;
-	switch (p_instance->base_type) {
-		case RS::INSTANCE_MESH: {
-			inst = mesh_owner.getornull(p_base);
-			ERR_FAIL_COND(!inst);
-		} break;
-		case RS::INSTANCE_MULTIMESH: {
-			inst = multimesh_owner.getornull(p_base);
-			ERR_FAIL_COND(!inst);
-		} break;
-		default: {
-			ERR_FAIL();
-		}
-	}
-
-	inst->instance_list.add(&p_instance->dependency_item);
-}
-
-void RasterizerStorageGLES2::instance_remove_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance) {
-	Instantiable *inst = nullptr;
-
-	switch (p_instance->base_type) {
-		case RS::INSTANCE_MESH: {
-			inst = mesh_owner.getornull(p_base);
-			ERR_FAIL_COND(!inst);
-		} break;
-		case RS::INSTANCE_MULTIMESH: {
-			inst = multimesh_owner.getornull(p_base);
-			ERR_FAIL_COND(!inst);
-		} break;
-		default: {
-			ERR_FAIL();
-		}
-	}
-
-	inst->instance_list.remove(&p_instance->dependency_item);
-}
-
 /* RENDER TARGET */
 
 void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
@@ -4082,24 +4009,6 @@ bool RasterizerStorageGLES2::free(RID p_rid) {
 		for (RBMap<Geometry *, int>::Element *E = m->geometry_owners.front(); E; E = E->next()) {
 			Geometry *g = E->key();
 			g->material = RID();
-		}
-
-		for (RBMap<RasterizerScene::InstanceBase *, int>::Element *E = m->instance_owners.front(); E; E = E->next()) {
-			RasterizerScene::InstanceBase *ins = E->key();
-
-			if (ins->material_override == p_rid) {
-				ins->material_override = RID();
-			}
-
-			if (ins->material_overlay == p_rid) {
-				ins->material_overlay = RID();
-			}
-
-			for (int i = 0; i < ins->materials.size(); i++) {
-				if (ins->materials[i] == p_rid) {
-					ins->materials.write[i] = RID();
-				}
-			}
 		}
 
 		material_owner.free(p_rid);

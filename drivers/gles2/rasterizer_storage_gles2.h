@@ -172,23 +172,10 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////////
 
 	struct Instantiable : public RID_Data {
-		SelfList<RasterizerScene::InstanceBase>::List instance_list;
-
 		_FORCE_INLINE_ void instance_change_notify(bool p_aabb, bool p_materials) {
-			SelfList<RasterizerScene::InstanceBase> *instances = instance_list.first();
-			while (instances) {
-				instances->self()->base_changed(p_aabb, p_materials);
-				instances = instances->next();
-			}
 		}
 
 		_FORCE_INLINE_ void instance_remove_deps() {
-			SelfList<RasterizerScene::InstanceBase> *instances = instance_list.first();
-
-			while (instances) {
-				instances->self()->base_removed();
-				instances = instances->next();
-			}
 		}
 
 		Instantiable() {}
@@ -542,7 +529,6 @@ public:
 		uint64_t last_pass;
 
 		RBMap<Geometry *, int> geometry_owners;
-		RBMap<RasterizerScene::InstanceBase *, int> instance_owners;
 
 		bool can_cast_shadow_cache;
 		bool is_animated_cache;
@@ -585,9 +571,6 @@ public:
 	virtual bool material_casts_shadows(RID p_material);
 	virtual bool material_uses_tangents(RID p_material);
 	virtual bool material_uses_ensure_correct_normals(RID p_material);
-
-	virtual void material_add_instance_owner(RID p_material, RasterizerScene::InstanceBase *p_instance);
-	virtual void material_remove_instance_owner(RID p_material, RasterizerScene::InstanceBase *p_instance);
 
 	virtual void material_set_render_priority(RID p_material, int priority);
 
@@ -809,14 +792,6 @@ public:
 	virtual void multimesh_attach_canvas_item(RID p_multimesh, RID p_canvas_item, bool p_attach);
 
 	void update_dirty_multimeshes();
-
-	/* INSTANCE */
-
-	virtual void instance_add_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance);
-	virtual void instance_remove_skeleton(RID p_skeleton, RasterizerScene::InstanceBase *p_instance);
-
-	virtual void instance_add_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance);
-	virtual void instance_remove_dependency(RID p_base, RasterizerScene::InstanceBase *p_instance);
 
 	/* RENDER TARGET */
 

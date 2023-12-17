@@ -36,19 +36,6 @@
 #include "servers/rendering/rasterizer.h"
 #include "servers/rendering_server.h"
 
-class RasterizerSceneDummy : public RasterizerScene {
-public:
-	void render_scene(const Transform &p_cam_transform, const Projection &p_cam_projection, const int p_eye, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count) {}
-
-	void set_scene_pass(uint64_t p_pass) {}
-	void set_debug_draw_mode(RS::ViewportDebugDraw p_debug_draw) {}
-
-	bool free(RID p_rid) { return true; }
-
-	RasterizerSceneDummy() {}
-	~RasterizerSceneDummy() {}
-};
-
 class RasterizerStorageDummy : public RasterizerStorage {
 public:
 	/* TEXTURE API */
@@ -213,9 +200,6 @@ public:
 
 	bool material_is_animated(RID p_material) { return false; }
 	bool material_casts_shadows(RID p_material) { return false; }
-
-	void material_add_instance_owner(RID p_material, RasterizerScene::InstanceBase *p_instance) {}
-	void material_remove_instance_owner(RID p_material, RasterizerScene::InstanceBase *p_instance) {}
 
 	/* MESH API */
 
@@ -460,7 +444,6 @@ class RasterizerDummy : public Rasterizer {
 protected:
 	RasterizerCanvasDummy canvas;
 	RasterizerStorageDummy storage;
-	RasterizerSceneDummy scene;
 
 public:
 	RasterizerStorage *get_storage() { return &storage; }
