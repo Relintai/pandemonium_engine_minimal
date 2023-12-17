@@ -249,7 +249,6 @@ public:
 	// Interpolation
 	void tick();
 	void update_interpolation_tick(bool p_process = true);
-	void set_physics_interpolation_enabled(bool p_enabled) { _interpolation_data.interpolation_enabled = p_enabled; }
 
 	struct InterpolationData {
 		LocalVector<RID> canvas_item_transform_update_lists[2];

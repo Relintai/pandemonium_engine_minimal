@@ -465,10 +465,6 @@ public:
 
 	virtual void viewport_set_debug_draw(RID p_viewport, ViewportDebugDraw p_draw) = 0;
 
-	/* INTERPOLATION API */
-
-	virtual void set_physics_interpolation_enabled(bool p_enabled) = 0;
-
 	/* INSTANCING API */
 
 	enum InstanceType {

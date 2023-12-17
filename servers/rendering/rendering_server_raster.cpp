@@ -129,10 +129,6 @@ void RenderingServerRaster::draw(bool p_swap_buffers, double frame_step) {
 void RenderingServerRaster::sync() {
 }
 
-void RenderingServerRaster::set_physics_interpolation_enabled(bool p_enabled) {
-	RSG::canvas->set_physics_interpolation_enabled(p_enabled);
-}
-
 void RenderingServerRaster::tick() {
 	RSG::canvas->tick();
 }

@@ -331,7 +331,6 @@ public:
 	virtual void draw(bool p_swap_buffers, double frame_step);
 	virtual void sync();
 	FUNC1RC(bool, has_changed, ChangedPriority)
-	virtual void set_physics_interpolation_enabled(bool p_enabled);
 
 	/* RENDER INFO */
 

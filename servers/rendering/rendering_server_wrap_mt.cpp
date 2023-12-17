@@ -73,14 +73,6 @@ void RenderingServerWrapMT::thread_loop() {
 
 /* EVENT QUEUING */
 
-void RenderingServerWrapMT::set_physics_interpolation_enabled(bool p_enabled) {
-	if (Thread::get_caller_id() != server_thread) {
-		command_queue.push(rendering_server, &RenderingServer::set_physics_interpolation_enabled, p_enabled);
-	} else {
-		rendering_server->set_physics_interpolation_enabled(p_enabled);
-	}
-}
-
 void RenderingServerWrapMT::tick() {
 	if (Thread::get_caller_id() != server_thread) {
 		command_queue.push(rendering_server, &RenderingServer::tick);

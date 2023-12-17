@@ -408,8 +408,6 @@ public:
 	virtual void init();
 	virtual void finish();
 
-	virtual void set_physics_interpolation_enabled(bool p_enabled);
-
 	/* STATUS INFORMATION */
 
 	virtual uint64_t get_render_info(RenderInfo p_info);
