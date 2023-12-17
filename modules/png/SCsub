@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 Import("env")
+Import("env_modules")
 
-env_png = env.Clone()
+env_png = env_modules.Clone()
 
 # Thirdparty source files
 
@@ -57,7 +58,7 @@ if env["builtin_libpng"]:
         neon_sources.append(env_neon.Object(thirdparty_dir + "/arm/palette_neon_intrinsics.c"))
         thirdparty_obj += neon_sources
 
-    env.drivers_sources += thirdparty_obj
+    env.modules_sources += thirdparty_obj
 
 
 # Pandemonium source files
@@ -65,7 +66,7 @@ if env["builtin_libpng"]:
 driver_obj = []
 
 env_png.add_source_files(driver_obj, "*.cpp")
-env.drivers_sources += driver_obj
+env.modules_sources += driver_obj
 
 # Needed to force rebuilding the driver files when the thirdparty library is updated.
 env.Depends(driver_obj, thirdparty_obj)

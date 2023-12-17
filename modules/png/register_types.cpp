@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  register_driver_types.cpp                                            */
+/*  register_types.cpp                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,16 +28,31 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "register_driver_types.h"
+#include "register_types.h"
 
-void register_core_driver_types() {
+#include "image_loader_png.h"
+#include "resource_saver_png.h"
+
+static ImageLoaderPNG *image_loader_png = NULL;
+static Ref<ResourceSaverPNG> resource_saver_png;
+
+void register_png_types(ModuleRegistrationLevel p_level) {
+	if (p_level == MODULE_REGISTRATION_LEVEL_CORE) {
+		image_loader_png = memnew(ImageLoaderPNG);
+		ImageLoader::add_image_format_loader(image_loader_png);
+
+		resource_saver_png.instance();
+		ResourceSaver::add_resource_format_saver(resource_saver_png);
+	}
 }
 
-void unregister_core_driver_types() {
-}
+void unregister_png_types(ModuleRegistrationLevel p_level) {
+	if (p_level == MODULE_REGISTRATION_LEVEL_CORE) {
+		if (image_loader_png) {
+			memdelete(image_loader_png);
+		}
 
-void register_driver_types() {
-}
-
-void unregister_driver_types() {
+		ResourceSaver::remove_resource_format_saver(resource_saver_png);
+		resource_saver_png.unref();
+	}
 }

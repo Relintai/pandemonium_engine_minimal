@@ -93,7 +93,7 @@ if env["builtin_freetype"]:
 
     # Also requires libpng headers
     if env["builtin_libpng"]:
-        env_freetype.Prepend(CPPPATH=["#thirdparty/libpng"])
+        env_freetype.Prepend(CPPPATH=["#modules/png/libpng"])
 
     sfnt = thirdparty_dir + "src/sfnt/sfnt.c"
     # Must be done after all CPPDEFINES are being set so we can copy them.
