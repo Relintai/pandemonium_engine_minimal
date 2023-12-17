@@ -1,6 +1,6 @@
 
 #ifndef PANDEMONIUM_MINIMAL_H
-#include "pem.h"
+#include "pem_core.h"
 #endif
 
 #include <string.h>
