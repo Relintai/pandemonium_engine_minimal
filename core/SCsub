@@ -64,7 +64,7 @@ thirdparty_misc_sources = [thirdparty_misc_dir + file for file in thirdparty_mis
 env_thirdparty.add_source_files(thirdparty_obj, thirdparty_misc_sources)
 
 # Zlib library, can be unbundled
-thirdparty_zlib_dir = "thirdparty/zlib/"
+thirdparty_zlib_dir = "#core/thirdparty/zlib/"
 thirdparty_zlib_sources = [
     "adler32.c",
     "compress.c",

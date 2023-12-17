@@ -11,7 +11,7 @@ env_freetype = env_modules.Clone()
 
 thirdparty_obj = []
 
-thirdparty_dir = "freetype/"
+thirdparty_dir = "#modules/freetype/freetype/"
 thirdparty_sources = [
     "src/autofit/autofit.c",
     "src/base/ftbase.c",
@@ -59,7 +59,7 @@ thirdparty_sources = [
     ]
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-thirdparty_brotli_dir = "brotli/"
+thirdparty_brotli_dir = "#modules/freetype/brotli/"
 thirdparty_brotli_sources = [
     "common/constants.c",
     "common/context.c",
@@ -91,7 +91,7 @@ if env["target"] == "debug":
     env_freetype.Append(CPPDEFINES=["ZLIB_DEBUG"])
 
 # Also requires libpng headers
-env_freetype.Prepend(CPPPATH=["#modules/png/libpng"])
+env_freetype.Prepend(CPPPATH=["#modules/png/libpng/"])
 
 sfnt = thirdparty_dir + "src/sfnt/sfnt.c"
 # Must be done after all CPPDEFINES are being set so we can copy them.
