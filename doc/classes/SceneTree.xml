@@ -231,9 +231,6 @@
 		<member name="debug_paths_hint" type="bool" setter="set_debug_paths_hint" getter="is_debugging_paths_hint" default="false">
 			If [code]true[/code], curves from [Path2D] and [Path3D] nodes will be visible when running the game from the editor for debugging purposes.
 		</member>
-		<member name="edited_scene_root" type="Node" setter="set_edited_scene_root" getter="get_edited_scene_root">
-			The root of the edited scene.
-		</member>
 		<member name="multiplayer" type="MultiplayerAPI" setter="set_multiplayer" getter="get_multiplayer">
 			The default [MultiplayerAPI] instance for this [SceneTree].
 		</member>
@@ -248,9 +245,6 @@
 			If [code]true[/code], the [SceneTree] is paused. Doing so will have the following behavior:
 			- 2D and 3D physics will be stopped. This includes signals and collision detection.
 			- [method Node._process], [method Node._physics_process] and [method Node._input] will not be called anymore in nodes.
-		</member>
-		<member name="physics_interpolation" type="bool" setter="set_physics_interpolation_enabled" getter="is_physics_interpolation_enabled" default="false">
-			Although physics interpolation would normally be globally turned on and off using [member ProjectSettings.physics/common/physics_interpolation], this property allows control over interpolation at runtime.
 		</member>
 		<member name="quit_on_go_back" type="bool" setter="set_quit_on_go_back" getter="is_quit_on_go_back" default="true">
 			If [code]true[/code], the application quits automatically on going back (e.g. on Android).
@@ -352,6 +346,11 @@
 		<signal name="tree_changed">
 			<description>
 				Emitted whenever the [SceneTree] hierarchy changed (children being moved or renamed, etc.).
+			</description>
+		</signal>
+		<signal name="update_font_oversampling_request">
+			<argument index="0" name="ratio" type="float" />
+			<description>
 			</description>
 		</signal>
 	</signals>

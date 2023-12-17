@@ -220,35 +220,6 @@
 				Opens the file for writing or reading, depending on the flags.
 			</description>
 		</method>
-		<method name="open_compressed">
-			<return type="int" enum="Error" />
-			<argument index="0" name="path" type="String" />
-			<argument index="1" name="mode_flags" type="int" enum="File.ModeFlags" />
-			<argument index="2" name="compression_mode" type="int" enum="File.CompressionMode" default="0" />
-			<description>
-				Opens a compressed file for reading or writing.
-				[b]Note:[/b] [method open_compressed] can only read files that were saved by Godot, not third-party compression formats. See [url=https://github.com/godotengine/godot/issues/28999]GitHub issue #28999[/url] for a workaround.
-			</description>
-		</method>
-		<method name="open_encrypted">
-			<return type="int" enum="Error" />
-			<argument index="0" name="path" type="String" />
-			<argument index="1" name="mode_flags" type="int" enum="File.ModeFlags" />
-			<argument index="2" name="key" type="PoolByteArray" />
-			<description>
-				Opens an encrypted file in write or read mode. You need to pass a binary key to encrypt/decrypt it.
-				[b]Note:[/b] The provided key must be 32 bytes long.
-			</description>
-		</method>
-		<method name="open_encrypted_with_pass">
-			<return type="int" enum="Error" />
-			<argument index="0" name="path" type="String" />
-			<argument index="1" name="mode_flags" type="int" enum="File.ModeFlags" />
-			<argument index="2" name="pass" type="String" />
-			<description>
-				Opens an encrypted file in write or read mode. You need to pass a password to encrypt/decrypt it.
-			</description>
-		</method>
 		<method name="seek">
 			<return type="void" />
 			<argument index="0" name="position" type="int" />
@@ -406,18 +377,6 @@
 		</constant>
 		<constant name="WRITE_READ" value="7" enum="ModeFlags">
 			Opens the file for read and write operations. The file is created if it does not exist, and truncated if it does. The cursor is positioned at the beginning of the file.
-		</constant>
-		<constant name="COMPRESSION_FASTLZ" value="0" enum="CompressionMode">
-			Uses the [url=http://fastlz.org/]FastLZ[/url] compression method.
-		</constant>
-		<constant name="COMPRESSION_DEFLATE" value="1" enum="CompressionMode">
-			Uses the [url=https://en.wikipedia.org/wiki/DEFLATE]DEFLATE[/url] compression method.
-		</constant>
-		<constant name="COMPRESSION_ZSTD" value="2" enum="CompressionMode">
-			Uses the [url=https://facebook.github.io/zstd/]Zstandard[/url] compression method.
-		</constant>
-		<constant name="COMPRESSION_GZIP" value="3" enum="CompressionMode">
-			Uses the [url=https://www.gzip.org/]gzip[/url] compression method.
 		</constant>
 	</constants>
 </class>

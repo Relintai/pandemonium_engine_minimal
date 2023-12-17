@@ -38,92 +38,6 @@
 				Sets margin size, where black bars (or images, if [method black_bars_set_images] was used) are rendered.
 			</description>
 		</method>
-		<method name="camera_create">
-			<return type="RID" />
-			<description>
-				Creates a camera and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]camera_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-			</description>
-		</method>
-		<method name="camera_reset_physics_interpolation">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<description>
-				Prevents physics interpolation for the current physics tick.
-				This is useful when moving a [Camera] to a new location, to give an instantaneous change rather than interpolation from the previous location.
-			</description>
-		</method>
-		<method name="camera_set_cull_mask">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<argument index="1" name="layers" type="int" />
-			<description>
-				Sets the cull mask associated with this camera. The cull mask describes which 3D layers are rendered by this camera. Equivalent to [member Camera.cull_mask].
-			</description>
-		</method>
-		<method name="camera_set_environment">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<argument index="1" name="env" type="RID" />
-			<description>
-				Sets the environment used by this camera. Equivalent to [member Camera.environment].
-			</description>
-		</method>
-		<method name="camera_set_frustum">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<argument index="1" name="size" type="float" />
-			<argument index="2" name="offset" type="Vector2" />
-			<argument index="3" name="z_near" type="float" />
-			<argument index="4" name="z_far" type="float" />
-			<description>
-				Sets camera to use frustum projection. This mode allows adjusting the [code]offset[/code] argument to create "tilted frustum" effects.
-			</description>
-		</method>
-		<method name="camera_set_interpolated">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<argument index="1" name="interpolated" type="bool" />
-			<description>
-				Turns on and off physics interpolation for the [Camera].
-			</description>
-		</method>
-		<method name="camera_set_orthogonal">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<argument index="1" name="size" type="float" />
-			<argument index="2" name="z_near" type="float" />
-			<argument index="3" name="z_far" type="float" />
-			<description>
-				Sets camera to use orthogonal projection, also known as orthographic projection. Objects remain the same size on the screen no matter how far away they are.
-			</description>
-		</method>
-		<method name="camera_set_perspective">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<argument index="1" name="fovy_degrees" type="float" />
-			<argument index="2" name="z_near" type="float" />
-			<argument index="3" name="z_far" type="float" />
-			<description>
-				Sets camera to use perspective projection. Objects on the screen becomes smaller when they are far away.
-			</description>
-		</method>
-		<method name="camera_set_transform">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<argument index="1" name="transform" type="Transform" />
-			<description>
-				Sets [Transform] of camera.
-			</description>
-		</method>
-		<method name="camera_set_use_vertical_aspect">
-			<return type="void" />
-			<argument index="0" name="camera" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<description>
-				If [code]true[/code], preserves the horizontal aspect ratio which is equivalent to [constant Camera.KEEP_WIDTH]. If [code]false[/code], preserves the vertical aspect ratio which is equivalent to [constant Camera.KEEP_HEIGHT].
-			</description>
-		</method>
 		<method name="canvas_create">
 			<return type="RID" />
 			<description>
@@ -315,14 +229,6 @@
 				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
 			</description>
 		</method>
-		<method name="canvas_item_reset_physics_interpolation">
-			<return type="void" />
-			<argument index="0" name="item" type="RID" />
-			<description>
-				Prevents physics interpolation for the current physics tick.
-				This is useful when moving a canvas item to a new location, to give an instantaneous change rather than interpolation from the previous location.
-			</description>
-		</method>
 		<method name="canvas_item_set_clip">
 			<return type="void" />
 			<argument index="0" name="item" type="RID" />
@@ -371,14 +277,6 @@
 			<argument index="1" name="index" type="int" />
 			<description>
 				Sets the index for the [CanvasItem].
-			</description>
-		</method>
-		<method name="canvas_item_set_interpolated">
-			<return type="void" />
-			<argument index="0" name="item" type="RID" />
-			<argument index="1" name="interpolated" type="bool" />
-			<description>
-				Turns on and off physics interpolation for the canvas item.
 			</description>
 		</method>
 		<method name="canvas_item_set_light_mask">
@@ -469,316 +367,6 @@
 				Sets the [CanvasItem]'s Z index, i.e. its draw order (lower indexes are drawn first).
 			</description>
 		</method>
-		<method name="canvas_item_transform_physics_interpolation">
-			<return type="void" />
-			<argument index="0" name="item" type="RID" />
-			<argument index="1" name="xform" type="Transform2D" />
-			<description>
-				Transforms both the current and previous stored transform for a canvas item.
-				This allows transforming a canvas item without creating a "glitch" in the interpolation.
-				This is particularly useful for large worlds utilising a shifting origin.
-			</description>
-		</method>
-		<method name="canvas_light_attach_to_canvas">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="canvas" type="RID" />
-			<description>
-				Attaches the canvas light to the canvas. Removes it from its previous canvas.
-			</description>
-		</method>
-		<method name="canvas_light_create">
-			<return type="RID" />
-			<description>
-				Creates a canvas light and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]canvas_light_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-			</description>
-		</method>
-		<method name="canvas_light_occluder_attach_to_canvas">
-			<return type="void" />
-			<argument index="0" name="occluder" type="RID" />
-			<argument index="1" name="canvas" type="RID" />
-			<description>
-				Attaches a light occluder to the canvas. Removes it from its previous canvas.
-			</description>
-		</method>
-		<method name="canvas_light_occluder_create">
-			<return type="RID" />
-			<description>
-				Creates a light occluder and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]canvas_light_ocluder_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-			</description>
-		</method>
-		<method name="canvas_light_occluder_reset_physics_interpolation">
-			<return type="void" />
-			<argument index="0" name="occluder" type="RID" />
-			<description>
-				Prevents physics interpolation for the current physics tick.
-				This is useful when moving an occluder to a new location, to give an instantaneous change rather than interpolation from the previous location.
-			</description>
-		</method>
-		<method name="canvas_light_occluder_set_enabled">
-			<return type="void" />
-			<argument index="0" name="occluder" type="RID" />
-			<argument index="1" name="enabled" type="bool" />
-			<description>
-				Enables or disables light occluder.
-			</description>
-		</method>
-		<method name="canvas_light_occluder_set_interpolated">
-			<return type="void" />
-			<argument index="0" name="occluder" type="RID" />
-			<argument index="1" name="interpolated" type="bool" />
-			<description>
-				Turns on and off physics interpolation for the occluder.
-			</description>
-		</method>
-		<method name="canvas_light_occluder_set_light_mask">
-			<return type="void" />
-			<argument index="0" name="occluder" type="RID" />
-			<argument index="1" name="mask" type="int" />
-			<description>
-				The light mask. See [LightOccluder2D] for more information on light masks.
-			</description>
-		</method>
-		<method name="canvas_light_occluder_set_polygon">
-			<return type="void" />
-			<argument index="0" name="occluder" type="RID" />
-			<argument index="1" name="polygon" type="RID" />
-			<description>
-				Sets a light occluder's polygon.
-			</description>
-		</method>
-		<method name="canvas_light_occluder_set_transform">
-			<return type="void" />
-			<argument index="0" name="occluder" type="RID" />
-			<argument index="1" name="transform" type="Transform2D" />
-			<description>
-				Sets a light occluder's [Transform2D].
-			</description>
-		</method>
-		<method name="canvas_light_occluder_transform_physics_interpolation">
-			<return type="void" />
-			<argument index="0" name="occluder" type="RID" />
-			<argument index="1" name="xform" type="Transform2D" />
-			<description>
-				Transforms both the current and previous stored transform for an occluder.
-				This allows transforming an occluder without creating a "glitch" in the interpolation.
-				This is particularly useful for large worlds utilising a shifting origin.
-			</description>
-		</method>
-		<method name="canvas_light_reset_physics_interpolation">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<description>
-				Prevents physics interpolation for the current physics tick.
-				This is useful when moving a light to a new location, to give an instantaneous change rather than interpolation from the previous location.
-			</description>
-		</method>
-		<method name="canvas_light_set_color">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="color" type="Color" />
-			<description>
-				Sets the color for a light.
-			</description>
-		</method>
-		<method name="canvas_light_set_enabled">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="enabled" type="bool" />
-			<description>
-				Enables or disables a canvas light.
-			</description>
-		</method>
-		<method name="canvas_light_set_energy">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="energy" type="float" />
-			<description>
-				Sets a canvas light's energy.
-			</description>
-		</method>
-		<method name="canvas_light_set_height">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="height" type="float" />
-			<description>
-				Sets a canvas light's height.
-			</description>
-		</method>
-		<method name="canvas_light_set_interpolated">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="interpolated" type="bool" />
-			<description>
-				Turns on and off physics interpolation for the light.
-			</description>
-		</method>
-		<method name="canvas_light_set_item_cull_mask">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="mask" type="int" />
-			<description>
-				The light mask. See [LightOccluder2D] for more information on light masks.
-			</description>
-		</method>
-		<method name="canvas_light_set_item_shadow_cull_mask">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="mask" type="int" />
-			<description>
-				The binary mask used to determine which layers this canvas light's shadows affects. See [LightOccluder2D] for more information on light masks.
-			</description>
-		</method>
-		<method name="canvas_light_set_layer_range">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="min_layer" type="int" />
-			<argument index="2" name="max_layer" type="int" />
-			<description>
-				The layer range that gets rendered with this light.
-			</description>
-		</method>
-		<method name="canvas_light_set_mode">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="mode" type="int" enum="RenderingServer.CanvasLightMode" />
-			<description>
-				The mode of the light, see [enum CanvasLightMode] constants.
-			</description>
-		</method>
-		<method name="canvas_light_set_scale">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="scale" type="float" />
-			<description>
-				Sets the texture's scale factor of the light. Equivalent to [member Light2D.texture_scale].
-			</description>
-		</method>
-		<method name="canvas_light_set_shadow_buffer_size">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="size" type="int" />
-			<description>
-				Sets the width of the shadow buffer, size gets scaled to the next power of two for this.
-			</description>
-		</method>
-		<method name="canvas_light_set_shadow_color">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="color" type="Color" />
-			<description>
-				Sets the color of the canvas light's shadow.
-			</description>
-		</method>
-		<method name="canvas_light_set_shadow_enabled">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="enabled" type="bool" />
-			<description>
-				Enables or disables the canvas light's shadow.
-			</description>
-		</method>
-		<method name="canvas_light_set_shadow_filter">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="filter" type="int" enum="RenderingServer.CanvasLightShadowFilter" />
-			<description>
-				Sets the canvas light's shadow's filter, see [enum CanvasLightShadowFilter] constants.
-			</description>
-		</method>
-		<method name="canvas_light_set_shadow_gradient_length">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="length" type="float" />
-			<description>
-				Sets the length of the shadow's gradient.
-			</description>
-		</method>
-		<method name="canvas_light_set_shadow_smooth">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="smooth" type="float" />
-			<description>
-				Smoothens the shadow. The lower, the smoother.
-			</description>
-		</method>
-		<method name="canvas_light_set_texture">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="texture" type="RID" />
-			<description>
-				Sets texture to be used by light. Equivalent to [member Light2D.texture].
-			</description>
-		</method>
-		<method name="canvas_light_set_texture_offset">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="offset" type="Vector2" />
-			<description>
-				Sets the offset of the light's texture. Equivalent to [member Light2D.offset].
-			</description>
-		</method>
-		<method name="canvas_light_set_transform">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="transform" type="Transform2D" />
-			<description>
-				Sets the canvas light's [Transform2D].
-			</description>
-		</method>
-		<method name="canvas_light_set_z_range">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="min_z" type="int" />
-			<argument index="2" name="max_z" type="int" />
-			<description>
-				Sets the Z range of objects that will be affected by this light. Equivalent to [member Light2D.range_z_min] and [member Light2D.range_z_max].
-			</description>
-		</method>
-		<method name="canvas_light_transform_physics_interpolation">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="xform" type="Transform2D" />
-			<description>
-				Transforms both the current and previous stored transform for a light.
-				This allows transforming a light without creating a "glitch" in the interpolation.
-				This is particularly useful for large worlds utilising a shifting origin.
-			</description>
-		</method>
-		<method name="canvas_occluder_polygon_create">
-			<return type="RID" />
-			<description>
-				Creates a new light occluder polygon and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]canvas_occluder_polygon_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-			</description>
-		</method>
-		<method name="canvas_occluder_polygon_set_cull_mode">
-			<return type="void" />
-			<argument index="0" name="occluder_polygon" type="RID" />
-			<argument index="1" name="mode" type="int" enum="RenderingServer.CanvasOccluderPolygonCullMode" />
-			<description>
-				Sets an occluder polygons cull mode. See [enum CanvasOccluderPolygonCullMode] constants.
-			</description>
-		</method>
-		<method name="canvas_occluder_polygon_set_shape">
-			<return type="void" />
-			<argument index="0" name="occluder_polygon" type="RID" />
-			<argument index="1" name="shape" type="PoolVector2Array" />
-			<argument index="2" name="closed" type="bool" />
-			<description>
-				Sets the shape of the occluder polygon.
-			</description>
-		</method>
-		<method name="canvas_occluder_polygon_set_shape_as_lines">
-			<return type="void" />
-			<argument index="0" name="occluder_polygon" type="RID" />
-			<argument index="1" name="shape" type="PoolVector2Array" />
-			<description>
-				Sets the shape of the occluder polygon as lines.
-			</description>
-		</method>
 		<method name="canvas_set_item_mirroring">
 			<return type="void" />
 			<argument index="0" name="canvas" type="RID" />
@@ -812,229 +400,12 @@
 				[b]Warning:[/b] This function is intended for debugging in the editor, and will pass through and return a zero [Rect2] in exported projects.
 			</description>
 		</method>
-		<method name="directional_light_create">
-			<return type="RID" />
-			<description>
-				Creates a directional light and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID can be used in most [code]light_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-				To place in a scene, attach this directional light to an instance using [method instance_set_base] using the returned RID.
-			</description>
-		</method>
 		<method name="draw">
 			<return type="void" />
 			<argument index="0" name="swap_buffers" type="bool" default="true" />
 			<argument index="1" name="frame_step" type="float" default="0.0" />
 			<description>
 				Draws a frame. [i]This method is deprecated[/i], please use [method force_draw] instead.
-			</description>
-		</method>
-		<method name="environment_create">
-			<return type="RID" />
-			<description>
-				Creates an environment and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]environment_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-			</description>
-		</method>
-		<method name="environment_set_adjustment">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="brightness" type="float" />
-			<argument index="3" name="contrast" type="float" />
-			<argument index="4" name="saturation" type="float" />
-			<argument index="5" name="ramp" type="RID" />
-			<description>
-				Sets the values to be used with the "Adjustment" post-process effect. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_ambient_light">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="color" type="Color" />
-			<argument index="2" name="energy" type="float" default="1.0" />
-			<argument index="3" name="sky_contibution" type="float" default="0.0" />
-			<description>
-				Sets the ambient light parameters. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_background">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="bg" type="int" enum="RenderingServer.Environment3DBG" />
-			<description>
-				Sets the [i]BGMode[/i] of the environment. Equivalent to [member Environment3D.background_mode].
-			</description>
-		</method>
-		<method name="environment_set_bg_color">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="color" type="Color" />
-			<description>
-				Color displayed for clear areas of the scene (if using Custom color or Color+Sky background modes).
-			</description>
-		</method>
-		<method name="environment_set_bg_energy">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="energy" type="float" />
-			<description>
-				Sets the intensity of the background color.
-			</description>
-		</method>
-		<method name="environment_set_canvas_max_layer">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="max_layer" type="int" />
-			<description>
-				Sets the maximum layer to use if using Canvas background mode.
-			</description>
-		</method>
-		<method name="environment_set_dof_blur_far">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="distance" type="float" />
-			<argument index="3" name="transition" type="float" />
-			<argument index="4" name="far_amount" type="float" />
-			<argument index="5" name="quality" type="int" enum="RenderingServer.Environment3DDOFBlurQuality" />
-			<description>
-				Sets the values to be used with the "DoF Far Blur" post-process effect. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_dof_blur_near">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="distance" type="float" />
-			<argument index="3" name="transition" type="float" />
-			<argument index="4" name="far_amount" type="float" />
-			<argument index="5" name="quality" type="int" enum="RenderingServer.Environment3DDOFBlurQuality" />
-			<description>
-				Sets the values to be used with the "DoF Near Blur" post-process effect. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_fog">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="color" type="Color" />
-			<argument index="3" name="sun_color" type="Color" />
-			<argument index="4" name="sun_amount" type="float" />
-			<description>
-				Sets the variables to be used with the scene fog. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_fog_depth">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="depth_begin" type="float" />
-			<argument index="3" name="depth_end" type="float" />
-			<argument index="4" name="depth_curve" type="float" />
-			<argument index="5" name="transmit" type="bool" />
-			<argument index="6" name="transmit_curve" type="float" />
-			<description>
-				Sets the variables to be used with the fog depth effect. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_fog_height">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="min_height" type="float" />
-			<argument index="3" name="max_height" type="float" />
-			<argument index="4" name="height_curve" type="float" />
-			<description>
-				Sets the variables to be used with the fog height effect. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_glow">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="level_flags" type="int" />
-			<argument index="3" name="intensity" type="float" />
-			<argument index="4" name="strength" type="float" />
-			<argument index="5" name="bloom_threshold" type="float" />
-			<argument index="6" name="blend_mode" type="int" enum="RenderingServer.Environment3DGlowBlendMode" />
-			<argument index="7" name="hdr_bleed_threshold" type="float" />
-			<argument index="8" name="hdr_bleed_scale" type="float" />
-			<argument index="9" name="hdr_luminance_cap" type="float" />
-			<argument index="10" name="bicubic_upscale" type="bool" />
-			<argument index="11" name="high_quality" type="bool" />
-			<description>
-				Sets the variables to be used with the "glow" post-process effect. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_sky">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="sky" type="RID" />
-			<description>
-				Sets the [Sky] to be used as the environment's background when using [i]BGMode[/i] sky. Equivalent to [member Environment3D.background_sky].
-			</description>
-		</method>
-		<method name="environment_set_sky_custom_fov">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="scale" type="float" />
-			<description>
-				Sets a custom field of view for the background [Sky]. Equivalent to [member Environment3D.background_sky_custom_fov].
-			</description>
-		</method>
-		<method name="environment_set_sky_orientation">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="orientation" type="Basis" />
-			<description>
-				Sets the rotation of the background [Sky] expressed as a [Basis]. Equivalent to [member Environment3D.background_sky_orientation].
-			</description>
-		</method>
-		<method name="environment_set_ssao">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="radius" type="float" />
-			<argument index="3" name="intensity" type="float" />
-			<argument index="4" name="radius2" type="float" />
-			<argument index="5" name="intensity2" type="float" />
-			<argument index="6" name="bias" type="float" />
-			<argument index="7" name="light_affect" type="float" />
-			<argument index="8" name="ao_channel_affect" type="float" />
-			<argument index="9" name="color" type="Color" />
-			<argument index="10" name="quality" type="int" enum="RenderingServer.Environment3DSSAOQuality" />
-			<argument index="11" name="blur" type="int" enum="RenderingServer.Environment3DSSAOBlur" />
-			<argument index="12" name="bilateral_sharpness" type="float" />
-			<description>
-				Sets the variables to be used with the "Screen Space Ambient Occlusion (SSAO)" post-process effect. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_ssr">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<argument index="2" name="max_steps" type="int" />
-			<argument index="3" name="fade_in" type="float" />
-			<argument index="4" name="fade_out" type="float" />
-			<argument index="5" name="depth_tolerance" type="float" />
-			<argument index="6" name="roughness" type="bool" />
-			<description>
-				Sets the variables to be used with the "screen space reflections" post-process effect. See [Environment3D] for more details.
-			</description>
-		</method>
-		<method name="environment_set_tonemap">
-			<return type="void" />
-			<argument index="0" name="env" type="RID" />
-			<argument index="1" name="tone_mapper" type="int" enum="RenderingServer.Environment3DToneMapper" />
-			<argument index="2" name="exposure" type="float" />
-			<argument index="3" name="white" type="float" />
-			<argument index="4" name="auto_exposure" type="bool" />
-			<argument index="5" name="min_luminance" type="float" />
-			<argument index="6" name="max_luminance" type="float" />
-			<argument index="7" name="auto_exp_speed" type="float" />
-			<argument index="8" name="auto_exp_grey" type="float" />
-			<description>
-				Sets the variables to be used with the "tonemap" post-process effect. See [Environment3D] for more details.
 			</description>
 		</method>
 		<method name="finish">
@@ -1126,428 +497,10 @@
 				When rendering with GLES2, returns [code]true[/code] with [code]skinning_fallback[/code] in case the hardware doesn't support the default GPU skinning process.
 			</description>
 		</method>
-		<method name="immediate_begin">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="primitive" type="int" enum="RenderingServer.PrimitiveType" />
-			<argument index="2" name="texture" type="RID" />
-			<description>
-				Sets up [ImmediateGeometry] internals to prepare for drawing. Equivalent to [method ImmediateGeometry.begin].
-			</description>
-		</method>
-		<method name="immediate_clear">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<description>
-				Clears everything that was set up between [method immediate_begin] and [method immediate_end]. Equivalent to [method ImmediateGeometry.clear].
-			</description>
-		</method>
-		<method name="immediate_color">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="color" type="Color" />
-			<description>
-				Sets the color to be used with next vertex. Equivalent to [method ImmediateGeometry.set_color].
-			</description>
-		</method>
-		<method name="immediate_create">
-			<return type="RID" />
-			<description>
-				Creates an immediate geometry and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]immediate_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-				To place in a scene, attach this immediate geometry to an instance using [method instance_set_base] using the returned RID.
-			</description>
-		</method>
-		<method name="immediate_end">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<description>
-				Ends drawing the [ImmediateGeometry] and displays it. Equivalent to [method ImmediateGeometry.end].
-			</description>
-		</method>
-		<method name="immediate_get_material" qualifiers="const">
-			<return type="RID" />
-			<argument index="0" name="immediate" type="RID" />
-			<description>
-				Returns the material assigned to the [ImmediateGeometry].
-			</description>
-		</method>
-		<method name="immediate_normal">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="normal" type="Vector3" />
-			<description>
-				Sets the normal to be used with next vertex. Equivalent to [method ImmediateGeometry.set_normal].
-			</description>
-		</method>
-		<method name="immediate_set_material">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="material" type="RID" />
-			<description>
-				Sets the material to be used to draw the [ImmediateGeometry].
-			</description>
-		</method>
-		<method name="immediate_tangent">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="tangent" type="Plane" />
-			<description>
-				Sets the tangent to be used with next vertex. Equivalent to [method ImmediateGeometry.set_tangent].
-			</description>
-		</method>
-		<method name="immediate_uv">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="tex_uv" type="Vector2" />
-			<description>
-				Sets the UV to be used with next vertex. Equivalent to [method ImmediateGeometry.set_uv].
-			</description>
-		</method>
-		<method name="immediate_uv2">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="tex_uv" type="Vector2" />
-			<description>
-				Sets the UV2 to be used with next vertex. Equivalent to [method ImmediateGeometry.set_uv2].
-			</description>
-		</method>
-		<method name="immediate_vertex">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="vertex" type="Vector3" />
-			<description>
-				Adds the next vertex using the information provided in advance. Equivalent to [method ImmediateGeometry.add_vertex].
-			</description>
-		</method>
-		<method name="immediate_vertex_2d">
-			<return type="void" />
-			<argument index="0" name="immediate" type="RID" />
-			<argument index="1" name="vertex" type="Vector2" />
-			<description>
-				Adds the next vertex using the information provided in advance. This is a helper class that calls [method immediate_vertex] under the hood. Equivalent to [method ImmediateGeometry.add_vertex].
-			</description>
-		</method>
 		<method name="init">
 			<return type="void" />
 			<description>
 				Initializes the visual server. This function is called internally by platform-dependent code during engine initialization. If called from a running game, it will not do anything.
-			</description>
-		</method>
-		<method name="instance_attach_object_instance_id">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="id" type="int" />
-			<description>
-				Attaches a unique Object ID to instance. Object ID must be attached to instance for proper culling with [method instances_cull_aabb], [method instances_cull_convex], and [method instances_cull_ray].
-			</description>
-		</method>
-		<method name="instance_attach_skeleton">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="skeleton" type="RID" />
-			<description>
-				Attaches a skeleton to an instance. Removes the previous skeleton from the instance.
-			</description>
-		</method>
-		<method name="instance_create">
-			<return type="RID" />
-			<description>
-				Creates a visual instance and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]instance_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-				An instance is a way of placing a 3D object in the scenario. Objects like particles, meshes, and reflection probes need to be associated with an instance to be visible in the scenario using [method instance_set_base].
-			</description>
-		</method>
-		<method name="instance_create2">
-			<return type="RID" />
-			<argument index="0" name="base" type="RID" />
-			<argument index="1" name="scenario" type="RID" />
-			<description>
-				Creates a visual instance, adds it to the RenderingServer, and sets both base and scenario. It can be accessed with the RID that is returned. This RID will be used in all [code]instance_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-			</description>
-		</method>
-		<method name="instance_geometry_set_as_instance_lod">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="as_lod_of_instance" type="RID" />
-			<description>
-				Not implemented in Godot 3.x.
-			</description>
-		</method>
-		<method name="instance_geometry_set_cast_shadows_setting">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="shadow_casting_setting" type="int" enum="RenderingServer.ShadowCastingSetting" />
-			<description>
-				Sets the shadow casting setting to one of [enum ShadowCastingSetting]. Equivalent to [member GeometryInstance.cast_shadow].
-			</description>
-		</method>
-		<method name="instance_geometry_set_draw_range">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="min" type="float" />
-			<argument index="2" name="max" type="float" />
-			<argument index="3" name="min_margin" type="float" />
-			<argument index="4" name="max_margin" type="float" />
-			<description>
-				Not implemented in Godot 3.x.
-			</description>
-		</method>
-		<method name="instance_geometry_set_flag">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="flag" type="int" enum="RenderingServer.InstanceFlags" />
-			<argument index="2" name="enabled" type="bool" />
-			<description>
-				Sets the flag for a given [enum InstanceFlags]. See [enum InstanceFlags] for more details.
-			</description>
-		</method>
-		<method name="instance_geometry_set_material_overlay">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="material" type="RID" />
-			<description>
-				Sets a material that will be rendered for all surfaces on top of active materials for the mesh associated with this instance. Equivalent to [member GeometryInstance.material_overlay].
-			</description>
-		</method>
-		<method name="instance_geometry_set_material_override">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="material" type="RID" />
-			<description>
-				Sets a material that will override the material for all surfaces on the mesh associated with this instance. Equivalent to [member GeometryInstance.material_override].
-			</description>
-		</method>
-		<method name="instance_reset_physics_interpolation">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<description>
-				Prevents physics interpolation for the current physics tick.
-				This is useful when moving an instance to a new location, to give an instantaneous change rather than interpolation from the previous location.
-			</description>
-		</method>
-		<method name="instance_set_base">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="base" type="RID" />
-			<description>
-				Sets the base of the instance. A base can be any of the 3D objects that are created in the RenderingServer that can be displayed. For example, any of the light types, mesh, multimesh, immediate geometry, particle system, reflection probe, lightmap capture, and the GI probe are all types that can be set as the base of an instance in order to be displayed in the scenario.
-			</description>
-		</method>
-		<method name="instance_set_blend_shape_weight">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="shape" type="int" />
-			<argument index="2" name="weight" type="float" />
-			<description>
-				Sets the weight for a given blend shape associated with this instance.
-			</description>
-		</method>
-		<method name="instance_set_custom_aabb">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="aabb" type="AABB" />
-			<description>
-				Sets a custom AABB to use when culling objects from the view frustum. Equivalent to [method GeometryInstance.set_custom_aabb].
-			</description>
-		</method>
-		<method name="instance_set_exterior">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="enabled" type="bool" />
-			<description>
-				Function not implemented in Godot 3.x.
-			</description>
-		</method>
-		<method name="instance_set_extra_visibility_margin">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="margin" type="float" />
-			<description>
-				Sets a margin to increase the size of the AABB when culling objects from the view frustum. This allows you to avoid culling objects that fall outside the view frustum. Equivalent to [member GeometryInstance.extra_cull_margin].
-			</description>
-		</method>
-		<method name="instance_set_interpolated">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="interpolated" type="bool" />
-			<description>
-				Turns on and off physics interpolation for the instance.
-			</description>
-		</method>
-		<method name="instance_set_layer_mask">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="mask" type="int" />
-			<description>
-				Sets the render layers that this instance will be drawn to. Equivalent to [member VisualInstance.layers].
-			</description>
-		</method>
-		<method name="instance_set_scenario">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="scenario" type="RID" />
-			<description>
-				Sets the scenario that the instance is in. The scenario is the 3D world that the objects will be displayed in.
-			</description>
-		</method>
-		<method name="instance_set_surface_material">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="surface" type="int" />
-			<argument index="2" name="material" type="RID" />
-			<description>
-				Sets the material of a specific surface. Equivalent to [method MeshInstance.set_surface_material].
-			</description>
-		</method>
-		<method name="instance_set_transform">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="transform" type="Transform" />
-			<description>
-				Sets the world space transform of the instance. Equivalent to [member Spatial.transform].
-			</description>
-		</method>
-		<method name="instance_set_visible">
-			<return type="void" />
-			<argument index="0" name="instance" type="RID" />
-			<argument index="1" name="visible" type="bool" />
-			<description>
-				Sets whether an instance is drawn or not. Equivalent to [member Spatial.visible].
-			</description>
-		</method>
-		<method name="instances_cull_aabb" qualifiers="const">
-			<return type="Array" />
-			<argument index="0" name="aabb" type="AABB" />
-			<argument index="1" name="scenario" type="RID" />
-			<description>
-				Returns an array of object IDs intersecting with the provided AABB. Only visual 3D nodes are considered, such as [MeshInstance] or [DirectionalLight]. Use [method @GDScript.instance_from_id] to obtain the actual nodes. A scenario RID must be provided, which is available in the [World3D] you want to query. This forces an update for all resources queued to update.
-				[b]Warning:[/b] This function is primarily intended for editor usage. For in-game use cases, prefer physics collision.
-			</description>
-		</method>
-		<method name="instances_cull_convex" qualifiers="const">
-			<return type="Array" />
-			<argument index="0" name="convex" type="Array" />
-			<argument index="1" name="scenario" type="RID" />
-			<description>
-				Returns an array of object IDs intersecting with the provided convex shape. Only visual 3D nodes are considered, such as [MeshInstance] or [DirectionalLight]. Use [method @GDScript.instance_from_id] to obtain the actual nodes. A scenario RID must be provided, which is available in the [World3D] you want to query. This forces an update for all resources queued to update.
-				[b]Warning:[/b] This function is primarily intended for editor usage. For in-game use cases, prefer physics collision.
-			</description>
-		</method>
-		<method name="instances_cull_ray" qualifiers="const">
-			<return type="Array" />
-			<argument index="0" name="from" type="Vector3" />
-			<argument index="1" name="to" type="Vector3" />
-			<argument index="2" name="scenario" type="RID" />
-			<description>
-				Returns an array of object IDs intersecting with the provided 3D ray. Only visual 3D nodes are considered, such as [MeshInstance] or [DirectionalLight]. Use [method @GDScript.instance_from_id] to obtain the actual nodes. A scenario RID must be provided, which is available in the [World3D] you want to query. This forces an update for all resources queued to update.
-				[b]Warning:[/b] This function is primarily intended for editor usage. For in-game use cases, prefer physics collision.
-			</description>
-		</method>
-		<method name="light_directional_set_blend_splits">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<description>
-				If [code]true[/code], this directional light will blend between shadow map splits resulting in a smoother transition between them. Equivalent to [member DirectionalLight.directional_shadow_blend_splits].
-			</description>
-		</method>
-		<method name="light_directional_set_shadow_depth_range_mode">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="range_mode" type="int" enum="RenderingServer.LightDirectionalShadowDepthRangeMode" />
-			<description>
-				Sets the shadow depth range mode for this directional light. Equivalent to [member DirectionalLight.directional_shadow_depth_range]. See [enum LightDirectionalShadowDepthRangeMode] for options.
-			</description>
-		</method>
-		<method name="light_directional_set_shadow_mode">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="mode" type="int" enum="RenderingServer.LightDirectionalShadowMode" />
-			<description>
-				Sets the shadow mode for this directional light. Equivalent to [member DirectionalLight.directional_shadow_mode]. See [enum LightDirectionalShadowMode] for options.
-			</description>
-		</method>
-		<method name="light_omni_set_shadow_detail">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="detail" type="int" enum="RenderingServer.LightOmniShadowDetail" />
-			<description>
-				Sets whether to use vertical or horizontal detail for this omni light. This can be used to alleviate artifacts in the shadow map. Equivalent to [member OmniLight.omni_shadow_detail].
-			</description>
-		</method>
-		<method name="light_omni_set_shadow_mode">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="mode" type="int" enum="RenderingServer.LightOmniShadowMode" />
-			<description>
-				Sets whether to use a dual paraboloid or a cubemap for the shadow map. Dual paraboloid is faster but may suffer from artifacts. Equivalent to [member OmniLight.omni_shadow_mode].
-			</description>
-		</method>
-		<method name="light_set_color">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="color" type="Color" />
-			<description>
-				Sets the color of the light. Equivalent to [member Light.light_color].
-			</description>
-		</method>
-		<method name="light_set_cull_mask">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="mask" type="int" />
-			<description>
-				Sets the cull mask for this Light. Lights only affect objects in the selected layers. Equivalent to [member Light.light_cull_mask].
-			</description>
-		</method>
-		<method name="light_set_negative">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<description>
-				If [code]true[/code], light will subtract light instead of adding light. Equivalent to [member Light.light_negative].
-			</description>
-		</method>
-		<method name="light_set_param">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="param" type="int" enum="RenderingServer.LightParam" />
-			<argument index="2" name="value" type="float" />
-			<description>
-				Sets the specified light parameter. See [enum LightParam] for options. Equivalent to [method Light.set_param].
-			</description>
-		</method>
-		<method name="light_set_projector">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="texture" type="RID" />
-			<description>
-				Not implemented in Godot 3.x.
-			</description>
-		</method>
-		<method name="light_set_reverse_cull_face_mode">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="enabled" type="bool" />
-			<description>
-				If [code]true[/code], reverses the backface culling of the mesh. This can be useful when you have a flat mesh that has a light behind it. If you need to cast a shadow on both sides of the mesh, set the mesh to use double sided shadows with [method instance_geometry_set_cast_shadows_setting]. Equivalent to [member Light.shadow_reverse_cull_face].
-			</description>
-		</method>
-		<method name="light_set_shadow">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="enabled" type="bool" />
-			<description>
-				If [code]true[/code], light will cast shadows. Equivalent to [member Light.shadow_enabled].
-			</description>
-		</method>
-		<method name="light_set_shadow_color">
-			<return type="void" />
-			<argument index="0" name="light" type="RID" />
-			<argument index="1" name="color" type="Color" />
-			<description>
-				Sets the color of the shadow cast by the light. Equivalent to [member Light.shadow_color].
 			</description>
 		</method>
 		<method name="make_sphere_mesh">
@@ -1633,7 +586,7 @@
 			<argument index="1" name="primitive" type="int" enum="RenderingServer.PrimitiveType" />
 			<argument index="2" name="arrays" type="Array" />
 			<argument index="3" name="blend_shapes" type="Array" default="[  ]" />
-			<argument index="4" name="compress_format" type="int" default="2194432" />
+			<argument index="4" name="compress_format" type="int" default="7936" />
 			<description>
 				Adds a surface generated from the Arrays to a mesh. See [enum PrimitiveType] constants for types.
 			</description>
@@ -1810,14 +763,6 @@
 			<argument index="1" name="surface" type="int" />
 			<description>
 				Returns the primitive type of a mesh's surface.
-			</description>
-		</method>
-		<method name="mesh_surface_get_skeleton_aabb" qualifiers="const">
-			<return type="Array" />
-			<argument index="0" name="mesh" type="RID" />
-			<argument index="1" name="surface" type="int" />
-			<description>
-				Returns the aabb of a mesh's surface's skeleton.
 			</description>
 		</method>
 		<method name="mesh_surface_set_material">
@@ -2018,165 +963,12 @@
 				Sets the number of instances visible at a given time. If -1, all instances that have been allocated are drawn. Equivalent to [member MultiMesh.visible_instance_count].
 			</description>
 		</method>
-		<method name="omni_light_create">
-			<return type="RID" />
-			<description>
-				Creates a new omni light and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID can be used in most [code]light_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-				To place in a scene, attach this omni light to an instance using [method instance_set_base] using the returned RID.
-			</description>
-		</method>
-		<method name="reflection_probe_create">
-			<return type="RID" />
-			<description>
-				Creates a reflection probe and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]reflection_probe_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-				To place in a scene, attach this reflection probe to an instance using [method instance_set_base] using the returned RID.
-			</description>
-		</method>
-		<method name="reflection_probe_set_as_interior">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<description>
-				If [code]true[/code], reflections will ignore sky contribution. Equivalent to [member ReflectionProbe.interior_enable].
-			</description>
-		</method>
-		<method name="reflection_probe_set_cull_mask">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="layers" type="int" />
-			<description>
-				Sets the render cull mask for this reflection probe. Only instances with a matching cull mask will be rendered by this probe. Equivalent to [member ReflectionProbe.cull_mask].
-			</description>
-		</method>
-		<method name="reflection_probe_set_enable_box_projection">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<description>
-				If [code]true[/code], uses box projection. This can make reflections look more correct in certain situations. Equivalent to [member ReflectionProbe.box_projection].
-			</description>
-		</method>
-		<method name="reflection_probe_set_enable_shadows">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="enable" type="bool" />
-			<description>
-				If [code]true[/code], computes shadows in the reflection probe. This makes the reflection much slower to compute. Equivalent to [member ReflectionProbe.enable_shadows].
-			</description>
-		</method>
-		<method name="reflection_probe_set_extents">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="extents" type="Vector3" />
-			<description>
-				Sets the size of the area that the reflection probe will capture. Equivalent to [member ReflectionProbe.extents].
-			</description>
-		</method>
-		<method name="reflection_probe_set_intensity">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="intensity" type="float" />
-			<description>
-				Sets the intensity of the reflection probe. Intensity modulates the strength of the reflection. Equivalent to [member ReflectionProbe.intensity].
-			</description>
-		</method>
-		<method name="reflection_probe_set_interior_ambient">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="color" type="Color" />
-			<description>
-				Sets the ambient light color for this reflection probe when set to interior mode. Equivalent to [member ReflectionProbe.interior_ambient_color].
-			</description>
-		</method>
-		<method name="reflection_probe_set_interior_ambient_energy">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="energy" type="float" />
-			<description>
-				Sets the energy multiplier for this reflection probes ambient light contribution when set to interior mode. Equivalent to [member ReflectionProbe.interior_ambient_energy].
-			</description>
-		</method>
-		<method name="reflection_probe_set_interior_ambient_probe_contribution">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="contrib" type="float" />
-			<description>
-				Sets the contribution value for how much the reflection affects the ambient light for this reflection probe when set to interior mode. Useful so that ambient light matches the color of the room. Equivalent to [member ReflectionProbe.interior_ambient_contrib].
-			</description>
-		</method>
-		<method name="reflection_probe_set_max_distance">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="distance" type="float" />
-			<description>
-				Sets the max distance away from the probe an object can be before it is culled. Equivalent to [member ReflectionProbe.max_distance].
-			</description>
-		</method>
-		<method name="reflection_probe_set_origin_offset">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="offset" type="Vector3" />
-			<description>
-				Sets the origin offset to be used when this reflection probe is in box project mode. Equivalent to [member ReflectionProbe.origin_offset].
-			</description>
-		</method>
-		<method name="reflection_probe_set_update_mode">
-			<return type="void" />
-			<argument index="0" name="probe" type="RID" />
-			<argument index="1" name="mode" type="int" enum="RenderingServer.ReflectionProbeUpdateMode" />
-			<description>
-				Sets how often the reflection probe updates. Can either be once or every frame. See [enum ReflectionProbeUpdateMode] for options.
-			</description>
-		</method>
 		<method name="request_frame_drawn_callback">
 			<return type="void" />
 			<argument index="0" name="where" type="Object" />
 			<argument index="1" name="method" type="StringName" />
 			<argument index="2" name="userdata" type="Variant" />
 			<description>
-			</description>
-		</method>
-		<method name="scenario_create">
-			<return type="RID" />
-			<description>
-				Creates a scenario and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]scenario_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-				The scenario is the 3D world that all the visual instances exist in.
-			</description>
-		</method>
-		<method name="scenario_set_debug">
-			<return type="void" />
-			<argument index="0" name="scenario" type="RID" />
-			<argument index="1" name="debug_mode" type="int" enum="RenderingServer.ScenarioDebugMode" />
-			<description>
-				Sets the [enum ScenarioDebugMode] for this scenario. See [enum ScenarioDebugMode] for options.
-			</description>
-		</method>
-		<method name="scenario_set_environment">
-			<return type="void" />
-			<argument index="0" name="scenario" type="RID" />
-			<argument index="1" name="environment" type="RID" />
-			<description>
-				Sets the environment that will be used with this scenario.
-			</description>
-		</method>
-		<method name="scenario_set_fallback_environment">
-			<return type="void" />
-			<argument index="0" name="scenario" type="RID" />
-			<argument index="1" name="environment" type="RID" />
-			<description>
-				Sets the fallback environment to be used by this scenario. The fallback environment is used if no environment is set. Internally, this is used by the editor to provide a default environment.
-			</description>
-		</method>
-		<method name="scenario_set_reflection_atlas_size">
-			<return type="void" />
-			<argument index="0" name="scenario" type="RID" />
-			<argument index="1" name="size" type="int" />
-			<argument index="2" name="subdiv" type="int" />
-			<description>
-				Sets the size of the reflection atlas shared by all reflection probes in this scenario.
 			</description>
 		</method>
 		<method name="set_boot_image">
@@ -2218,13 +1010,6 @@
 			<description>
 				Sets the scale to apply to the passage of time for the shaders' [code]TIME[/code] builtin.
 				The default value is [code]1.0[/code], which means [code]TIME[/code] will count the real time as it goes by, without narrowing or stretching it.
-			</description>
-		</method>
-		<method name="set_use_occlusion_culling">
-			<return type="void" />
-			<argument index="0" name="enable" type="bool" />
-			<description>
-				Enables or disables occlusion culling.
 			</description>
 		</method>
 		<method name="shader_create">
@@ -2269,87 +1054,6 @@
 			<argument index="1" name="name" type="StringName" />
 			<argument index="2" name="texture" type="RID" />
 			<description>
-			</description>
-		</method>
-		<method name="skeleton_allocate">
-			<return type="void" />
-			<argument index="0" name="skeleton" type="RID" />
-			<argument index="1" name="bones" type="int" />
-			<argument index="2" name="is_2d_skeleton" type="bool" default="false" />
-			<description>
-				Allocates the GPU buffers for this skeleton.
-			</description>
-		</method>
-		<method name="skeleton_bone_get_transform" qualifiers="const">
-			<return type="Transform" />
-			<argument index="0" name="skeleton" type="RID" />
-			<argument index="1" name="bone" type="int" />
-			<description>
-				Returns the [Transform] set for a specific bone of this skeleton.
-			</description>
-		</method>
-		<method name="skeleton_bone_get_transform_2d" qualifiers="const">
-			<return type="Transform2D" />
-			<argument index="0" name="skeleton" type="RID" />
-			<argument index="1" name="bone" type="int" />
-			<description>
-				Returns the [Transform2D] set for a specific bone of this skeleton.
-			</description>
-		</method>
-		<method name="skeleton_bone_set_transform">
-			<return type="void" />
-			<argument index="0" name="skeleton" type="RID" />
-			<argument index="1" name="bone" type="int" />
-			<argument index="2" name="transform" type="Transform" />
-			<description>
-				Sets the [Transform] for a specific bone of this skeleton.
-			</description>
-		</method>
-		<method name="skeleton_bone_set_transform_2d">
-			<return type="void" />
-			<argument index="0" name="skeleton" type="RID" />
-			<argument index="1" name="bone" type="int" />
-			<argument index="2" name="transform" type="Transform2D" />
-			<description>
-				Sets the [Transform2D] for a specific bone of this skeleton.
-			</description>
-		</method>
-		<method name="skeleton_create">
-			<return type="RID" />
-			<description>
-				Creates a skeleton and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]skeleton_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-			</description>
-		</method>
-		<method name="skeleton_get_bone_count" qualifiers="const">
-			<return type="int" />
-			<argument index="0" name="skeleton" type="RID" />
-			<description>
-				Returns the number of bones allocated for this skeleton.
-			</description>
-		</method>
-		<method name="sky_create">
-			<return type="RID" />
-			<description>
-				Creates an empty sky and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]sky_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-			</description>
-		</method>
-		<method name="sky_set_texture">
-			<return type="void" />
-			<argument index="0" name="sky" type="RID" />
-			<argument index="1" name="cube_map" type="RID" />
-			<argument index="2" name="radiance_size" type="int" />
-			<description>
-				Sets a sky's texture.
-			</description>
-		</method>
-		<method name="spot_light_create">
-			<return type="RID" />
-			<description>
-				Creates a spot light and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID can be used in most [code]light_*[/code] RenderingServer functions.
-				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] static method.
-				To place in a scene, attach this spot light to an instance using [method instance_set_base] using the returned RID.
 			</description>
 		</method>
 		<method name="sync">
@@ -2552,14 +1256,6 @@
 				If [code]true[/code], the image will be stored in the texture's images array if overwritten.
 			</description>
 		</method>
-		<method name="viewport_attach_camera">
-			<return type="void" />
-			<argument index="0" name="viewport" type="RID" />
-			<argument index="1" name="camera" type="RID" />
-			<description>
-				Sets a viewport's camera.
-			</description>
-		</method>
 		<method name="viewport_attach_canvas">
 			<return type="void" />
 			<argument index="0" name="viewport" type="RID" />
@@ -2665,22 +1361,6 @@
 				Sets the debug draw mode of a viewport. See [enum ViewportDebugDraw] for options.
 			</description>
 		</method>
-		<method name="viewport_set_disable_3d">
-			<return type="void" />
-			<argument index="0" name="viewport" type="RID" />
-			<argument index="1" name="disabled" type="bool" />
-			<description>
-				If [code]true[/code], a viewport's 3D rendering is disabled.
-			</description>
-		</method>
-		<method name="viewport_set_disable_environment">
-			<return type="void" />
-			<argument index="0" name="viewport" type="RID" />
-			<argument index="1" name="disabled" type="bool" />
-			<description>
-				If [code]true[/code], rendering of a viewport's environment is disabled.
-			</description>
-		</method>
 		<method name="viewport_set_global_canvas_transform">
 			<return type="void" />
 			<argument index="0" name="viewport" type="RID" />
@@ -2706,14 +1386,6 @@
 				If [code]true[/code], the viewport's canvas is not rendered.
 			</description>
 		</method>
-		<method name="viewport_set_hide_scenario">
-			<return type="void" />
-			<argument index="0" name="viewport" type="RID" />
-			<argument index="1" name="hidden" type="bool" />
-			<description>
-				Currently unimplemented in Godot 3.x.
-			</description>
-		</method>
 		<method name="viewport_set_msaa">
 			<return type="void" />
 			<argument index="0" name="viewport" type="RID" />
@@ -2736,32 +1408,6 @@
 			<argument index="1" name="enabled" type="bool" />
 			<description>
 				If [code]true[/code], render the contents of the viewport directly to screen. This allows a low-level optimization where you can skip drawing a viewport to the root viewport. While this optimization can result in a significant increase in speed (especially on older devices), it comes at a cost of usability. When this is enabled, you cannot read from the viewport or from the [code]SCREEN_TEXTURE[/code]. You also lose the benefit of certain window settings, such as the various stretch modes. Another consequence to be aware of is that in 2D the rendering happens in window coordinates, so if you have a viewport that is double the size of the window, and you set this, then only the portion that fits within the window will be drawn, no automatic scaling is possible, even if your game scene is significantly larger than the window size.
-			</description>
-		</method>
-		<method name="viewport_set_scenario">
-			<return type="void" />
-			<argument index="0" name="viewport" type="RID" />
-			<argument index="1" name="scenario" type="RID" />
-			<description>
-				Sets a viewport's scenario.
-				The scenario contains information about the [enum ScenarioDebugMode], environment information, reflection atlas etc.
-			</description>
-		</method>
-		<method name="viewport_set_shadow_atlas_quadrant_subdivision">
-			<return type="void" />
-			<argument index="0" name="viewport" type="RID" />
-			<argument index="1" name="quadrant" type="int" />
-			<argument index="2" name="subdivision" type="int" />
-			<description>
-				Sets the shadow atlas quadrant's subdivision.
-			</description>
-		</method>
-		<method name="viewport_set_shadow_atlas_size">
-			<return type="void" />
-			<argument index="0" name="viewport" type="RID" />
-			<argument index="1" name="size" type="int" />
-			<description>
-				Sets the size of the shadow atlas's images (used for omni and spot lights). The value will be rounded up to the nearest power of 2.
 			</description>
 		</method>
 		<method name="viewport_set_sharpen_intensity">
@@ -2937,16 +1583,10 @@
 		<constant name="TEXTURE_FLAGS_DEFAULT" value="7" enum="TextureFlags">
 			Default flags. [constant TEXTURE_FLAG_MIPMAPS], [constant TEXTURE_FLAG_REPEAT] and [constant TEXTURE_FLAG_FILTER] are enabled.
 		</constant>
-		<constant name="SHADER_SPATIAL" value="0" enum="ShaderMode">
-			Shader is a 3D shader.
-		</constant>
-		<constant name="SHADER_CANVAS_ITEM" value="1" enum="ShaderMode">
+		<constant name="SHADER_CANVAS_ITEM" value="0" enum="ShaderMode">
 			Shader is a 2D shader.
 		</constant>
-		<constant name="SHADER_PARTICLES" value="2" enum="ShaderMode">
-			Shader is a particle shader.
-		</constant>
-		<constant name="SHADER_MAX" value="3" enum="ShaderMode">
+		<constant name="SHADER_MAX" value="1" enum="ShaderMode">
 			Represents the size of the [enum ShaderMode] enum.
 		</constant>
 		<constant name="ARRAY_VERTEX" value="0" enum="ArrayType">
@@ -2967,16 +1607,10 @@
 		<constant name="ARRAY_TEX_UV2" value="5" enum="ArrayType">
 			Array is an UV coordinates array for the second UV coordinates.
 		</constant>
-		<constant name="ARRAY_BONES" value="6" enum="ArrayType">
-			Array contains bone information.
-		</constant>
-		<constant name="ARRAY_WEIGHTS" value="7" enum="ArrayType">
-			Array is weight information.
-		</constant>
-		<constant name="ARRAY_INDEX" value="8" enum="ArrayType">
+		<constant name="ARRAY_INDEX" value="6" enum="ArrayType">
 			Array is index array.
 		</constant>
-		<constant name="ARRAY_MAX" value="9" enum="ArrayType">
+		<constant name="ARRAY_MAX" value="7" enum="ArrayType">
 			Represents the size of the [enum ArrayType] enum.
 		</constant>
 		<constant name="ARRAY_FORMAT_VERTEX" value="1" enum="ArrayFormat">
@@ -2997,52 +1631,34 @@
 		<constant name="ARRAY_FORMAT_TEX_UV2" value="32" enum="ArrayFormat">
 			Flag used to mark an UV coordinates array for the second UV coordinates.
 		</constant>
-		<constant name="ARRAY_FORMAT_BONES" value="64" enum="ArrayFormat">
-			Flag used to mark a bone information array.
-		</constant>
-		<constant name="ARRAY_FORMAT_WEIGHTS" value="128" enum="ArrayFormat">
-			Flag used to mark a weights array.
-		</constant>
-		<constant name="ARRAY_FORMAT_INDEX" value="256" enum="ArrayFormat">
+		<constant name="ARRAY_FORMAT_INDEX" value="64" enum="ArrayFormat">
 			Flag used to mark an index array.
 		</constant>
-		<constant name="ARRAY_COMPRESS_VERTEX" value="512" enum="ArrayFormat">
+		<constant name="ARRAY_COMPRESS_VERTEX" value="128" enum="ArrayFormat">
 			Flag used to mark a compressed (half float) vertex array.
 		</constant>
-		<constant name="ARRAY_COMPRESS_NORMAL" value="1024" enum="ArrayFormat">
+		<constant name="ARRAY_COMPRESS_NORMAL" value="256" enum="ArrayFormat">
 			Flag used to mark a compressed (half float) normal array.
 		</constant>
-		<constant name="ARRAY_COMPRESS_TANGENT" value="2048" enum="ArrayFormat">
+		<constant name="ARRAY_COMPRESS_TANGENT" value="512" enum="ArrayFormat">
 			Flag used to mark a compressed (half float) tangent array.
 		</constant>
-		<constant name="ARRAY_COMPRESS_COLOR" value="4096" enum="ArrayFormat">
+		<constant name="ARRAY_COMPRESS_COLOR" value="1024" enum="ArrayFormat">
 			Flag used to mark a compressed (half float) color array.
 		</constant>
-		<constant name="ARRAY_COMPRESS_TEX_UV" value="8192" enum="ArrayFormat">
+		<constant name="ARRAY_COMPRESS_TEX_UV" value="2048" enum="ArrayFormat">
 			Flag used to mark a compressed (half float) UV coordinates array.
 		</constant>
-		<constant name="ARRAY_COMPRESS_TEX_UV2" value="16384" enum="ArrayFormat">
+		<constant name="ARRAY_COMPRESS_TEX_UV2" value="4096" enum="ArrayFormat">
 			Flag used to mark a compressed (half float) UV coordinates array for the second UV coordinates.
 		</constant>
-		<constant name="ARRAY_COMPRESS_BONES" value="32768" enum="ArrayFormat">
-			Flag used to mark a compressed bone array.
-		</constant>
-		<constant name="ARRAY_COMPRESS_WEIGHTS" value="65536" enum="ArrayFormat">
-			Flag used to mark a compressed (half float) weight array.
-		</constant>
-		<constant name="ARRAY_COMPRESS_INDEX" value="131072" enum="ArrayFormat">
+		<constant name="ARRAY_COMPRESS_INDEX" value="8192" enum="ArrayFormat">
 			Flag used to mark a compressed index array.
 		</constant>
-		<constant name="ARRAY_FLAG_USE_2D_VERTICES" value="262144" enum="ArrayFormat">
+		<constant name="ARRAY_FLAG_USE_2D_VERTICES" value="16384" enum="ArrayFormat">
 			Flag used to mark that the array contains 2D vertices.
 		</constant>
-		<constant name="ARRAY_FLAG_USE_16_BIT_BONES" value="524288" enum="ArrayFormat">
-			Flag used to mark that the array uses 16-bit bones instead of 8-bit.
-		</constant>
-		<constant name="ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION" value="2097152" enum="ArrayFormat">
-			Flag used to mark that the array uses an octahedral representation of normal and tangent vectors rather than cartesian.
-		</constant>
-		<constant name="ARRAY_COMPRESS_DEFAULT" value="2194432" enum="ArrayFormat">
+		<constant name="ARRAY_COMPRESS_DEFAULT" value="7936" enum="ArrayFormat">
 			Used to set flags [constant ARRAY_COMPRESS_NORMAL], [constant ARRAY_COMPRESS_TANGENT], [constant ARRAY_COMPRESS_COLOR], [constant ARRAY_COMPRESS_TEX_UV], [constant ARRAY_COMPRESS_TEX_UV2], [constant ARRAY_COMPRESS_WEIGHTS], and [constant ARRAY_FLAG_USE_OCTAHEDRAL_COMPRESSION] quickly.
 		</constant>
 		<constant name="PRIMITIVE_POINTS" value="0" enum="PrimitiveType">
@@ -3074,96 +1690,6 @@
 		</constant>
 		<constant name="BLEND_SHAPE_MODE_RELATIVE" value="1" enum="BlendShapeMode">
 			Blend shapes are relative to base weight.
-		</constant>
-		<constant name="LIGHT_DIRECTIONAL" value="0" enum="LightType">
-			Is a directional (sun) light.
-		</constant>
-		<constant name="LIGHT_OMNI" value="1" enum="LightType">
-			Is an omni light.
-		</constant>
-		<constant name="LIGHT_SPOT" value="2" enum="LightType">
-			Is a spot light.
-		</constant>
-		<constant name="LIGHT_PARAM_ENERGY" value="0" enum="LightParam">
-			The light's energy.
-		</constant>
-		<constant name="LIGHT_PARAM_INDIRECT_ENERGY" value="1" enum="LightParam">
-			Secondary multiplier used with indirect light (light bounces).
-		</constant>
-		<constant name="LIGHT_PARAM_SIZE" value="2" enum="LightParam">
-			The light's size, currently only used for soft shadows in baked lightmaps.
-		</constant>
-		<constant name="LIGHT_PARAM_SPECULAR" value="3" enum="LightParam">
-			The light's influence on specularity.
-		</constant>
-		<constant name="LIGHT_PARAM_RANGE" value="4" enum="LightParam">
-			The light's range.
-		</constant>
-		<constant name="LIGHT_PARAM_ATTENUATION" value="5" enum="LightParam">
-			The light's attenuation.
-		</constant>
-		<constant name="LIGHT_PARAM_SPOT_ANGLE" value="6" enum="LightParam">
-			The spotlight's angle.
-		</constant>
-		<constant name="LIGHT_PARAM_SPOT_ATTENUATION" value="7" enum="LightParam">
-			The spotlight's attenuation.
-		</constant>
-		<constant name="LIGHT_PARAM_CONTACT_SHADOW_SIZE" value="8" enum="LightParam">
-			Scales the shadow color.
-		</constant>
-		<constant name="LIGHT_PARAM_SHADOW_MAX_DISTANCE" value="9" enum="LightParam">
-			Max distance that shadows will be rendered.
-		</constant>
-		<constant name="LIGHT_PARAM_SHADOW_SPLIT_1_OFFSET" value="10" enum="LightParam">
-			Proportion of shadow atlas occupied by the first split.
-		</constant>
-		<constant name="LIGHT_PARAM_SHADOW_SPLIT_2_OFFSET" value="11" enum="LightParam">
-			Proportion of shadow atlas occupied by the second split.
-		</constant>
-		<constant name="LIGHT_PARAM_SHADOW_SPLIT_3_OFFSET" value="12" enum="LightParam">
-			Proportion of shadow atlas occupied by the third split. The fourth split occupies the rest.
-		</constant>
-		<constant name="LIGHT_PARAM_SHADOW_NORMAL_BIAS" value="13" enum="LightParam">
-			Normal bias used to offset shadow lookup by object normal. Can be used to fix self-shadowing artifacts.
-		</constant>
-		<constant name="LIGHT_PARAM_SHADOW_BIAS" value="14" enum="LightParam">
-			Bias the shadow lookup to fix self-shadowing artifacts.
-		</constant>
-		<constant name="LIGHT_PARAM_SHADOW_BIAS_SPLIT_SCALE" value="15" enum="LightParam">
-			Increases bias on further splits to fix self-shadowing that only occurs far away from the camera.
-		</constant>
-		<constant name="LIGHT_PARAM_MAX" value="16" enum="LightParam">
-			Represents the size of the [enum LightParam] enum.
-		</constant>
-		<constant name="LIGHT_OMNI_SHADOW_DUAL_PARABOLOID" value="0" enum="LightOmniShadowMode">
-			Use a dual paraboloid shadow map for omni lights.
-		</constant>
-		<constant name="LIGHT_OMNI_SHADOW_CUBE" value="1" enum="LightOmniShadowMode">
-			Use a cubemap shadow map for omni lights. Slower but better quality than dual paraboloid.
-		</constant>
-		<constant name="LIGHT_OMNI_SHADOW_DETAIL_VERTICAL" value="0" enum="LightOmniShadowDetail">
-			Use more detail vertically when computing shadow map.
-		</constant>
-		<constant name="LIGHT_OMNI_SHADOW_DETAIL_HORIZONTAL" value="1" enum="LightOmniShadowDetail">
-			Use more detail horizontally when computing shadow map.
-		</constant>
-		<constant name="LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL" value="0" enum="LightDirectionalShadowMode">
-			Use orthogonal shadow projection for directional light.
-		</constant>
-		<constant name="LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS" value="1" enum="LightDirectionalShadowMode">
-			Use 2 splits for shadow projection when using directional light.
-		</constant>
-		<constant name="LIGHT_DIRECTIONAL_SHADOW_PARALLEL_3_SPLITS" value="2" enum="LightDirectionalShadowMode">
-			Use 3 splits for shadow projection when using directional light.
-		</constant>
-		<constant name="LIGHT_DIRECTIONAL_SHADOW_PARALLEL_4_SPLITS" value="3" enum="LightDirectionalShadowMode">
-			Use 4 splits for shadow projection when using directional light.
-		</constant>
-		<constant name="LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_STABLE" value="0" enum="LightDirectionalShadowDepthRangeMode">
-			Keeps shadows stable as camera moves but has lower effective resolution.
-		</constant>
-		<constant name="LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_OPTIMIZED" value="1" enum="LightDirectionalShadowDepthRangeMode">
-			Optimize use of shadow maps, increasing the effective resolution. But may result in shadows moving or flickering slightly.
 		</constant>
 		<constant name="VIEWPORT_UPDATE_DISABLED" value="0" enum="ViewportUpdateMode">
 			Do not update the viewport.
@@ -3213,12 +1739,6 @@
 		<constant name="VIEWPORT_USAGE_2D_NO_SAMPLING" value="1" enum="ViewportUsage">
 			The Viewport does not render 3D and does not sample.
 		</constant>
-		<constant name="VIEWPORT_USAGE_3D" value="2" enum="ViewportUsage">
-			The Viewport renders 3D with effects.
-		</constant>
-		<constant name="VIEWPORT_USAGE_3D_NO_EFFECTS" value="3" enum="ViewportUsage">
-			The Viewport renders 3D but without effects.
-		</constant>
 		<constant name="VIEWPORT_RENDER_INFO_OBJECTS_IN_FRAME" value="0" enum="ViewportRenderInfo">
 			Number of objects drawn in a single frame.
 		</constant>
@@ -3258,18 +1778,6 @@
 		<constant name="VIEWPORT_DEBUG_DRAW_WIREFRAME" value="3" enum="ViewportDebugDraw">
 			Debug draw draws objects in wireframe.
 		</constant>
-		<constant name="SCENARIO_DEBUG_DISABLED" value="0" enum="ScenarioDebugMode">
-			Do not use a debug mode.
-		</constant>
-		<constant name="SCENARIO_DEBUG_WIREFRAME" value="1" enum="ScenarioDebugMode">
-			Draw all objects as wireframe models.
-		</constant>
-		<constant name="SCENARIO_DEBUG_OVERDRAW" value="2" enum="ScenarioDebugMode">
-			Draw all objects in a way that displays how much overdraw is occurring. Overdraw occurs when a section of pixels is drawn and shaded and then another object covers it up. To optimize a scene, you should reduce overdraw.
-		</constant>
-		<constant name="SCENARIO_DEBUG_SHADELESS" value="3" enum="ScenarioDebugMode">
-			Draw all objects without shading. Equivalent to setting all objects shaders to [code]unshaded[/code].
-		</constant>
 		<constant name="INSTANCE_NONE" value="0" enum="InstanceType">
 			The instance does not have a type.
 		</constant>
@@ -3279,19 +1787,10 @@
 		<constant name="INSTANCE_MULTIMESH" value="2" enum="InstanceType">
 			The instance is a multimesh.
 		</constant>
-		<constant name="INSTANCE_IMMEDIATE" value="3" enum="InstanceType">
-			The instance is an immediate geometry.
-		</constant>
-		<constant name="INSTANCE_LIGHT" value="4" enum="InstanceType">
-			The instance is a light.
-		</constant>
-		<constant name="INSTANCE_REFLECTION_PROBE" value="5" enum="InstanceType">
-			The instance is a reflection probe.
-		</constant>
-		<constant name="INSTANCE_MAX" value="6" enum="InstanceType">
+		<constant name="INSTANCE_MAX" value="3" enum="InstanceType">
 			Represents the size of the [enum InstanceType] enum.
 		</constant>
-		<constant name="INSTANCE_GEOMETRY_MASK" value="14" enum="InstanceType">
+		<constant name="INSTANCE_GEOMETRY_MASK" value="6" enum="InstanceType">
 			A combination of the flags of geometry instances (mesh, multimesh, immediate and particles).
 		</constant>
 		<constant name="INSTANCE_FLAG_DRAW_NEXT_FRAME_IF_VISIBLE" value="0" enum="InstanceFlags">
@@ -3299,18 +1798,6 @@
 		</constant>
 		<constant name="INSTANCE_FLAG_MAX" value="1" enum="InstanceFlags">
 			Represents the size of the [enum InstanceFlags] enum.
-		</constant>
-		<constant name="SHADOW_CASTING_SETTING_OFF" value="0" enum="ShadowCastingSetting">
-			Disable shadows from this instance.
-		</constant>
-		<constant name="SHADOW_CASTING_SETTING_ON" value="1" enum="ShadowCastingSetting">
-			Cast shadows from this instance.
-		</constant>
-		<constant name="SHADOW_CASTING_SETTING_DOUBLE_SIDED" value="2" enum="ShadowCastingSetting">
-			Disable backface culling when rendering the shadow of the object. This is slightly slower but may result in more correct shadows.
-		</constant>
-		<constant name="SHADOW_CASTING_SETTING_SHADOWS_ONLY" value="3" enum="ShadowCastingSetting">
-			Only render the shadows from the object. The object itself will not be drawn.
 		</constant>
 		<constant name="NINE_PATCH_STRETCH" value="0" enum="NinePatchAxisMode">
 			The nine patch gets stretched where needed.
@@ -3320,45 +1807,6 @@
 		</constant>
 		<constant name="NINE_PATCH_TILE_FIT" value="2" enum="NinePatchAxisMode">
 			The nine patch gets filled with tiles where needed and stretches them a bit if needed.
-		</constant>
-		<constant name="CANVAS_LIGHT_MODE_ADD" value="0" enum="CanvasLightMode">
-			Adds light color additive to the canvas.
-		</constant>
-		<constant name="CANVAS_LIGHT_MODE_SUB" value="1" enum="CanvasLightMode">
-			Adds light color subtractive to the canvas.
-		</constant>
-		<constant name="CANVAS_LIGHT_MODE_MIX" value="2" enum="CanvasLightMode">
-			The light adds color depending on transparency.
-		</constant>
-		<constant name="CANVAS_LIGHT_MODE_MASK" value="3" enum="CanvasLightMode">
-			The light adds color depending on mask.
-		</constant>
-		<constant name="CANVAS_LIGHT_FILTER_NONE" value="0" enum="CanvasLightShadowFilter">
-			Do not apply a filter to canvas light shadows.
-		</constant>
-		<constant name="CANVAS_LIGHT_FILTER_PCF3" value="1" enum="CanvasLightShadowFilter">
-			Use PCF3 filtering to filter canvas light shadows.
-		</constant>
-		<constant name="CANVAS_LIGHT_FILTER_PCF5" value="2" enum="CanvasLightShadowFilter">
-			Use PCF5 filtering to filter canvas light shadows.
-		</constant>
-		<constant name="CANVAS_LIGHT_FILTER_PCF7" value="3" enum="CanvasLightShadowFilter">
-			Use PCF7 filtering to filter canvas light shadows.
-		</constant>
-		<constant name="CANVAS_LIGHT_FILTER_PCF9" value="4" enum="CanvasLightShadowFilter">
-			Use PCF9 filtering to filter canvas light shadows.
-		</constant>
-		<constant name="CANVAS_LIGHT_FILTER_PCF13" value="5" enum="CanvasLightShadowFilter">
-			Use PCF13 filtering to filter canvas light shadows.
-		</constant>
-		<constant name="CANVAS_OCCLUDER_POLYGON_CULL_DISABLED" value="0" enum="CanvasOccluderPolygonCullMode">
-			Culling of the canvas occluder is disabled.
-		</constant>
-		<constant name="CANVAS_OCCLUDER_POLYGON_CULL_CLOCKWISE" value="1" enum="CanvasOccluderPolygonCullMode">
-			Culling of the canvas occluder is clockwise.
-		</constant>
-		<constant name="CANVAS_OCCLUDER_POLYGON_CULL_COUNTER_CLOCKWISE" value="2" enum="CanvasOccluderPolygonCullMode">
-			Culling of the canvas occluder is counterclockwise.
 		</constant>
 		<constant name="INFO_OBJECTS_IN_FRAME" value="0" enum="RenderInfo">
 			The amount of objects in the frame.
@@ -3437,91 +1885,6 @@
 		</constant>
 		<constant name="MULTIMESH_INTERP_QUALITY_HIGH" value="1" enum="MultimeshPhysicsInterpolationQuality">
 			MultiMesh physics interpolation favours quality over speed.
-		</constant>
-		<constant name="REFLECTION_PROBE_UPDATE_ONCE" value="0" enum="ReflectionProbeUpdateMode">
-			Reflection probe will update reflections once and then stop.
-		</constant>
-		<constant name="REFLECTION_PROBE_UPDATE_ALWAYS" value="1" enum="ReflectionProbeUpdateMode">
-			Reflection probe will update each frame. This mode is necessary to capture moving objects.
-		</constant>
-		<constant name="ENV_BG_CLEAR_COLOR" value="0" enum="Environment3DBG">
-			Use the clear color as background.
-		</constant>
-		<constant name="ENV_BG_COLOR" value="1" enum="Environment3DBG">
-			Use a specified color as the background.
-		</constant>
-		<constant name="ENV_BG_SKY" value="2" enum="Environment3DBG">
-			Use a sky resource for the background.
-		</constant>
-		<constant name="ENV_BG_COLOR_SKY" value="3" enum="Environment3DBG">
-			Use a custom color for background, but use a sky for shading and reflections.
-		</constant>
-		<constant name="ENV_BG_CANVAS" value="4" enum="Environment3DBG">
-			Use a specified canvas layer as the background. This can be useful for instantiating a 2D scene in a 3D world.
-		</constant>
-		<constant name="ENV_BG_KEEP" value="5" enum="Environment3DBG">
-			Do not clear the background, use whatever was rendered last frame as the background.
-		</constant>
-		<constant name="ENV_BG_MAX" value="7" enum="Environment3DBG">
-			Represents the size of the [enum Environment3DBG] enum.
-		</constant>
-		<constant name="ENV_DOF_BLUR_QUALITY_LOW" value="0" enum="Environment3DDOFBlurQuality">
-			Use lowest blur quality. Fastest, but may look bad.
-		</constant>
-		<constant name="ENV_DOF_BLUR_QUALITY_MEDIUM" value="1" enum="Environment3DDOFBlurQuality">
-			Use medium blur quality.
-		</constant>
-		<constant name="ENV_DOF_BLUR_QUALITY_HIGH" value="2" enum="Environment3DDOFBlurQuality">
-			Used highest blur quality. Looks the best, but is the slowest.
-		</constant>
-		<constant name="GLOW_BLEND_MODE_ADDITIVE" value="0" enum="Environment3DGlowBlendMode">
-			Add the effect of the glow on top of the scene.
-		</constant>
-		<constant name="GLOW_BLEND_MODE_SCREEN" value="1" enum="Environment3DGlowBlendMode">
-			Blends the glow effect with the screen. Does not get as bright as additive.
-		</constant>
-		<constant name="GLOW_BLEND_MODE_SOFTLIGHT" value="2" enum="Environment3DGlowBlendMode">
-			Produces a subtle color disturbance around objects.
-		</constant>
-		<constant name="GLOW_BLEND_MODE_REPLACE" value="3" enum="Environment3DGlowBlendMode">
-			Shows the glow effect by itself without the underlying scene.
-		</constant>
-		<constant name="ENV_TONE_MAPPER_LINEAR" value="0" enum="Environment3DToneMapper">
-			Output color as they came in. This can cause bright lighting to look blown out, with noticeable clipping in the output colors.
-		</constant>
-		<constant name="ENV_TONE_MAPPER_REINHARD" value="1" enum="Environment3DToneMapper">
-			Use the Reinhard tonemapper. Performs a variation on rendered pixels' colors by this formula: [code]color = color / (1 + color)[/code]. This avoids clipping bright highlights, but the resulting image can look a bit dull.
-		</constant>
-		<constant name="ENV_TONE_MAPPER_FILMIC" value="2" enum="Environment3DToneMapper">
-			Use the filmic tonemapper. This avoids clipping bright highlights, with a resulting image that usually looks more vivid than [constant ENV_TONE_MAPPER_REINHARD].
-		</constant>
-		<constant name="ENV_TONE_MAPPER_ACES" value="3" enum="Environment3DToneMapper">
-			Use the legacy Godot version of the Academy Color Encoding System tonemapper. Unlike [constant ENV_TONE_MAPPER_ACES_FITTED], this version of ACES does not handle bright lighting in a physically accurate way. ACES typically has a more contrasted output compared to [constant ENV_TONE_MAPPER_REINHARD] and [constant ENV_TONE_MAPPER_FILMIC].
-			[b]Note:[/b] This tonemapping operator will be removed in Godot 4.0 in favor of the more accurate [constant ENV_TONE_MAPPER_ACES_FITTED].
-		</constant>
-		<constant name="ENV_TONE_MAPPER_ACES_FITTED" value="4" enum="Environment3DToneMapper">
-			Use the Academy Color Encoding System tonemapper. ACES is slightly more expensive than other options, but it handles bright lighting in a more realistic fashion by desaturating it as it becomes brighter. ACES typically has a more contrasted output compared to [constant ENV_TONE_MAPPER_REINHARD] and [constant ENV_TONE_MAPPER_FILMIC].
-		</constant>
-		<constant name="ENV_SSAO_QUALITY_LOW" value="0" enum="Environment3DSSAOQuality">
-			Lowest quality of screen space ambient occlusion.
-		</constant>
-		<constant name="ENV_SSAO_QUALITY_MEDIUM" value="1" enum="Environment3DSSAOQuality">
-			Medium quality screen space ambient occlusion.
-		</constant>
-		<constant name="ENV_SSAO_QUALITY_HIGH" value="2" enum="Environment3DSSAOQuality">
-			Highest quality screen space ambient occlusion.
-		</constant>
-		<constant name="ENV_SSAO_BLUR_DISABLED" value="0" enum="Environment3DSSAOBlur">
-			Disables the blur set for SSAO. Will make SSAO look noisier.
-		</constant>
-		<constant name="ENV_SSAO_BLUR_1x1" value="1" enum="Environment3DSSAOBlur">
-			Perform a 1x1 blur on the SSAO output.
-		</constant>
-		<constant name="ENV_SSAO_BLUR_2x2" value="2" enum="Environment3DSSAOBlur">
-			Performs a 2x2 blur on the SSAO output.
-		</constant>
-		<constant name="ENV_SSAO_BLUR_3x3" value="3" enum="Environment3DSSAOBlur">
-			Performs a 3x3 blur on the SSAO output. Use this for smoothest SSAO.
 		</constant>
 		<constant name="CHANGED_PRIORITY_ANY" value="0" enum="ChangedPriority">
 			Used to query for any changes that request a redraw, whatever the priority.

@@ -18,14 +18,8 @@
 		<member name="ClassDB" type="ClassDB" setter="" getter="">
 			The [ClassDB] singleton.
 		</member>
-		<member name="DatabaseManager" type="DatabaseManager" setter="" getter="">
-		</member>
-		<member name="ESS" type="ESS" setter="" getter="">
-		</member>
 		<member name="Engine" type="Engine" setter="" getter="">
 			The [Engine] singleton.
-		</member>
-		<member name="GSAIUtils" type="GSAIUtils" setter="" getter="">
 		</member>
 		<member name="Geometry" type="Geometry" setter="" getter="">
 			The [Geometry] singleton.
@@ -42,29 +36,8 @@
 		<member name="JSON" type="JSON" setter="" getter="">
 			The [JSON] singleton.
 		</member>
-		<member name="JavaClassWrapper" type="JavaClassWrapper" setter="" getter="">
-			The [JavaClassWrapper] singleton.
-			[b]Note:[/b] Only implemented on Android.
-		</member>
-		<member name="JavaScript" type="JavaScript" setter="" getter="">
-			The [JavaScript] singleton.
-			[b]Note:[/b] Only implemented on HTML5.
-		</member>
-		<member name="MMAlgos" type="MMAlgos" setter="" getter="">
-		</member>
 		<member name="Marshalls" type="Marshalls" setter="" getter="">
 			The [Marshalls] singleton.
-		</member>
-		<member name="MeshUtils" type="MeshUtils" setter="" getter="">
-		</member>
-		<member name="Navigation2DServer" type="Navigation2DServer" setter="" getter="">
-			The [Navigation2DServer] singleton.
-		</member>
-		<member name="NavigationMeshGenerator" type="NavigationMeshGenerator" setter="" getter="">
-			The [NavigationMeshGenerator] singleton.
-		</member>
-		<member name="NavigationServer" type="NavigationServer" setter="" getter="">
-			The [NavigationServer] singleton.
 		</member>
 		<member name="OS" type="OS" setter="" getter="">
 			The [OS] singleton.
@@ -77,21 +50,8 @@
 		<member name="Physics2DServer" type="Physics2DServer" setter="" getter="">
 			The [Physics2DServer] singleton.
 		</member>
-		<member name="PhysicsServer" type="PhysicsServer" setter="" getter="">
-			The [PhysicsServer] singleton.
-		</member>
-		<member name="ProfileManager" type="ProfileManager" setter="" getter="">
-		</member>
 		<member name="ProjectSettings" type="ProjectSettings" setter="" getter="">
 			The [ProjectSettings] singleton.
-		</member>
-		<member name="Prop2DCache" type="Prop2DCache" setter="" getter="">
-		</member>
-		<member name="Prop2DUtils" type="Prop2DUtils" setter="" getter="">
-		</member>
-		<member name="PropCache" type="PropCache" setter="" getter="">
-		</member>
-		<member name="PropUtils" type="PropUtils" setter="" getter="">
 		</member>
 		<member name="RenderingServer" type="RenderingServer" setter="" getter="">
 			The [RenderingServer] singleton.
@@ -112,10 +72,6 @@
 		</member>
 		<member name="TranslationServer" type="TranslationServer" setter="" getter="">
 			The [TranslationServer] singleton.
-		</member>
-		<member name="UnitTestDB" type="UnitTestDB" setter="" getter="">
-		</member>
-		<member name="UserDB" type="UserDB" setter="" getter="">
 		</member>
 	</members>
 	<constants>

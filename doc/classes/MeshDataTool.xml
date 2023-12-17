@@ -139,13 +139,6 @@
 				Returns the vertex at given index.
 			</description>
 		</method>
-		<method name="get_vertex_bones" qualifiers="const">
-			<return type="PoolIntArray" />
-			<argument index="0" name="idx" type="int" />
-			<description>
-				Returns the bones of the given vertex.
-			</description>
-		</method>
 		<method name="get_vertex_color" qualifiers="const">
 			<return type="Color" />
 			<argument index="0" name="idx" type="int" />
@@ -208,13 +201,6 @@
 				Returns the UV2 of the given vertex.
 			</description>
 		</method>
-		<method name="get_vertex_weights" qualifiers="const">
-			<return type="PoolRealArray" />
-			<argument index="0" name="idx" type="int" />
-			<description>
-				Returns bone weights of the given vertex.
-			</description>
-		</method>
 		<method name="set_edge_meta">
 			<return type="void" />
 			<argument index="0" name="idx" type="int" />
@@ -244,14 +230,6 @@
 			<argument index="1" name="vertex" type="Vector3" />
 			<description>
 				Sets the position of the given vertex.
-			</description>
-		</method>
-		<method name="set_vertex_bones">
-			<return type="void" />
-			<argument index="0" name="idx" type="int" />
-			<argument index="1" name="bones" type="PoolIntArray" />
-			<description>
-				Sets the bones of the given vertex.
 			</description>
 		</method>
 		<method name="set_vertex_color">
@@ -300,14 +278,6 @@
 			<argument index="1" name="uv2" type="Vector2" />
 			<description>
 				Sets the UV2 of the given vertex.
-			</description>
-		</method>
-		<method name="set_vertex_weights">
-			<return type="void" />
-			<argument index="0" name="idx" type="int" />
-			<argument index="1" name="weights" type="PoolRealArray" />
-			<description>
-				Sets the bone weights of the given vertex.
 			</description>
 		</method>
 	</methods>
