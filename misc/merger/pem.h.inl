@@ -1,5 +1,5 @@
-#ifndef PANDEMONIUM_MINIMAL_CORE_H
-#define PANDEMONIUM_MINIMAL_CORE_H
+#ifndef PANDEMONIUM_MINIMAL_H
+#define PANDEMONIUM_MINIMAL_H
 
 // https://github.com/Relintai/pandemonium_engine_minimal
 
