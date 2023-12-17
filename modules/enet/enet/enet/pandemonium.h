@@ -1,12 +1,12 @@
 #ifndef __ENET_PANDEMONIUM_H__
 #define __ENET_PANDEMONIUM_H__
-/*************************************************************************/
+
 /*  pandemonium.h                                                              */
-/*************************************************************************/
+
 /*                       This file is part of:                           */
 /*                           PANDEMONIUM ENGINE                                */
 /*                      https://godotengine.org                          */
-/*************************************************************************/
+
 /* Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2022 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
@@ -28,7 +28,7 @@
 /* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
-/*************************************************************************/
+
 /**
  @file  pandemonium.h
  @brief ENet Pandemonium header
