@@ -178,25 +178,6 @@ def configure(env):
 
     ## Dependencies
 
-    # FIXME: Check for existence of the libs before parsing their flags with pkg-config
-
-    # freetype depends on libpng and zlib, so bundling one of them while keeping others
-    # as shared libraries leads to weird issues
-    if env["builtin_freetype"] or env["builtin_libpng"] or env["builtin_zlib"]:
-        env["builtin_freetype"] = True
-        env["builtin_libpng"] = True
-        env["builtin_zlib"] = True
-
-    if not env["builtin_freetype"]:
-        env.ParseConfig("pkg-config freetype2 --cflags --libs")
-
-    if not env["builtin_libpng"]:
-        env.ParseConfig("pkg-config libpng16 --cflags --libs")
-
-    if False:  # not env['builtin_assimp']:
-        # FIXME: Add min version check
-        env.ParseConfig("pkg-config assimp --cflags --libs")
-
     if not env["builtin_enet"]:
         env.ParseConfig("pkg-config libenet --cflags --libs")
 
@@ -213,10 +194,6 @@ def configure(env):
         env.ParseConfig("pkg-config libpcre2-32 --cflags --libs")
 
     ## Flags
-
-    # Linkflags below this line should typically stay the last ones
-    if not env["builtin_zlib"]:
-        env.ParseConfig("pkg-config zlib --cflags --libs")
 
     env.Prepend(CPPPATH=["#platform/server"])
     env.Append(CPPDEFINES=["SERVER_ENABLED", "UNIX_ENABLED"])

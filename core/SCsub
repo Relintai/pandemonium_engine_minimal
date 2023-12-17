@@ -64,30 +64,29 @@ thirdparty_misc_sources = [thirdparty_misc_dir + file for file in thirdparty_mis
 env_thirdparty.add_source_files(thirdparty_obj, thirdparty_misc_sources)
 
 # Zlib library, can be unbundled
-if env["builtin_zlib"]:
-    thirdparty_zlib_dir = "thirdparty/zlib/"
-    thirdparty_zlib_sources = [
-        "adler32.c",
-        "compress.c",
-        "crc32.c",
-        "deflate.c",
-        "infback.c",
-        "inffast.c",
-        "inflate.c",
-        "inftrees.c",
-        "trees.c",
-        "uncompr.c",
-        "zutil.c",
-    ]
-    thirdparty_zlib_sources = [thirdparty_zlib_dir + file for file in thirdparty_zlib_sources]
+thirdparty_zlib_dir = "thirdparty/zlib/"
+thirdparty_zlib_sources = [
+    "adler32.c",
+    "compress.c",
+    "crc32.c",
+    "deflate.c",
+    "infback.c",
+    "inffast.c",
+    "inflate.c",
+    "inftrees.c",
+    "trees.c",
+    "uncompr.c",
+    "zutil.c",
+]
+thirdparty_zlib_sources = [thirdparty_zlib_dir + file for file in thirdparty_zlib_sources]
 
-    env_thirdparty.Prepend(CPPPATH=[thirdparty_zlib_dir])
-    # Needs to be available in main env too
-    env.Prepend(CPPPATH=[thirdparty_zlib_dir])
-    if env["target"] == "debug":
-        env_thirdparty.Append(CPPDEFINES=["ZLIB_DEBUG"])
+env_thirdparty.Prepend(CPPPATH=[thirdparty_zlib_dir])
+# Needs to be available in main env too
+env.Prepend(CPPPATH=[thirdparty_zlib_dir])
+if env["target"] == "debug":
+    env_thirdparty.Append(CPPDEFINES=["ZLIB_DEBUG"])
 
-    env_thirdparty.add_source_files(thirdparty_obj, thirdparty_zlib_sources)
+env_thirdparty.add_source_files(thirdparty_obj, thirdparty_zlib_sources)
 
 env.core_sources += thirdparty_obj
 
