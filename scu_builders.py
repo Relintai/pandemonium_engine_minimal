@@ -159,11 +159,12 @@ def find_section_name(sub_folder):
 # Ideally in these situations, the source code should be changed to prevent naming conflicts.
 
 # "extension" will usually be cpp, but can also be set to c (for e.g. third party libraries that use c)
-def process_folder(folders, sought_exceptions=[], includes_per_scu=0, extension="cpp"):
+def process_folder(folders, sought_exceptions=[], includes_per_scu=0, extension_list="cpp"):
     if len(folders) == 0:
         return
 
-    extensions = extension.split(" ")
+    extensions = extension_list.split(" ")
+    extension = extensions[0]
 
     # Construct the filename prefix from the FIRST folder name
     # e.g. "scene_3d"
@@ -294,14 +295,26 @@ def generate_scu_files(verbose, is_release_build, env):
     else:
         process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
                         "os", "string", "variant", "io", "crypto", "crypto/mbedtls/library", "thirdparty/misc", 
-                        "thirdparty/zlib"], [], 0, "cpp c")
+                        "thirdparty/zlib"], [], 0, "cpp")
+
+        process_folder(["core", "bind", "config", "containers", "error", "input", "log", "math", "object",
+                        "os", "string", "variant", "io", "crypto", "crypto/mbedtls/library", "thirdparty/misc", 
+                        "thirdparty/zlib"], [], 0, "c")
 
     #process_folder(["drivers/gles2"], [], 0, "cpp c")
     #process_folder(["drivers/unix"], [], 0, "cpp c")
     #process_folder(["drivers/png"], [], 0, "cpp c")
 
-    process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gl_context/glad", "gles_common", "gles2",
-                    "png", "png/libpng", "pulseaudio", "unix", "wasapi", "windows", "xaudio2"], [], 0, "cpp c")
+    process_folder(["drivers","png", "png/libpng"], [], 0, "cpp")
+
+    process_folder([ "drivers", "png", "png/libpng" ], [], 0, "c")
+
+
+    #process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gl_context/glad", "gles_common", "gles2",
+    #                "png", "png/libpng", "pulseaudio", "unix", "wasapi", "windows", "xaudio2"], [], 0, "cpp")
+
+    #process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gl_context/glad", "gles_common", "gles2",
+    #                "png", "png/libpng", "pulseaudio", "unix", "wasapi", "windows", "xaudio2"], [], 0, "c")
 
     #process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gles2", "gles_common", "png", "pulseaudio", "unix", 
     #                    "wasapi", "windows", "xaudio2" ], [], 0, "cpp c")
@@ -339,9 +352,17 @@ def generate_scu_files(verbose, is_release_build, env):
                     "freetype/src/gzip", "freetype/src/lzw", "freetype/src/otvalid", "freetype/src/pcf",
                     "freetype/src/pfr", "freetype/src/psaux", "freetype/src/pshinter",
                     "freetype/src/psnames", "freetype/src/raster", "freetype/src/sdf", "freetype/src/svg", "freetype/src/smooth", "freetype/src/truetype",
-                    "freetype/src/type1", "freetype/src/type42", "freetype/src/winfonts"], [], 0, "cpp c")
+                    "freetype/src/type1", "freetype/src/type42", "freetype/src/winfonts"], [], 0, "cpp")
 
-    process_folder(["modules/enet", "enet" ], [], 0, "cpp c")
+    process_folder(["modules/freetype", "brotli/common", "brotli/dec", "freetype/src/autofit", "freetype/src/base", 
+                    "freetype/src/bdf", "freetype/src/bzip2", "freetype/src/cache", "freetype/src/cff", "freetype/src/cid", "freetype/src/gxvalid",
+                    "freetype/src/gzip", "freetype/src/lzw", "freetype/src/otvalid", "freetype/src/pcf",
+                    "freetype/src/pfr", "freetype/src/psaux", "freetype/src/pshinter",
+                    "freetype/src/psnames", "freetype/src/raster", "freetype/src/sdf", "freetype/src/svg", "freetype/src/smooth", "freetype/src/truetype",
+                    "freetype/src/type1", "freetype/src/type42", "freetype/src/winfonts"], [], 0, "c")
+
+    process_folder(["modules/enet", "enet" ], [], 0, "c")
+    process_folder(["modules/enet", "enet" ], [], 0, "c")
     #process_folder(["modules/enet" ], [], 0, "cpp c")
     #process_folder(["modules/enet/enet" ], [], 0, "cpp c")
 
