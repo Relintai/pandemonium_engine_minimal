@@ -29,6 +29,25 @@ import os
 template_args = {}
 input_path = ""
 
+print_includes_dict = dict()
+
+def print_includes(f):
+    s = f.split("\n")
+
+    for l in s:
+        if l.startswith("#include <"):
+            l = l.strip()
+
+            if not l in print_includes_dict:
+                print(l)
+                print_includes_dict[l] = 1
+
+
+def process_file(f):
+    #print_includes(f)
+
+    return f.replace('#include ', '//#include ')
+
 def process_command(name, value):
     if name == "ARG":
         print("Appending arg: " + value)
@@ -38,7 +57,7 @@ def process_command(name, value):
         print("Appending file: " + value)
         with open(file_path, "r") as file:
             res = "#line 1 \"" + value + "\"\n"
-            res += file.read()
+            res += process_file(file.read())
             res += "#line 0"
             return res
 
