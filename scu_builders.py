@@ -300,8 +300,8 @@ def generate_scu_files(verbose, is_release_build, env):
     #process_folder(["drivers/unix"], [], 0, "cpp c")
     #process_folder(["drivers/png"], [], 0, "cpp c")
 
-    process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gles_common", "gles2",
-                    "png", "pulseaudio", "unix", "wasapi", "windows", "xaudio2"], [], 0, "cpp c")
+    process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gl_context/glad", "gles_common", "gles2",
+                    "png", "png/libpng", "pulseaudio", "unix", "wasapi", "windows", "xaudio2"], [], 0, "cpp c")
 
     #process_folder(["drivers", "alsa", "coreaudio", "dummy", "gl_context", "gles2", "gles_common", "png", "pulseaudio", "unix", 
     #                    "wasapi", "windows", "xaudio2" ], [], 0, "cpp c")
@@ -321,12 +321,16 @@ def generate_scu_files(verbose, is_release_build, env):
         ]
     )
 
-    process_folder(["platform/x11"])
-    process_folder(["platform/windows"])
-    process_folder(["platform/server"])
-    process_folder(["platform/osx"])
+    #process_folder(["platform/x11"])
+    #process_folder(["platform/windows"])
+    #process_folder(["platform/server"])
+    #process_folder(["platform/osx"])
 
     #TODO These should be moved to module conpig.py s
+
+    #process_folder(["modules/bmp"])
+
+    process_folder(["modules/bmp"])
 
     process_folder(["modules/gdscript"])
 
@@ -340,6 +344,11 @@ def generate_scu_files(verbose, is_release_build, env):
     process_folder(["modules/enet", "enet" ], [], 0, "cpp c")
     #process_folder(["modules/enet" ], [], 0, "cpp c")
     #process_folder(["modules/enet/enet" ], [], 0, "cpp c")
+
+    process_folder(["modules/minimp3"])
+    process_folder(["modules/opensimplex", "thirdparty"])
+    process_folder(["modules/gdscript"])
+    process_folder(["modules/stb_vorbis", "stb_vorbis"])
 
     #process_folder(["modules/mbedtls"])
 
@@ -355,7 +364,7 @@ def generate_scu_files(verbose, is_release_build, env):
     #process_folder(["scene/main"])
     #process_folder(["scene/resources", "default_theme", "font", "material", "mesh", "shapes_2d"])
 
-    process_folder(["scene", "audio", "debugger", "2d", "animation", "gui", "gui/resources",  "main", "resources", "resources/default_theme", "resources/font", "resources/material", "resources/mesh", "resources/mesh/thirdparty", "resources/shapes_2d" ])
+    process_folder(["scene", "audio", "2d", "animation", "gui", "gui/resources",  "main", "resources", "resources/default_theme", "resources/font", "resources/material", "resources/mesh", "resources/mesh/thirdparty", "resources/shapes_2d" ])
 
     #process_folder(["servers"])
     #process_folder(["servers/rendering"])
